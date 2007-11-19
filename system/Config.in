@@ -1,0 +1,21 @@
+menu 'System applications'
+
+config CONFIG_NANOWM
+	bool "Build Nanowm"
+	default n
+	help
+	  Say Y here if you want to build window manager
+
+	  Most people should answer Y.
+
+config CONFIG_IPC
+        bool "Build IPC server and lib"
+        default n
+        help
+          Say Y here if you want to use IPC
+
+          Most people should answer Y.
+
+source "system/daemons/Config.in"
+
+endmenu

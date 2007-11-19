@@ -1,0 +1,71 @@
+#
+# Automatically generated make config: don't edit
+#
+
+#
+# Flphone Settings
+#
+# CONFIG_X11 is not set
+CONFIG_NANOX=y
+CONFIG_SCREEN_WIDTH=176
+CONFIG_SCREEN_HEIGHT=220
+# CONFIG_PM is not set
+
+#
+# Platform Configuration
+#
+# CONFIG_PLATFORM_SX1 is not set
+CONFIG_PLATFORM_X86DEMO=y
+CONFIG_CPU_INTEL=y
+
+#
+# Build Options
+#
+# CROSS_COMPILE is not set
+MW_PREFIX="/work/x/nanox-dev/microwin-dev/src"
+INSTALL_PREFIX="/usr/local/flphone/"
+# CONFIG_SAMPLES is not set
+# CONFIG_DEBUG is not set
+# WERROR is not set
+
+#
+# Applications
+#
+
+#
+# Phone Applications
+#
+CONFIG_PHONEAPPS=y
+# CONFIG_DIALER is not set
+# CONFIG_INCOMING_CALL is not set
+# CONFIG_CALL_LOGS is not set
+# CONFIG_MESSAGES is not set
+CONFIG_TEST=y
+
+#
+# Media Applications
+#
+# CONFIG_MEDIA is not set
+
+#
+# PIM Applications
+#
+# CONFIG_PIM is not set
+
+#
+# Libraries
+#
+CONFIG_FLNX=y
+CONFIG_LIBHELPER=y
+
+#
+# System applications
+#
+CONFIG_NANOWM=y
+CONFIG_IPC=y
+
+#
+# System daemons
+#
+CONFIG_DAEMONS=y
+CONFIG_INDICATORD=y

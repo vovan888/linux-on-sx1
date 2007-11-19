@@ -1,0 +1,115 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+mainmenu "Phone Configuration"
+
+menu "Flphone Settings"
+
+
+choice
+	prompt "Graphical Engine"
+	default "Nano-X"
+	help
+	  Pixil can be build for either Nano-X (Microwindows) or X11.
+	  Using Nano-X will result in significantly smaller binaries.
+
+config CONFIG_X11
+       bool "X11"
+
+config CONFIG_NANOX
+       bool "Nano-X"
+
+endchoice
+
+config CONFIG_SCREEN_WIDTH
+        int "Screen X size (width)"
+        default 176
+        help
+	    Screen X size
+
+config CONFIG_SCREEN_HEIGHT
+	int "Screen Y size (height)"
+        default 220
+        help
+	    Screen Y size
+
+config CONFIG_PM
+       bool "Enable power management support"
+       default y
+       help
+       Enable support for power managment
+
+config CONFIG_SYNC
+	bool "Enable Sync support"
+	default y
+	depends CONFIG_COLOSSEUM
+	help
+	Build all the nessesary components for the sync engine
+
+source scripts/platforms/Config.in
+
+endmenu
+
+
+menu 'Build Options'
+
+config CROSS_COMPILE
+	bool "Do you want to build with a cross compiler?"
+	default n
+	help
+	  Enable this option to build with a cross compiler.
+
+config CROSS_COMPILER_PREFIX
+	string "Cross compiler prefix"
+	default "/usr/local/arm/bin/arm-linux-"
+	depends CROSS_COMPILE
+	help
+	  If you want to build with a cross compiler, then you 
+	  will need to set this to the cross-compiler prefix.  For example,
+	  if my cross-compiler is /usr/local/arm/bin/arm-linux-gcc, 
+	  then I would enter /usr/local/arm/bin/arm-linux- here,
+	  which will ensure the correct compiler is used.
+
+config MW_PREFIX
+        string "Microwindows prefix"
+	default "/usr/local/microwin/src/"
+	help
+	  If you choose to use Microwindows, you need to specify where
+	  the Microwindows libraries are located.  Remember to specify
+	  the right tree for the compiler you are building for.
+
+config INSTALL_PREFIX
+       string "Install prefix"
+       default "/usr/local/flphone"
+       help
+         Indicate where flphone should be installed when it is built
+
+config CONFIG_SAMPLES
+	bool "Install sample data?"
+	default y
+	help
+	  Install sample data for the applications
+
+config CONFIG_DEBUG
+	bool "Build with debugging symbols"
+	default n
+	help
+	  Say Y here if you wish to compile with debugging symbols.
+	  This increases the size of the binary 
+	  considerably and should only be used when doing development.
+
+config WERROR
+	bool "Abort compilation on any warning"
+	default n
+	help
+	  Selecting this will add -Werror to gcc command line.
+
+	  Most people should answer N.
+
+endmenu
+
+source apps/Config.in
+source libs/Config.in
+source system/Config.in

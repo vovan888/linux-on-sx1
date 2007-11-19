@@ -1,0 +1,8 @@
+Indicators daemon.
+
+Handles indication of:
+-Network signal
+-Battery status
+-Current date and time
+-Operator logo
+-Icons (keylock,bluetooth,alarm,message in, message out, sound off)

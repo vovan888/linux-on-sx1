@@ -1,0 +1,20 @@
+menu 'Media Applications'
+
+config CONFIG_MEDIA
+       bool "Build Media Applications"
+       default y
+       help
+        Say 'yes' here to build the FLTK Phone and other
+        applications
+
+
+config MEDIA_MP3_PLAYER
+	bool "Build MP3 player"
+	default n
+	depends CONFIG_MEDIA
+	help
+	  Say Y here if you want to build Mp3 player
+
+	  Most people should answer Y.
+
+endmenu

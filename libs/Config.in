@@ -1,0 +1,15 @@
+menu 'Libraries'
+
+config CONFIG_FLNX
+       bool "Build FLNX"
+       default y
+       help
+	Say yes here to build FLNX for Microwindows
+
+config CONFIG_LIBHELPER
+       bool "Build helper library"
+       default y
+       help
+	Say yes here to build libhelper
+
+endmenu

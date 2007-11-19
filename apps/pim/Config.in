@@ -1,0 +1,20 @@
+menu 'PIM Applications'
+
+config CONFIG_PIM
+	bool "Build PIM application"
+	default n
+	help
+	  Say Y here if you want to build PIM apps
+
+	  Most people should answer Y.
+
+config PIM_ADDRESSBOOK
+	bool "Build Adressbook application"
+	default n
+	depends CONFIG_PIM
+	help
+	  Say Y here if you want to build Adressbook
+
+	  Most people should answer Y.
+
+endmenu

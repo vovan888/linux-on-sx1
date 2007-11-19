@@ -1,0 +1,14 @@
+menu "System daemons"
+
+config CONFIG_DAEMONS
+       bool "Build system daemons"
+       default y
+       help
+       Say yes here to build the daemons
+
+config CONFIG_INDICATORD
+       bool "Indicators daemon"
+       depends CONFIG_DAEMONS
+       default y
+
+endmenu

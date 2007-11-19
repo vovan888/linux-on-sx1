@@ -1,0 +1,8 @@
+menu "Applications"
+
+source apps/phone/Config.in
+source apps/media/Config.in
+source apps/pim/Config.in
+
+endmenu
+

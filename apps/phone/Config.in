@@ -1,0 +1,49 @@
+menu "Phone Applications"
+
+config CONFIG_PHONEAPPS
+       bool "Build Phone Applications"
+       default y
+       help
+	Say 'yes' here to build the FLTK Phone and other
+	applications
+
+config CONFIG_DIALER
+       bool "Dialer"
+       default y
+        depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build the Dialer application,
+	used to dial a phone number
+
+config CONFIG_INCOMING_CALL
+       bool "Incoming Call UI"
+       default y
+        depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build the Incoming Call application,
+	which handles incoming calls
+
+config CONFIG_CALL_LOGS
+       bool "Call logs"
+       default y
+        depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build the Call logs application,
+	handles dialed, answered and missed calls lists
+
+config CONFIG_MESSAGES
+       bool "Messages"
+       default y
+        depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build the Messages application,
+	starter for all the SMS and MMS related apps
+
+config CONFIG_TEST
+       bool "Test program to play with"
+       default y
+       depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build the sample program
+
+endmenu

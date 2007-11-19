@@ -1,0 +1,30 @@
+; libini.def : External Dependency Declarations.
+
+LIBRARY      "libini"
+DESCRIPTION  'INI Parser Library'
+
+EXPORTS
+    ini_open          @1
+    ini_close         @2
+    ini_flush         @3
+    ini_delete        @4
+
+    ini_locateKey     @5
+    ini_locateHeading @6
+    ini_deleteKey     @7
+    ini_deleteHeading @8
+    ini_dataLength    @9
+
+	ini_readString    @10
+    ini_writeString   @11
+    ini_readInt       @12
+    ini_readLong      @13
+    ini_readDouble    @14
+    ini_writeInt      @15
+    ini_writeLong     @16
+    ini_writeDouble   @17
+    ini_append        @18
+
+    ini_listLength    @19
+    ini_listDelims    @20
+    ini_listIndex     @21
