@@ -2,7 +2,7 @@
 # This will build all of the nessesary libraries
 
 target-y=
-target-$(CONFIG_SERVERS_INDICATORS) += indicators
+target-$(CONFIG_INDICATORD) += indicators
 
 # This will ensure that we only build one target at a time
 DIRS=$(sort $(target-y))

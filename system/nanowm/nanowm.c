@@ -10,6 +10,7 @@
 #define MWINCLUDECOLORS
 #include <nano-X.h>
 #include <libini.h>
+#include <theme.h>
 #include <libhelper.h>
 /* Uncomment this if you want debugging output from this file */
 /*#define DEBUG*/
@@ -51,21 +52,8 @@ int main(int argc, char *argv[])
 	props.background = GrGetSysColor(GR_COLOR_DESKTOP);
 	GrSetWMProperties(GR_ROOT_WINDOW_ID, &props);
 	
-	/* Open config file */
-	char * filename = cfg_findfile ("etc/nanowm.cfg");
-	int fd = ini_open (filename, "r", "#;");
-	free (filename);
-	char buffer[300], *p = buffer;
-	if (fd == NULL) {
-		fprintf (stderr, "nanowm: Unable to open nanowm.cfg file\n");
-	} else {
-		int ret = ini_locateHeading (fd, "Main");
-		ret = ini_locateKey (fd, "Wallpaper");
-		ret = ini_readString (fd, p, sizeof (buffer));
-	}
-	
-	/* Load wallpaper for the root window */
-	wm_loadwallpaper(GR_ROOT_WINDOW_ID, p);
+	/* load wallpaper to the root window */
+	wm_loadwallpaper(GR_ROOT_WINDOW_ID, THEME_GROUP_MAINSCREEN, THEME_WALLPAPER);
 
 	while(1) { 
 		GrGetNextEvent(&event);

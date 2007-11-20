@@ -1,4 +1,3 @@
-/*
 /* indicators.h
 *
 *  main module utils
@@ -7,16 +6,42 @@
 *
 * Licensed under GPLv2, see LICENSE
 */
+#ifndef _indicators_h_
+#define _indicators_h_
+
 
 #include <nano-X.h>
 
-#define INDICATOR_NETWORK	0
-#define INDICATOR_BATTERY	1
-#define INDICATOR_CLOCK		2
-#define INDICATOR_ICONS		3
-#define INDICATOR_OPNAME	4
+#include <theme.h>
+
+typedef void (*event_callback_p)(GR_WINDOW_ID, GR_EVENT *);
+typedef void (*timeout_callback_p)(void);
 
 
-struct indicatord {
-	GR_WINDOW_ID wids[5];
+struct indicator {
+	int image_index;	/* image index in theme file */
+	int frames_num;		/* number of frames, if any */
+	int frame_current;	/* current frame */
+	event_callback_p callback;	/* event callback function */
+
+	GR_WINDOW_ID pict_id;	/* picture ID*/
+	GR_WINDOW_ID wind_id;	/* window ID*/
+	int width;
+	int height;
+	int frame_width;	/* width of one frame */
+
 };
+
+/* from main.c */
+extern struct indicator indicators[16];
+
+/* from ipc.c */
+int ipc_active (void);
+int ipc_start(char * servername);
+int ipc_handle (GR_EVENT_FD_ACTIVITY * e);
+
+/* from interface.c */
+int multi_init (struct indicator * ind);
+
+
+#endif

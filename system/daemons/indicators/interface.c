@@ -12,19 +12,97 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <nano-X.h>
-#include "indocators.h"
+#include <theme.h>
 
-int interface_create_netsignal(struct indicatord * ind)
+#include <nano-X.h>
+#include "indicators.h"
+
+static int multi_create(struct indicator * ind)
 {
-	ind->wids[INDICATOR_BATTERY] = 
+	int xcoord, ycoord;
+	GR_WINDOW_ID pid; /* picture ID*/
+	GR_WINDOW_ID wid; /* window ID */
+	GR_WINDOW_INFO iinfo;
+
+	if (ind-> frames_num <= 0)
+		return -1;
+
+	/* load coords and image from theme */
+	int ret = theme_get(THEME_GROUP_MAINSCREEN, ind->image_index, &xcoord, &ycoord, &pid);
+	if (!ret && pid > 0 )
+		ind->pict_id = pid;
+	else {
+		ind->pict_id = 0;
+		return -1;
+	}
+	
+	/* create main window */
+	GrGetWindowInfo(pid, &iinfo);
+	int frame_width = iinfo.width / ind-> frames_num;
+	wid = GrNewWindowEx(GR_WM_PROPS_NODECORATE, 0, GR_ROOT_WINDOW_ID,
+			xcoord, ycoord, frame_width, iinfo.height, GR_COLOR_WHITE); //MWNOCOLOR
+	if (!wid)
+		return -1;
+
+	ind->wind_id = wid;
+	ind-> width = frame_width;
+	ind-> height= iinfo.height;
+	ind-> frame_width = frame_width;
+
+printf("multi: %d %d %d %d\n",wid, ind-> frames_num, iinfo.width, iinfo.height);
+
+	/* Select events for this window */
+	GrSelectEvents(wid, GR_EVENT_MASK_EXPOSURE);
+	/* show window */
+	GrMapWindow(wid);
+
+	return 0;
 }
-/* create interface view */
-int interface_create( struct indicatord * ind)
+
+static int multi_show(struct indicator * ind)
 {
-	interface_create_netsignal(ind);
-/*	interface_create_battery();
-	interface_create_clock();
-	interface_create_icons();
-	interface_create_opname();*/
+	GR_WINDOW_ID pid = ind-> pict_id;
+	GR_WINDOW_ID wid = ind-> wind_id;
+	if (!pid)
+		return -1;
+
+	GR_GC_ID gc = GrNewGC();
+//	GrDrawImageToFit(wid, gc, 0, 0, -1, -1, pid);
+	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, pid,
+		ind->frame_current * ind->frame_width, 0, MWROP_COPY);
+	GrDestroyGC(gc);
+}
+
+static void mainbattery_event_callback(GR_WINDOW_ID window, GR_EVENT *event) {
+	printf("mainbattery_event_callback\n");
+//	switch(event->type) {
+//		case GR_EVENT_TYPE_EXPOSURE:
+		multi_show(&indicators[0]);
+//	}
+}
+
+static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT *event) {
+	printf("mainsignal_event_callback\n");
+//	switch(event->type) {
+//		case GR_EVENT_TYPE_EXPOSURE:
+		multi_show(&indicators[1]);
+//	}
+}
+
+int multi_init (struct indicator * ind)
+{
+	/* MainBattery */
+	ind[0].image_index = THEME_MAINBATTERY;
+	ind[0].frames_num = 6;
+	ind[0].frame_current = 0;
+	ind[0].callback = &mainbattery_event_callback;
+	multi_create(&ind[0]);
+
+	/* MainSignal */
+/*	ind[1].image_index = THEME_MAINSIGNAL;
+	ind[1].frames_num = 6;
+	ind[1].frame_current = 0;
+	ind[1].callback = &mainsignal_event_callback;
+	multi_create(&ind[1]);*/
+
 }

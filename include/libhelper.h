@@ -6,5 +6,10 @@
 *
 */
 
+#ifndef _libhelper_h_
+#define _libhelper_h_
+
 /* find file on MMC then in local dir */
 char * cfg_findfile(char * filename);
+
+#endif

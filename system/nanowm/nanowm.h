@@ -197,4 +197,11 @@ extern int lefthand_resize_hotx, lefthand_resize_hoty;
 extern int righthand_resize_columns, righthand_resize_rows;
 extern int righthand_resize_hotx, righthand_resize_hoty;
 
+/* mainscreen.c */
+/* 
+ * Load wallpaper "filename" to the background of "wid" window
+ */
+int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index);
+
+
 #endif

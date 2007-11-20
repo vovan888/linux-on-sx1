@@ -14,6 +14,8 @@
 #include <sys/select.h>
 
 #include <ipc/colosseum.h>
+#include <nano-X.h>
+#include "indicators.h"
 
 static int client_fd = 0;
 
@@ -30,7 +32,7 @@ int ipc_start(char * servername)
 	client_fd = ClRegister(servername, &cl_flags);
 	
 	if (client_fd <= 0)
-		warning("Unable to locate the IPC server.\n");
+		fprintf(stderr,"indicatord: Unable to locate the IPC server.\n");
 	else
 		GrRegisterInput(client_fd);
 }

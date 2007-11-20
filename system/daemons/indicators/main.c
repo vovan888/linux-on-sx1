@@ -1,4 +1,3 @@
-/*
 /* main.c
 *
 *  main module utils
@@ -23,15 +22,48 @@
 #include <unistd.h>
 
 #include <nano-X.h>
+#include "indicators.h"
 
 #define DAEMON_NAME "indicatord"
 
-const char lockfile[]="/tmp/"DAEMON_NAME".lock"
+const char lockfile[]="/tmp/"DAEMON_NAME".lock";
+
+struct indicator indicators[16];
 
 /* signal handler */
 void signal_handler(int param)
 {
 }
+
+static void mainloop(void)
+{
+	int i;
+	GR_WINDOW_ID wid;
+
+	while (1) {
+		GR_EVENT event;
+
+		GrGetNextEvent(&event);
+		switch (event.type) {
+			case GR_EVENT_TYPE_EXPOSURE:
+				wid = event.general.wid;
+				for (i = 0; i < 16; i++) {
+					if (indicators[i].wind_id == wid) {
+						indicators[i].callback(wid, &event);
+					}
+				}
+				break;
+			case GR_EVENT_TYPE_FD_ACTIVITY:
+				if (event.fd.can_read)
+					ipc_handle(&event);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +82,7 @@ int main(int argc, char *argv[])
 	
 	if (!access(lockfile, F_OK)) {
 		printf("Warnning - found a stale lockfile.  Deleting it...\n");
-		unlink(path);
+		unlink(lockfile);
 	}
 	
 	pathfd_ = open(lockfile, O_RDWR | O_TRUNC | O_CREAT);
@@ -79,21 +111,14 @@ int main(int argc, char *argv[])
 	
 	ipc_start("indicatord");
 	
-	nxLoadConfig();
-	
 	/* pass errors through main loop, don't exit */
 	GrSetErrorHandler(NULL);
 	
-	interface_create();
+	multi_init(&indicators);
 	
 	mainloop();
 	
 	unlink(lockfile);
 	return 0;
-}
-
-static void mainloop(void)
-{
-		
 }
 
