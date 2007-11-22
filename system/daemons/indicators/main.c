@@ -73,9 +73,9 @@ int main(int argc, char *argv[])
 	char buf[512];
 	int ret;
 	
-	signal(SIGINT, signal_handler);
-	signal(SIGTERM, signal_handler);
-	signal(SIGHUP, signal_handler);
+//	signal(SIGINT, signal_handler);
+//	signal(SIGTERM, signal_handler);
+//	signal(SIGHUP, signal_handler);
 	
 	memset(buf, 0, sizeof(buf));
 	pid = getpid();
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 		unlink(lockfile);
 		exit(-1);
 	}
-//	GrReqShmCmds(65536L); /*FIXME we dont need it ? */
+	GrReqShmCmds(4096L); /*FIXME we dont need it ? */
 	
 	ipc_start("indicatord");
 	
@@ -118,6 +118,8 @@ int main(int argc, char *argv[])
 	
 	mainloop();
 	
+	GrClose();
+
 	unlink(lockfile);
 	return 0;
 }

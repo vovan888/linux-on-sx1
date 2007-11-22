@@ -18,7 +18,7 @@ int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index)
 	GR_WINDOW_ID pid;
 	int xcoord, ycoord;
 
-	if( theme_get( group_index, image_index, &xcoord, &ycoord, &pid) ) {
+	if( theme_get_image( group_index, image_index, &xcoord, &ycoord, &pid) ) {
 		return -1;
 	} else {
 		GrSetBackgroundPixmap(wid, pid, GR_BACKGROUND_CENTER);

@@ -7,8 +7,7 @@ target-$(CONFIG_NANOWM) += nanowm
 target-$(CONFIG_IPC) += ipc
 target-$(CONFIG_DAEMONS) += daemons
 
-# This will ensure that we only build one target at a time
-DIRS=$(sort $(target-y))
+DIRS=$(target-y)
 
 subdir-build = $(patsubst %,_subdir_%,$(DIRS))
 subdir-clean = $(patsubst %,_clean_%,$(DIRS))

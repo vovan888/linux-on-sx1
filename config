@@ -24,8 +24,8 @@ CONFIG_CPU_INTEL=y
 # CROSS_COMPILE is not set
 MW_PREFIX="/work/x/nanox-dev/microwin-dev/src"
 INSTALL_PREFIX="/usr/local/flphone/"
-# CONFIG_SAMPLES is not set
-# CONFIG_DEBUG is not set
+CONFIG_SAMPLES=y
+CONFIG_DEBUG=y
 # WERROR is not set
 
 #

@@ -54,6 +54,7 @@ GR_WINDOW_ID theme_load_image(char * filename)
 	GR_WINDOW_ID pid;
 	GR_IMAGE_INFO iif;
 
+	gc = GrNewGC();
 	if(!(iid = GrLoadImageFromFile(filename, 0))) {
 		fprintf(stderr, "Failed to load image file \"%s\"\n", filename);
 		return 0;
@@ -61,7 +62,6 @@ GR_WINDOW_ID theme_load_image(char * filename)
 	GrGetImageInfo(iid, &iif);
 	pid = GrNewPixmap(iif.width, iif.height, NULL);
 
-	gc = GrNewGC();
 	GrDrawImageToFit(pid, gc, 0, 0, iif.width, iif.height, iid);
 	GrDestroyGC(gc);
 	GrFreeImage(iid);
@@ -81,7 +81,7 @@ int theme_load(char * theme_file)
  * Get specified image from the active theme
  *
 */
-int theme_get(int group_index, int image_index, int * xcoord, int * ycoord, GR_WINDOW_ID * wid)
+int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord, GR_WINDOW_ID * wid)
 {
 	char buffer[300], *p = buffer;
 
