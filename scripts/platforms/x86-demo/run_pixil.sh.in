@@ -42,6 +42,8 @@ $MWDIR/bin/nano-X -e -x 176 -y 220 &
 
 $BASE_DIR/sbin/nanowm &
 
+$BASE_DIR/sbin/indicatord &
+
 sleep 100000
 
 ## Welcome back  Shut down pending daemons

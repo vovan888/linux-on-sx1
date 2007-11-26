@@ -38,7 +38,7 @@ int ipc_start(char * servername)
 }
 
 /* Handle IPC message */
-int ipc_handle (GR_EVENT_FD_ACTIVITY * e)
+int ipc_handle (GR_EVENT * e)
 {
 	
 }

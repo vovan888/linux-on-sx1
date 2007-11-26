@@ -35,29 +35,30 @@ GR_IMAGE_ID int_load_image(char * filename)
 printf("load image: %d %d  %d\n",iif.width, iif.height, pid);
 
 	GrDrawImageToFit(pid, gc, 0, 0, -1, -1, iid);
-//	GrDestroyGC(gc);
-//	GrFreeImage(iid);
+	GrDestroyGC(gc);
+	GrFreeImage(iid);
 
-	return iid;
+	return pid;
 }
 
 
 static int multi_create(struct indicator * ind)
 {
 	int xcoord, ycoord;
-//	GR_WINDOW_ID pid; /* picture ID*/
+	GR_WINDOW_ID pid,off_pid; /* picture ID*/
 	GR_WINDOW_ID wid; /* window ID */
-	GR_IMAGE_INFO  iinfo;
-	GR_IMAGE_ID pid;
+//	GR_IMAGE_INFO  iinfo;
+	GR_WINDOW_INFO  iinfo;
+//	GR_IMAGE_ID pid;
 
 	if (ind-> frames_num <= 0)
 		return -1;
 
 	/* load coords and image from theme */
-//	int ret = theme_get_image(THEME_GROUP_MAINSCREEN, ind->image_index, &xcoord, &ycoord, &pid);
-	pid = int_load_image("/battery-small.png");
-int ret = 0;
-xcoord = 5; ycoord = 5;
+	int ret = theme_get_image(THEME_GROUP_MAINSCREEN, ind->image_index, &xcoord, &ycoord, &pid);
+//	pid = int_load_image("/battery-big.png");
+//int ret = 0;
+//xcoord = 5; ycoord = 5;
 	if (!ret && pid > 0 )
 		ind->pict_id = pid;
 	else {
@@ -66,9 +67,10 @@ xcoord = 5; ycoord = 5;
 	}
 	
 	/* create main window */
-	GrGetImageInfo(pid, &iinfo);
+//	GrGetImageInfo(pid, &iinfo);
+	GrGetWindowInfo(pid, &iinfo);
 	int frame_width = iinfo.width / ind-> frames_num;
-	wid = GrNewWindowEx(GR_WM_PROPS_NODECORATE, 0, GR_ROOT_WINDOW_ID,
+	wid = GrNewWindowEx(GR_WM_PROPS_NODECORATE | GR_WM_PROPS_NOBACKGROUND, 0, GR_ROOT_WINDOW_ID,
 			xcoord, ycoord, frame_width, iinfo.height, MWNOCOLOR );//GR_COLOR_WHITE);
 	if (!wid)
 		return -1;
@@ -76,6 +78,8 @@ xcoord = 5; ycoord = 5;
 	ind-> width = frame_width;
 	ind-> height= iinfo.height;
 	ind-> frame_width = frame_width;
+	ind-> xcoord = xcoord;
+	ind-> ycoord = ycoord;
 
 printf("multi: %d %d %d %d\n",wid, ind-> frames_num, iinfo.width, iinfo.height);
 
@@ -96,8 +100,17 @@ static int multi_show(struct indicator * ind)
 
 	GR_GC_ID gc = GrNewGC();
 //	GrDrawImageToFit(wid, gc, 0, 0, -1, -1, pid);
+printf("show: %d %d\n", pid,wid);
+//	off_pid = GrNewPixmap(ind-> width, ind-> height, NULL); /* allocate off screen buffer */
+	/* copy image from screen */
+	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, GR_ROOT_WINDOW_ID,
+		ind->xcoord, ind->ycoord, MWROP_COPY);
+	
 	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, pid,
-		ind->frame_current * ind->frame_width, 0, MWROP_COPY);
+		ind->frame_current * ind->frame_width, 0, MWROP_BLENDCONSTANT | 127);
+
+//	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, pid,
+//		ind->frame_current * ind->frame_width, 0, MWROP_BLENDCONSTANT | 127);
 	GrDestroyGC(gc);
 }
 
@@ -117,20 +130,22 @@ static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT *event) {
 //	}
 }
 
-int multi_init (struct indicator * ind)
+int init_mainbattery (struct indicator * ind)
 {
 	/* MainBattery */
-	ind[0].image_index = THEME_MAINBATTERY;
-	ind[0].frames_num = 6;
-	ind[0].frame_current = 5;
-	ind[0].callback = &mainbattery_event_callback;
-	multi_create(&ind[0]);
-
+	ind->image_index = THEME_MAINBATTERY;
+	ind->frames_num = 6;
+	ind->frame_current = 3;
+	ind->callback = &mainbattery_event_callback;
+	multi_create(ind);
+}
+int init_mainsignal (struct indicator * ind)
+{
 	/* MainSignal */
-/*	ind[1].image_index = THEME_MAINSIGNAL;
-	ind[1].frames_num = 6;
-	ind[1].frame_current = 0;
-	ind[1].callback = &mainsignal_event_callback;
-	multi_create(&ind[1]);*/
+	ind->image_index = THEME_MAINSIGNAL;
+	ind->frames_num = 6;
+	ind->frame_current = 0;
+	ind->callback = &mainsignal_event_callback;
+	multi_create(ind);
 
 }

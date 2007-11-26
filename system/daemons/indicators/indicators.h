@@ -28,6 +28,8 @@ struct indicator {
 	GR_WINDOW_ID wind_id;	/* window ID*/
 	int width;
 	int height;
+	int xcoord;
+	int ycoord;
 	int frame_width;	/* width of one frame */
 
 };
@@ -38,7 +40,7 @@ extern struct indicator indicators[16];
 /* from ipc.c */
 int ipc_active (void);
 int ipc_start(char * servername);
-int ipc_handle (GR_EVENT_FD_ACTIVITY * e);
+int ipc_handle (GR_EVENT * e);
 
 /* from interface.c */
 int multi_init (struct indicator * ind);

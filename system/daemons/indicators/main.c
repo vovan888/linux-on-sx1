@@ -39,9 +39,9 @@ static void mainloop(void)
 {
 	int i;
 	GR_WINDOW_ID wid;
+	GR_EVENT event;
 
 	while (1) {
-		GR_EVENT event;
 
 		GrGetNextEvent(&event);
 		switch (event.type) {
@@ -56,8 +56,6 @@ static void mainloop(void)
 			case GR_EVENT_TYPE_FD_ACTIVITY:
 				if (event.fd.can_read)
 					ipc_handle(&event);
-				break;
-			default:
 				break;
 		}
 	}
@@ -109,16 +107,15 @@ int main(int argc, char *argv[])
 	}
 	GrReqShmCmds(4096L); /*FIXME we dont need it ? */
 	
-	ipc_start("indicatord");
+//	ipc_start("indicatord");
 	
 	/* pass errors through main loop, don't exit */
-	GrSetErrorHandler(NULL);
-	
-	multi_init(&indicators);
+//	GrSetErrorHandler(NULL);
+	init_mainbattery(&indicators[0]);
 	
 	mainloop();
 	
-	GrClose();
+//	GrClose();
 
 	unlink(lockfile);
 	return 0;
