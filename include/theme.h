@@ -50,6 +50,8 @@
 /* overall number of images in theme */
 #define THEME_MAXIMAGES		16
 
+/* maximum images in multi image indicator */
+#define N_MAX_IMAGES		8
 /*
  * Load image from filename and return its ID
 */
@@ -57,8 +59,8 @@ GR_WINDOW_ID theme_load_image(char * filename);
 
 /*
  * Load image defined with <group_index> and <image_index>
- * sets xcoord, ycoord and wid (if contains image name)
+ * sets xcoord, ycoord and (GR_IMAGE_ID) pict_id (if contains image name)
  */
-int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord, GR_WINDOW_ID * wid);
+int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord, GR_IMAGE_ID * pict_id);
 
 #endif

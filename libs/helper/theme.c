@@ -19,9 +19,11 @@
 #include <nano-X.h>
 
 #ifdef CONFIG_PLATFORM_X86DEMO
-const char *active_theme_path = "/usr/local/flphone/share/activetheme";
+#define ACTIVETHEME_PATH	"share/activetheme/"
+//const char *active_theme_path = "/usr/local/flphone/share/activetheme";
 #else
-const char *active_theme_path = "/home/flphone/.config/activetheme";
+#define ACTIVETHEME_PATH	"share/activetheme/"
+//const char *active_theme_path = "/home/flphone/.config/activetheme";
 #endif
 
 const char theme_title[] = "Title";
@@ -81,7 +83,7 @@ int theme_load(char * theme_file)
  * Get specified image from the active theme
  *
 */
-int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord, GR_WINDOW_ID * wid)
+int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord, GR_IMAGE_ID * pict_id)
 {
 	char buffer[300], *p = buffer;
 
@@ -107,7 +109,7 @@ int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord
 		ini_close(fd);
 
 		/* open theme config file */
-		char path[256] =  "data/activetheme/";
+		char path[256] =  ACTIVETHEME_PATH;
 
 		strncat(path, p, 255);
 		strncat(path, ".cfg", 255);
@@ -162,17 +164,20 @@ int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord
 	
 	if (token) {	
 		/* we have found image name, now load it */
-		char path[256] =  "data/activetheme/";
+		char path[256] =  ACTIVETHEME_PATH;
 		strncat(path, token, 255);
 		char *filename = cfg_findfile (path);
 		if(!filename) {
 			fprintf (stderr, "theme_get: Unable to find image %s\n",path);
-			return -1;	
+		} else {
+	//		*wid = theme_load_image(filename);
+			*pict_id = GrLoadImageFromFile(filename, 0);
+			if (*pict_id == 0)
+				fprintf(stderr, "theme_get: Failed to load image %s\n", filename);
+			free(filename);
 		}
-		*wid = theme_load_image(filename);
-		free(filename);
 	} else {
-		*wid = 0;
+		*pict_id = 0;
 	}
-	return 0;
+	return (*pict_id == 0)?-2:0;
 }

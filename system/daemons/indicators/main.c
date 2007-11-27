@@ -29,6 +29,8 @@
 const char lockfile[]="/tmp/"DAEMON_NAME".lock";
 
 struct indicator indicators[16];
+static int indicators_number;
+static	GR_WINDOW_ID	windows[16];
 
 /* signal handler */
 void signal_handler(int param)
@@ -47,7 +49,7 @@ static void mainloop(void)
 		switch (event.type) {
 			case GR_EVENT_TYPE_EXPOSURE:
 				wid = event.general.wid;
-				for (i = 0; i < 16; i++) {
+				for (i = 0; i < indicators_number; i++) {
 					if (indicators[i].wind_id == wid) {
 						indicators[i].callback(wid, &event);
 					}
@@ -61,6 +63,13 @@ static void mainloop(void)
 	}
 }
 
+int main_load_indicators ()
+{
+	/* load indicators */
+	indicators[0].wind_id = mainbattery_create(&indicators[0]);
+	
+	indicators_number = 1;
+}
 
 
 int main(int argc, char *argv[])
@@ -105,19 +114,19 @@ int main(int argc, char *argv[])
 		unlink(lockfile);
 		exit(-1);
 	}
-	GrReqShmCmds(4096L); /*FIXME we dont need it ? */
+	GrReqShmCmds(4096);
 	
-//	ipc_start("indicatord");
+	ipc_start("indicatord");
 	
 	/* pass errors through main loop, don't exit */
 //	GrSetErrorHandler(NULL);
-	init_mainbattery(&indicators[0]);
+
+	main_load_indicators();
 	
 	mainloop();
 	
-//	GrClose();
+	GrClose();
 
 	unlink(lockfile);
 	return 0;
 }
-

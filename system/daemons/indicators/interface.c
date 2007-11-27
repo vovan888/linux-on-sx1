@@ -17,6 +17,8 @@
 #include <nxcolors.h>
 #include "indicators.h"
 
+#if 0
+
 GR_IMAGE_ID int_load_image(char * filename)
 {
 	GR_GC_ID gc;
@@ -106,7 +108,7 @@ printf("show: %d %d\n", pid,wid);
 		ind->xcoord, ind->ycoord, MWROP_COPY);
 	/* copy new image with alpha blend */
 	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, pid,
-		ind->frame_current * ind->frame_width, 0, MWROP_BLENDCONSTANT | 127);
+		ind->frame_current * ind->frame_width, 0, MWROP_COPY);
 
 //	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, pid,
 //		ind->frame_current * ind->frame_width, 0, MWROP_BLENDCONSTANT | 127);
@@ -148,3 +150,4 @@ int init_mainsignal (struct indicator * ind)
 	multi_create(ind);
 
 }
+#endif

@@ -15,14 +15,23 @@
  */
 int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index)
 {
+	GR_IMAGE_ID image_id;
 	GR_WINDOW_ID pid;
+	GR_IMAGE_INFO iif;
 	int xcoord, ycoord;
+	GR_GC_ID gc;
 
-	if( theme_get_image( group_index, image_index, &xcoord, &ycoord, &pid) ) {
+	if( theme_get_image( group_index, image_index, &xcoord, &ycoord, &image_id) ) {
 		return -1;
 	} else {
+		GrGetImageInfo(image_id, &iif);
+		pid = GrNewPixmap(iif.width, iif.height, NULL);
+		gc = GrNewGC();
+		GrDrawImageToFit(pid, gc, 0, 0, -1, -1, image_id);
 		GrSetBackgroundPixmap(wid, pid, GR_BACKGROUND_CENTER);
-		GrClearWindow(GR_ROOT_WINDOW_ID, GR_TRUE); /*FIXME*/
+		GrClearWindow(GR_ROOT_WINDOW_ID, GR_TRUE);
+		GrDestroyGC(gc);
+		GrFreeImage(image_id);
 	}
 	return 0;
 }

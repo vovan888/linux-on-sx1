@@ -15,23 +15,13 @@
 #include <theme.h>
 
 typedef void (*event_callback_p)(GR_WINDOW_ID, GR_EVENT *);
-typedef void (*timeout_callback_p)(void);
+typedef void (*changed_callback_p)(int);
 
 
 struct indicator {
-	int image_index;	/* image index in theme file */
-	int frames_num;		/* number of frames, if any */
-	int frame_current;	/* current frame */
 	event_callback_p callback;	/* event callback function */
-
-	GR_WINDOW_ID pict_id;	/* picture ID*/
-	GR_WINDOW_ID wind_id;	/* window ID*/
-	int width;
-	int height;
-	int xcoord;
-	int ycoord;
-	int frame_width;	/* width of one frame */
-
+	changed_callback_p changed;	/* event callback function */
+	GR_WINDOW_ID wind_id;		/* window ID*/
 };
 
 /* from main.c */
@@ -45,5 +35,7 @@ int ipc_handle (GR_EVENT * e);
 /* from interface.c */
 int multi_init (struct indicator * ind);
 
+/* from mainbattery.c */
+int mainbattery_create( struct indicator * ind);
 
 #endif
