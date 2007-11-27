@@ -19,7 +19,7 @@
 #include <nano-X.h>
 
 #ifdef CONFIG_PLATFORM_X86DEMO
-const char *active_theme_path = "/usr/local/flphone/data/activetheme";
+const char *active_theme_path = "/usr/local/flphone/share/activetheme";
 #else
 const char *active_theme_path = "/home/flphone/.config/activetheme";
 #endif

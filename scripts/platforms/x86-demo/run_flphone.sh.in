@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# run_flphone.sh
+
+# based on: run_pixil.sh
+# Copyright 2003, Century Embedded Technologies
+# Released under the GPL. 
+# 
+# This script installs all the nessesary daemons and scripts
+# to run Pixil in a Redhat 7.3 environment. 
+
+BASE_DIR=@installdir@
+
+export LD_LIBRARY_PATH=$BASE_DIR/lib
+export MWFONTDIR=$BASE_DIR/share/fonts/
+
+MWDIR=@mwdir@
+
+# Verify that everything exists
+
+if [ ! -x "$MWDIR/bin/nano-X" ]; then 
+    echo "Oops - no nano-X binary exists.  Bailing..."
+    exit 1
+fi
+
+# Sanity check - don't allow colosseum to already be 
+# started when we enter here 
+
+CLPID=`pidof clserver`
+
+if [ -n "$CLPID" ]; then
+    kill $CLPID
+fi
+
+# Start the colosseum server
+$BASE_DIR/sbin/clserver &
+
+# Start the Nano-X server
+$MWDIR/bin/nano-X -e -x 176 -y 220 &
+
+# Start up the Nano-X window manager
+$BASE_DIR/sbin/nanowm &
+
+# Start Indicator daemons
+$BASE_DIR/sbin/indicatord &
+
+sleep 100000
+
+## Welcome back  Shut down pending daemons
+killall -TERM -q $BASE_DIR/sbin/clserver 

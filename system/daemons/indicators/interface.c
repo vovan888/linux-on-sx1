@@ -1,4 +1,3 @@
-/*
 /* interface.c
 *
 *  Graphics interface utils
@@ -102,10 +101,10 @@ static int multi_show(struct indicator * ind)
 //	GrDrawImageToFit(wid, gc, 0, 0, -1, -1, pid);
 printf("show: %d %d\n", pid,wid);
 //	off_pid = GrNewPixmap(ind-> width, ind-> height, NULL); /* allocate off screen buffer */
-	/* copy image from screen */
+	/* copy image from screen to our window */
 	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, GR_ROOT_WINDOW_ID,
 		ind->xcoord, ind->ycoord, MWROP_COPY);
-	
+	/* copy new image with alpha blend */
 	GrCopyArea(wid, gc, 0, 0, ind-> width, ind-> height, pid,
 		ind->frame_current * ind->frame_width, 0, MWROP_BLENDCONSTANT | 127);
 
