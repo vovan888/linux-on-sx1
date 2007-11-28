@@ -7,7 +7,9 @@
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Menu_Button.H>
 
+extern "C" {
 #include <libgsmd/libgsmd.h>
+}
 
 class DialerProgramUI: public Fl_Window
 {
@@ -19,7 +21,7 @@ class DialerProgramUI: public Fl_Window
 //    static Fl_Menu_Item menu_menu_left[];
     
     char* num_td ;    
-    static struct lgsm_handle *lgsmh;
+//    static struct lgsm_handle *lgsmh;
     
   public:
     int handle(int e);  

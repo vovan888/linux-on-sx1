@@ -22,7 +22,7 @@ CONFIG_CPU_INTEL=y
 # Build Options
 #
 # CROSS_COMPILE is not set
-MW_PREFIX="/work/x/nanox-dev/microwin-dev/src"
+MW_PREFIX="/home/vovan/work/linux-on-sx1/trunk/target/src/microwin/src"
 INSTALL_PREFIX="/usr/local/flphone/"
 CONFIG_SAMPLES=y
 CONFIG_DEBUG=y
@@ -36,7 +36,7 @@ CONFIG_DEBUG=y
 # Phone Applications
 #
 CONFIG_PHONEAPPS=y
-# CONFIG_DIALER is not set
+CONFIG_DIALER=y
 # CONFIG_INCOMING_CALL is not set
 # CONFIG_CALL_LOGS is not set
 # CONFIG_MESSAGES is not set

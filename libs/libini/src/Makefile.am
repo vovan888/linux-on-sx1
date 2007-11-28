@@ -1,6 +1,6 @@
 # The libraries
 
-lib_LTLIBRARIES   = libini.la libtclini.la
+lib_LTLIBRARIES   = libini.la
 libini_la_LDFLAGS = -version-info $(LIBVERSION)
 libini_la_SOURCES = headings.h ini.cpp ini.h \
 keys.h list.h

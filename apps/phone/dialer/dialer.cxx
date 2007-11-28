@@ -10,6 +10,8 @@
 
 #include <FL/fl_ask.H>
 
+static struct lgsm_handle *lgsmh;
+
 void DialerProgramUI::cb_Select_i(Fl_Menu_*, void*) {
   label1->value("selected 1");
 }

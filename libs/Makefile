@@ -10,7 +10,7 @@ export NM=$(TARGET_CROSS)nm
 export RANLIB=$(TARGET_CROSS)ranlib
 export LD=$(TARGET_CROSS)ld
 
-# FLNX is always built
+# FLNX, libibi, libgsm are always built
 
 local-target-y=flnx libini gsmd
 #target-y=flek/src
@@ -128,7 +128,7 @@ $(BASE_DIR)/libs/gsm/.configured:
 	touch $(BASE_DIR)/libs/gsm/.configured
 
 _build_gsmd: $(BASE_DIR)/libs/gsm/.configured
-	make -C $(BASE_DIR)/libs/gsm/src/libgsmd -e 
+	make -C $(BASE_DIR)/libs/gsm/src -e 
 
 	rm -f $(STAGE_DIR)/lib/libgsmd.a $(STAGE_DIR)/lib/libgsmd.so*
 	ln -s $(BASE_DIR)/libs/gsm/src/libgsmd/.libs/libgsmd.a $(STAGE_DIR)/lib
