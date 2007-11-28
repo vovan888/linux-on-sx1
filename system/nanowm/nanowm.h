@@ -6,6 +6,9 @@
 #ifndef __NANOWM_H
 #define __NANOWM_H
 
+#include <ipc/colosseum.h>
+#include <keys_nanox.h>
+
 #ifdef WMDEBUG
 #define Dprintf printf
 #else

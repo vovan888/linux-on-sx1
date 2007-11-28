@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define MWINCLUDECOLORS
-#include "nano-X.h"
+#include <nano-X.h>
 /* Uncomment this if you want debugging output from this file */
 /*#define DEBUG*/
 
@@ -161,6 +161,12 @@ void do_key_down(GR_EVENT_KEYSTROKE *event)
 		event->modifiers, event->ch, event->scancode);
 
 	/* FIXME: Implement keyboard shortcuts */
+	/* DEBUG keys */
+	if (event -> ch == Menu) {
+		int client;
+		client = ClFindApp ("indicatord");
+		ClSendMessage(client,"0", 1);
+	}
 }
 
 void do_key_up(GR_EVENT_KEYSTROKE *event)

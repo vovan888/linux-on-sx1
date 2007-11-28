@@ -288,25 +288,57 @@ extern "C"
     cl_packet;
 
 #define CL_MAX_PKT_SIZE  (sizeof(cl_packet) + CL_MAX_MSG_LEN)
+    /* Register application with IPC server
+         name  - application name
+         flags - different flags returned
+       returns file descriptor of server connection socket
+       or <0 if error */
+    int ClRegister(unsigned char *name, int *flags);
 
-    int ClRegister(unsigned char *, int *);
-    int ClReconnect(unsigned char *);
+    /* Reconnect to the server  */
+    int ClReconnect(unsigned char *name);
 
+    /* Close connection to the server */
     int ClClose(void);
-    int ClFindApp(unsigned char *);
-    int ClStartApp(unsigned char *, unsigned char *, int, int);
-    int ClSpawnApp(unsigned char *, unsigned char *);
+    
+    /* Find application "name" in the IPC server list */
+    int ClFindApp(unsigned char *name);
+    
+    /* Start application "name", with "args" and "timeout" in seconds */
+    int ClStartApp(unsigned char *name, unsigned char *args, int flags, int timeout);
 
+    /* Start application "name", with "args" */
+    int ClSpawnApp(unsigned char *name, unsigned char *args);
+
+    /* Returns application info in "info", returns 0 if OK, or <0 if error */
     int ClGetAppInfo(cl_app_info * info);
 
-    int ClSendMessage(int, void *, int);
-    int ClGetMessage(void *, int *, unsigned short *);
-    int ClGetNextMessage(void *, int *);
-    int ClLookupName(int id, unsigned char *, int *);
+    /* Send message "message" with "len" length to the IPC id "id" */
+    int ClSendMessage(int id, void *message, int len);
+    
+    /* Get message from server.
+      msg - pointer to the  message buffer, where the message is copied;
+      len - pointer to the len var, where the message length is stored
+      src - pointer to the src var, where the IPC id of the sender is stored ?
+    returns CL_CLIENT_BROADCAST or CL_CLIENT_SUCCESS or CL_CLIENT_NODATA - ther is no message in queue*/
+    int ClGetMessage(void *msg, int *len, unsigned short *src);
+    
+    /* Waits for the message from server
+      msg - pointer to the  message buffer, where the message is copied;
+      len - pointer to the len var, where the message length is stored
+      returns message source "src" */
+    int ClGetNextMessage(void *msg, int *len);
+    
+    /* Finds application name by id */
+    int ClLookupName(int id, unsigned char *name, int *len);
 
+    /* register "name" as log source */
     int ClRegisterLogger(char *name);
+    
+    /* log the "message" with "level" to the server`s log */
     int ClLogMessage(int level, unsigned char *message);
 
+    /* Returns application info in "info", returns 0 if OK, or <0 if error */
     int clGetAppInfo(cl_app_info * info);
 
 #ifdef __cplusplus

@@ -19,6 +19,35 @@
 
 GR_SCREEN_INFO si;
 
+/* Register with IPC server */
+int ipc_start(char * servername)
+{
+	int cl_flags, client_fd;
+
+	client_fd = ClRegister(servername, &cl_flags);
+
+	if (client_fd <= 0)
+		fprintf(stderr,"%s : Unable to locate the IPC server.\n", servername);
+	else
+		GrRegisterInput(client_fd);
+
+	return client_fd;
+}
+
+/* Handle IPC message */
+int ipc_handle (GR_EVENT * e)
+{
+	int ack, size, src;
+	char msg[32];
+
+	ack = ClGetMessage(&msg, &size, &src);
+
+	if (ack < 0)
+		return -1;
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	GR_EVENT event;
@@ -45,7 +74,11 @@ int main(int argc, char *argv[])
 	window.data = NULL;
 	add_window(&window);
 
-	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE);
+	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_KEY_DOWN);
+
+	ipc_start("nanowm");
+
+	GrGrabKey(GR_ROOT_WINDOW_ID, Menu ,GR_GRAB_EXCLUSIVE);
 
 	/* Set new root window background color*/
 	props.flags = GR_WM_FLAGS_BACKGROUND;

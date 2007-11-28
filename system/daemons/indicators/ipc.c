@@ -18,6 +18,7 @@
 #include "indicators.h"
 
 static int client_fd = 0;
+static int val = 0;
 
 int ipc_active (void)
 {
@@ -40,5 +41,17 @@ int ipc_start(char * servername)
 /* Handle IPC message */
 int ipc_handle (GR_EVENT * e)
 {
-	
+	int ack, size, src;
+	char msg[32];
+
+	if( (ack = ClGetMessage(&msg, &size, &src)) < 0 )
+		return;
+	if (ack == CL_CLIENT_BROADCAST)
+		/**/;
+	if (msg[0] == '0') {
+		/* DEBUG message from nanowm */
+		indicators[0].changed(val++);
+		if (val > 5)
+			val = 0;
+	}
 }
