@@ -1,0 +1,1 @@
+SUBDIRS = libgsmd gsmd common 
