@@ -12,7 +12,7 @@ export LD=$(TARGET_CROSS)ld
 
 # FLNX is always built
 
-local-target-y=flnx libini
+local-target-y=flnx libini gsmd
 #target-y=flek/src
 
 target-$(CONFIG_LIBHELPER) += helper
@@ -117,5 +117,31 @@ _clean_libini: dummy
 		make -C $(BASE_DIR)/libs/libini distclean; \
 	fi
 	rm -f $(BASE_DIR)/libs/libini/.configured
+	
+	
+$(BASE_DIR)/libs/gsm/.configured: 
+	(cd $(BASE_DIR)/libs/gsm; ./autogen.sh \
+	./configure \
+	--host=$(SYS) \
+	--build=$(BUILD_SYS) \
+	--enable-shared )
+	touch $(BASE_DIR)/libs/gsm/.configured
+
+_build_gsmd: $(BASE_DIR)/libs/gsm/.configured
+	make -C $(BASE_DIR)/libs/gsm/src/libgsmd -e 
+
+	rm -f $(STAGE_DIR)/lib/libgsmd.a $(STAGE_DIR)/lib/libgsmd.so*
+	ln -s $(BASE_DIR)/libs/gsm/src/libgsmd/.libs/libgsmd.a $(STAGE_DIR)/lib
+	ln -s $(BASE_DIR)/libs/gsm/src/libgsmd/.libs/libgsmd.so $(STAGE_DIR)/lib
+	ln -s $(BASE_DIR)/libs/gsm/src/libgsmd/.libs/libgsmd.so $(STAGE_DIR)/lib/libgsmd.so.1
+
+_install_gsmd: dummy
+	cp -fP gsm/src/libgsmd/.libs/libgsmd.so* $(INSTALL_DIR)/lib/
+
+_clean_gsmd: dummy
+	if [ -f $(BASE_DIR)/libs/gsm/makeinclude ]; then \
+		make -C $(BASE_DIR)/libs/gsm distclean; \
+	fi
+	rm -f $(BASE_DIR)/libs/gsm/.configured	
 
 dummy:
