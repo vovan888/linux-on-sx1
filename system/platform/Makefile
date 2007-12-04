@@ -1,12 +1,10 @@
 # system/Makefile
 
 local-target-y=
-target-y= platform
+target-y=
 
-target-$(CONFIG_NANOWM) += nanowm
-target-$(CONFIG_IPC) += ipc
-target-$(CONFIG_DAEMONS) += daemons
-target-$(CONFIG_GSMMUX) += gsmmux
+target-$(CONFIG_PLATFORM_SX1) += sx1
+target-$(CONFIG_PLATFORM_X86DEMO) += x86demo
 
 DIRS=$(target-y)
 

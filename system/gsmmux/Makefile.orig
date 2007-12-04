@@ -1,0 +1,30 @@
+# Comment/uncomment the following line to disable/enable debugging
+#DEBUG = y
+
+TARGET = gsmMuxd
+SRC = gsm0710.c buffer.c
+OBJS = gsm0710.o buffer.o
+
+CROSS_COMPILE   ?= /scratchbox/compilers/arm-gcc-3.3.4-glibc-2.3.2/bin/arm-linux-
+CC = $(CROSS_COMPILE)gcc
+LD = $(CROSS_COMPILE)gcc
+CFLAGS = -O2 -Wall
+LDLIBS =
+
+ifeq ($(DEBUG),y)
+  CFLAGS += -DDEBUG
+endif
+
+
+all: $(TARGET)
+
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(TARGET): $(OBJS)
+	$(LD) $(LDLIBS) -o $@ $(OBJS)
+
+.PHONY: all clean

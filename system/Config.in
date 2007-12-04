@@ -18,4 +18,13 @@ config CONFIG_IPC
 
 source "system/daemons/Config.in"
 
+config CONFIG_GSMMUX
+        bool "Build gsmMux multiplexer daemon"
+        default y
+        help
+          Say Y here if you want to use GSM mux
+
+          Most people should answer Y.
+
+
 endmenu
