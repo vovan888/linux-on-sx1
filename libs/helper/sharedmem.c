@@ -5,12 +5,45 @@
 */
 
 #include <sys/ipc.h>
+#include <sys/shm.h>
 #include <sys/sem.h>
 #include <stdio.h>  
 #include <stdlib.h> 
 #include <unistd.h> 
 #include <string.h> 
 
+#include <debug.h>
+#include <ipc/shareddata.h>
+
+#define SHMID		0x0888
+#define SHMSIZE		4096
+
+static int	shmid = 0; /* Shared memory segment ID */
+
+static int ShmInit()
+{
+	if(!shmid) {
+		shmid = shmget(SHMID, SHMSIZE, IPC_CREAT | IPC_EXCL | );
+		if(shmid < 0) {
+			ERRLOG("Cant create shm object.\n");
+		}
+	}
+	return shmid;
+}
+
+struct SharedData * ShmMap()
+{
+	void * ptr;
+	if(!shmid)
+		ShmInit();
+	if(shmid) {
+		ptr = shmat(SHMID, NULL, );
+		if(ptr == (void *) -1 ) {
+			ERRLOG("Cant shmat segment");
+		}
+	}
+	return (struct SharedData *) ptr;
+}
 #if 0
 
 typedef struct {

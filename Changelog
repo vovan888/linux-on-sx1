@@ -1,3 +1,5 @@
 Changelog
 
+2007-Dec-04	Add indicatord daemon, gsmMux, gsmd and libgsm
+
 2007-Nov-18	Build system ripped from Pixil
