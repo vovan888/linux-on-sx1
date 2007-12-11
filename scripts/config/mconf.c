@@ -61,11 +61,11 @@ static const char menu_instructions[] =
     "last retrieved.  Leave blank to abort.",
     load_config_help[] =
     "\n"
-    "For various reasons, one may wish to keep several different Pixil\n"
+    "For various reasons, one may wish to keep several different Flphone\n"
     "configurations available on a single machine.\n"
     "\n"
     "If you have saved a previous configuration in a file other than the\n"
-    "Pixil default, entering the name of the file here will allow you\n"
+    "Flphone default, entering the name of the file here will allow you\n"
     "to modify that configuration.\n"
     "\n"
     "If you are uncertain, then you have probably never used alternate\n"
@@ -75,7 +75,7 @@ static const char menu_instructions[] =
     "as an alternate.  Leave blank to abort.",
     save_config_help[] =
     "\n"
-    "For various reasons, one may wish to keep different Pixil\n"
+    "For various reasons, one may wish to keep different Flphone\n"
     "configurations available on a single machine.\n"
     "\n"
     "Entering a file name here will allow you to later retrieve, modify\n"
@@ -670,7 +670,7 @@ main(int ac, char **av)
     backtitle = malloc(128);
     sym = sym_lookup("VERSION", 0);
     sym_calc_value(sym);
-    snprintf(backtitle, 128, "Pixil Configuration",
+    snprintf(backtitle, 128, "Flphone Configuration",
 	     sym_get_string_value(sym));
 
     mode = getenv("MENUCONFIG_MODE");
@@ -691,7 +691,7 @@ main(int ac, char **av)
     init_dialog();
     do {
 	stat = dialog_yesno(NULL,
-			    "Do you wish to save your new Pixil configuration?",
+			    "Do you wish to save your new Flphone configuration?",
 			    5, 60);
     } while (stat < 0);
     end_dialog();
@@ -699,10 +699,10 @@ main(int ac, char **av)
     if (stat == 0) {
 	conf_write(NULL);
 	printf("\n\n"
-	       "*** End of Pixil configuration.\n"
+	       "*** End of Flphone configuration.\n"
 	       "*** Check the top-level Makefile for additional configuration options.\n\n");
     } else
-	printf("\n\nYour Pixil configuration changes were NOT saved.\n\n");
+	printf("\n\nYour Flphone configuration changes were NOT saved.\n\n");
 
     return 0;
 }

@@ -17,11 +17,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define EPRINT(fmt, arg...) do {										\
+#define EPRINT(fmt, arg...) do {								\
 		printf("[%d] ERROR: %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
-		printf("errno = %d\n", errno);								\
-		printf(fmt, ##arg);												\
-		assert(0); } while(0)
+		printf("errno = %d\n", errno);							\
+		printf(fmt, ##arg); } while(0)
 
 #define WPRINT(fmt, arg...) do {										\
 		printf("[%d] WARNING: %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \

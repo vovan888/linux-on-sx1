@@ -12,13 +12,13 @@
 
 /* shared memory structure */
 
-struct SharedData {
+typedef struct {
 	/* powerup data */
 	struct {
 		int reason;
 		int selftest;
 		int swreason;
-		int 
+		int temp;
 	} powerup;
 	/* nanowm data */
 	/* network */
@@ -43,16 +43,23 @@ struct SharedData {
 		int bars;
 		int lowwarn;
 	} battery;
-}
+} SharedData;
 
 /* Map shared memory segment
- * returns its adress 
+ * returns its adress
 */
-struct SharedData * ShmMap();
+SharedData * ShmMap();
 
 /* UnMap shared memory segment
  * returns its adress 
 */
-int ShmUnMap(struct SharedData * ptr);
+int	ShmUnmap(SharedData * ptr)
+
+/* blocks till the shared mem is busy them locks it */
+int ShmLock ();
+
+/* unlocks shared memory segment */
+int ShmUnlock ()
+
 
 #endif //shareddata_h_
