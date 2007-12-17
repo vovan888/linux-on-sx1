@@ -20,11 +20,6 @@
 static int client_fd = 0;
 static int val = 0;
 
-int ipc_active (void)
-{
-	return ((client_fd > 0) ? 1 : 0);
-}
-
 /* Register with IPC server */
 int ipc_start(char * servername)
 {
@@ -38,10 +33,15 @@ int ipc_start(char * servername)
 		GrRegisterInput(client_fd);
 }
 
-/* Handle IPC message */
+/* Handle IPC message 
+ * Message format [Group][Indicator] - 2 bytes
+ * This message only tells indicator that its value is changed
+ * Actual value is stored in sharedmem
+*/
 int ipc_handle (GR_EVENT * e)
 {
-	int ack, size, src;
+	int ack = 0, size = 32;
+	unsigned short src = 0;
 	char msg[32];
 
 	if( (ack = ClGetMessage(&msg, &size, &src)) < 0 )
@@ -53,5 +53,10 @@ int ipc_handle (GR_EVENT * e)
 		indicators[0].changed(val++);
 		if (val > 5)
 			val = 0;
+	}
+	
+	if (msg[0] == THEME_GROUP_MAINSCREEN) {
+		if(indicators[msg[1]].changed)
+			indicators[msg[1]].changed(1);
 	}
 }

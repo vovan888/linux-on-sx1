@@ -74,7 +74,9 @@ int main(int argc, char *argv[])
 	window.data = NULL;
 	add_window(&window);
 
-	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_KEY_DOWN);
+	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE |
+				GR_EVENT_MASK_KEY_DOWN | GR_EVENT_MASK_KEY_UP |
+				GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER /*| GR_EVENT_MASK_FD_ACTIVITY*/);
 
 	ipc_start("nanowm");
 

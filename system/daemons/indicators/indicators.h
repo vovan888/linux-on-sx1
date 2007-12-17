@@ -11,8 +11,9 @@
 
 
 #include <nano-X.h>
-
+#include <debug.h>
 #include <theme.h>
+#include <ipc/shareddata.h>
 
 typedef void (*event_callback_p)(GR_WINDOW_ID, GR_EVENT *);
 typedef void (*changed_callback_p)(int);
@@ -20,12 +21,13 @@ typedef void (*changed_callback_p)(int);
 
 struct indicator {
 	event_callback_p callback;	/* event callback function */
-	changed_callback_p changed;	/* event callback function */
+	changed_callback_p changed;	/* "changed" callback function */
 	GR_WINDOW_ID wind_id;		/* window ID*/
 };
 
 /* from main.c */
 extern struct indicator indicators[16];
+extern SharedData * shdata; /* shared memory segment */
 
 /* from ipc.c */
 int ipc_active (void);

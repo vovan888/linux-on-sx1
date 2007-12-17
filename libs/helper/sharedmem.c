@@ -56,7 +56,7 @@ static int ShmInit()
 	}
 	if(!semid) {
 		/* allocate semaphore */
-		semid = semget(SHMID, 1, S_IRUSR | S_IWUSR );
+		semid = semget(SHMID+1, 1, IPC_CREAT | S_IRUSR | S_IWUSR );
 		if(semid < 0) {
 			ERRLOG("Cant create sem object.\n");
 		} else {
@@ -71,15 +71,18 @@ static int ShmInit()
 	return shmid;
 }
 
+/* Map shared memory segment
+ * returns its adress
+*/
 SharedData * ShmMap()
 {
 	void * ptr = NULL;
 	if(!shmid)
 		ShmInit();
 	if(shmid) {
-		ptr = shmat(SHMID, NULL, 0);
+		ptr = shmat(shmid, NULL, 0);
 		if(ptr == (void *) -1 ) {
-			ERRLOG("Cant shmat segment");
+			ERRLOG("Cant shmat segment\n");
 		} else {
 			use_count++;
 		}
@@ -87,6 +90,9 @@ SharedData * ShmMap()
 	return (SharedData *) ptr;
 }
 
+/* UnMap shared memory segment
+ * returns 
+*/
 int	ShmUnmap(SharedData * ptr)
 {
 	if(shmid) {
@@ -101,7 +107,7 @@ int	ShmUnmap(SharedData * ptr)
 	return 0;
 }
 
-/* blocks till the shared mem is busy them locks it */
+/* blocks till the shared mem is busy then locks it */
 int ShmLock ()
 {
 	if(shmid)

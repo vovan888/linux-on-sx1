@@ -13,14 +13,4 @@
 /* find file on MMC then in local dir */
 char * cfg_findfile(char * filename);
 
-/* sharedmem functions */
-/* create sharedmem segment */
-int ShmInit();
-/* map sharedmem segment and return pointer to structure */
-shm_segment_t * ShmMap ();
-/* unmap shredmem segment */
-int ShmUnmap(shm_segment_t * shm_seg)
-/* destroy shared segment */
-int ShmDestroy();
-
 #endif

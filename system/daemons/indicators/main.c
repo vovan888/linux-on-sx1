@@ -28,9 +28,10 @@
 
 const char lockfile[]="/tmp/"DAEMON_NAME".lock";
 
+SharedData * shdata; /* shared memory segment */
 struct indicator indicators[16];
+
 static int indicators_number;
-static	GR_WINDOW_ID	windows[16];
 
 /* signal handler */
 void signal_handler(int param)
@@ -65,9 +66,11 @@ static void mainloop(void)
 
 int main_load_indicators ()
 {
-	/* load indicators */
-	indicators[0].wind_id = mainbattery_create(&indicators[0]);
-	
+	memset(indicators, 0, sizeof(indicators));
+
+	/* setup THEME_MAINBATTERY */
+	mainbattery_create(&indicators[THEME_MAINBATTERY]);
+
 	indicators_number = 1;
 }
 
@@ -118,15 +121,15 @@ int main(int argc, char *argv[])
 	
 	ipc_start("indicatord");
 	
-	/* pass errors through main loop, don't exit */
-//	GrSetErrorHandler(NULL);
+	shdata = ShmMap();
 
 	main_load_indicators();
-	
-	mainloop();
-	
-	GrClose();
 
+	mainloop();
+
+	GrClose();
+	ShmUnmap(shdata);
 	unlink(lockfile);
+
 	return 0;
 }
