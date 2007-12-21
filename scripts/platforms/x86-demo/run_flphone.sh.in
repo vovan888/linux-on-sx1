@@ -41,6 +41,8 @@ $MWDIR/bin/nano-X -e -x 176 -y 220 &
 # Start up the Nano-X window manager
 $BASE_DIR/sbin/nanowm &
 
+sleep 1
+
 # Start Indicator daemons
 $BASE_DIR/sbin/indicatord &
 

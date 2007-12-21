@@ -20,10 +20,8 @@
 
 #ifdef CONFIG_PLATFORM_X86DEMO
 #define ACTIVETHEME_PATH	"share/activetheme/"
-//const char *active_theme_path = "/usr/local/flphone/share/activetheme";
 #else
 #define ACTIVETHEME_PATH	"share/activetheme/"
-//const char *active_theme_path = "/home/flphone/.config/activetheme";
 #endif
 
 const char theme_title[] = "Title";

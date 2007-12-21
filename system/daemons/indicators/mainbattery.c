@@ -16,7 +16,6 @@
 #include <nxcolors.h>
 #include "indicators.h"
 
-static GR_IMAGE_ID	battery_images[N_MAX_IMAGES];
 static GR_IMAGE_ID	battery_image;
 //static	GR_WINDOW_ID	battery_window;
 static	int	battery_frame_width;
@@ -30,7 +29,7 @@ static int mainbattery_show(int frame);
 
 static void mainbattery_changed_callback(int new_value)
 {
-	battery_current = shdata -> battery.bars;
+	battery_current = shdata -> battery.capacity;
 
 	mainbattery_show(battery_current);
 }
@@ -62,8 +61,6 @@ int mainbattery_create( struct indicator * ind)
 		battery_frame_width = iinfo.width / MAINBATTERY_NUMFRAMES;
 		battery_frame_height = iinfo.height;
 	}
-	/* Select events for the ROOT window */
-	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE);
 	/* show indicator */
 	mainbattery_show(1);
 	/* set the callback */

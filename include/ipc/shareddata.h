@@ -26,7 +26,7 @@ typedef struct {
 	} wm;
 /* network */
 	struct {
-		char bars; /* network signal */
+		char signal; /* network signal */
 	} network;
 /* SIM */
 	struct {
@@ -43,7 +43,7 @@ typedef struct {
 	struct {
 		int chargingstate;
 		int status;
-		int bars;
+		int capacity; /* capacity - 0..7 */
 		int lowwarn;
 	} battery;
 /* phone status */

@@ -51,7 +51,7 @@ static void mainloop(void)
 			case GR_EVENT_TYPE_EXPOSURE:
 				wid = event.general.wid;
 				for (i = 0; i < indicators_number; i++) {
-					if (indicators[i].wind_id == wid) {
+					if (indicators[i].wind_id > 0) {
 						indicators[i].callback(wid, &event);
 					}
 				}
@@ -68,10 +68,22 @@ int main_load_indicators ()
 {
 	memset(indicators, 0, sizeof(indicators));
 
+	/* Select events for the ROOT window */
+	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE);
+
+// debug - draw a cross
+static GR_GC_ID		gc; /* current Graphic Context */ 
+gc = GrNewGC();
+GrLine(GR_ROOT_WINDOW_ID, gc, 0,0, 176,220);
+GrLine(GR_ROOT_WINDOW_ID, gc, 0,220, 176,0);
+
 	/* setup THEME_MAINBATTERY */
 	mainbattery_create(&indicators[THEME_MAINBATTERY]);
 
-	indicators_number = 1;
+	/* setup THEME_MAINSIGNAL */
+	mainsignal_create(&indicators[THEME_MAINSIGNAL]);
+
+	indicators_number = 2;
 }
 
 
@@ -91,7 +103,7 @@ int main(int argc, char *argv[])
 	pid = getpid();
 	
 	if (!access(lockfile, F_OK)) {
-		printf("Warnning - found a stale lockfile.  Deleting it...\n");
+		printf("Warning - found a stale lockfile.  Deleting it...\n");
 		unlink(lockfile);
 	}
 	

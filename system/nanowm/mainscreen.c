@@ -28,7 +28,7 @@ int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index)
 		pid = GrNewPixmap(iif.width, iif.height, NULL);
 		gc = GrNewGC();
 		GrDrawImageToFit(pid, gc, 0, 0, -1, -1, image_id);
-		GrSetBackgroundPixmap(wid, pid, GR_BACKGROUND_CENTER);
+		GrSetBackgroundPixmap(wid, pid, GR_BACKGROUND_TOPLEFT | GR_BACKGROUND_TRANS);
 		GrClearWindow(GR_ROOT_WINDOW_ID, GR_TRUE);
 		GrDestroyGC(gc);
 		GrFreeImage(image_id);

@@ -40,4 +40,7 @@ int multi_init (struct indicator * ind);
 /* from mainbattery.c */
 int mainbattery_create( struct indicator * ind);
 
+/* from mainsignal.c */
+int mainsignal_create( struct indicator * ind);
+
 #endif
