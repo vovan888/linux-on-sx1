@@ -137,6 +137,10 @@ _build_gsmd: $(BASE_DIR)/libs/gsm/.configured
 
 _install_gsmd: dummy
 	cp -fP gsm/src/libgsmd/.libs/libgsmd.so* $(INSTALL_DIR)/lib/
+	if [ $(INSTALL_DIR)/sbin ]; then \
+		rm -r $(INSTALL_DIR)/sbin; \
+	fi
+	mkdir $(INSTALL_DIR)/sbin	
 	cp -fP gsm/src/gsmd/gsmd $(INSTALL_DIR)/sbin/
 
 _clean_gsmd: dummy

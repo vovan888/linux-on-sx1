@@ -1,14 +1,18 @@
 # system/Makefile
 
-local-target-y=
-target-y= platform
 
-target-$(CONFIG_NANOWM) += nanowm
+local-target-y= platform
+#target-y= platform
+#target-y= ipc daemons gsmmux nanowm platform
+
+#note! sequence dependent :), ipc should be listed first.
 target-$(CONFIG_IPC) += ipc
+target-$(CONFIG_NANOWM) += nanowm
 target-$(CONFIG_DAEMONS) += daemons
 target-$(CONFIG_GSMMUX) += gsmmux
 
 DIRS=$(target-y)
+#DIRS=$(sort $(target-y))
 
 subdir-build = $(patsubst %,_subdir_%,$(DIRS))
 subdir-clean = $(patsubst %,_clean_%,$(DIRS))
