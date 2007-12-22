@@ -1,12 +1,26 @@
-#ipc/server/Makefile
+# system/Makefile
 
-TARGET=
-INSTALL_BINDIR=$(INSTALL_DIR)/sbin
+local-target-y=
+target-y= ipc_dsy ipc_ext ipc_sound
 
-SRC=${shell ls *.c} 
-OBJS=${SRC:.c=.o}
+DIRS=$(target-y)
 
-LIBS=
+subdir-build = $(patsubst %,_subdir_%,$(DIRS))
+subdir-clean = $(patsubst %,_clean_%,$(DIRS))
+subdir-install = $(patsubst %,_install_%,$(DIRS))
 
-include $(BASE_DIR)/Rules.make
+all: $(subdir-build) 
+clean: $(subdir-clean)
+install: $(subdir-install) 
+
+$(subdir-build): dummy
+	@ $(MAKE) -C $(patsubst _subdir_%,%,$@)
+
+$(subdir-clean): dummy
+	@ $(MAKE) -C $(patsubst _clean_%,%,$@) clean
+
+$(subdir-install): dummy
+	@ $(MAKE) -C $(patsubst _install_%,%,$@) install
+
+dummy:
 

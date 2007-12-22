@@ -6,10 +6,10 @@ config CONFIG_FLNX
        help
 	Say yes here to build FLNX for Microwindows
 
-config CONFIG_LIBHELPER
-       bool "Build helper library"
+config CONFIG_LIBFLPHONE
+       bool "Build libflphone library"
        default y
        help
-	Say yes here to build libhelper
+	Say yes here to build libflphone
 
 endmenu

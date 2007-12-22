@@ -1,7 +1,7 @@
-# libhelper/Makefile
+# libflphone/Makefile
 
-LIB_STATIC=libhelper.a
-LIB_SHARED=libhelper.so
+LIB_STATIC=libflphone.a
+LIB_SHARED=libflphone.so
 
 SRC=${shell ls *.c}
 OBJS=${SRC:.c=.o}

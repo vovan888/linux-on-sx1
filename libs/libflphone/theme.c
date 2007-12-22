@@ -14,7 +14,7 @@
 
 #include <libini.h>
 #include <theme.h>
-#include <libhelper.h>
+#include <libflphone.h>
 #include <flphone_config.h>
 #include <nano-X.h>
 

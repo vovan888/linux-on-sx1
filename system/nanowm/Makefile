@@ -9,7 +9,7 @@ OBJS=${SRC:.c=.o}
 LIBS= -lnano-X
 
 # libini usage
-LIBS+=-lini -lhelper -lipc
+LIBS+=-lini -lflphone -lipc
 
 include $(BASE_DIR)/Rules.make
 

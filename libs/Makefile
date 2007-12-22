@@ -15,7 +15,7 @@ export LD=$(TARGET_CROSS)ld
 local-target-y=flnx libini gsmd
 #target-y=flek/src
 
-target-$(CONFIG_LIBHELPER) += helper
+target-$(CONFIG_LIBFLPHONE) += flphone
 
 target-$(CONFIG_PIM_ADDRESS) += pim
 target-$(CONFIG_PIM_NOTEPAD) += pim

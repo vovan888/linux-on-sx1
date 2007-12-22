@@ -28,7 +28,7 @@ int ipc_start(char * servername)
 	client_fd = ClRegister(servername, &cl_flags);
 	
 	if (client_fd <= 0)
-		fprintf(stderr,"indicatord: Unable to locate the IPC server.\n");
+		fprintf(stderr,"%s: Unable to locate the IPC server.\n",servername);
 	else
 		GrRegisterInput(client_fd);
 }
