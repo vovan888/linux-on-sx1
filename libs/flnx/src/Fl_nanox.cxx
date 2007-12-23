@@ -586,10 +586,9 @@ int fl_handle(const GR_EVENT & xevent) {
 
   /* #$*#&$ - Some events are not tied to a window */
 
-  if (xevent.type == GR_EVENT_TYPE_FD_ACTIVITY) {
-    int fdnum = xevent.fd.fd;
+  if (xevent.type == GR_EVENT_TYPE_FDINPUT) {
+    int fdnum = xevent.fdinput.fd;
 
-    if (xevent.fd.can_read)
 	for(i = 0; i < nfds; i++) {
     	    if (fd[i].fd == fdnum) {
 		if (fd[i].cb) fd[i].cb(fdnum, fd[i].arg);
@@ -1045,13 +1044,13 @@ void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap) {
 		      GR_EVENT_MASK_KEY_UP | GR_EVENT_MASK_TIMEOUT |
 		      GR_EVENT_MASK_FOCUS_IN | GR_EVENT_MASK_FOCUS_OUT |
 		      GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_CLOSE_REQ |
-		      GR_EVENT_MASK_UPDATE | GR_EVENT_MASK_FD_ACTIVITY);
+		      GR_EVENT_MASK_UPDATE | GR_EVENT_MASK_FDINPUT);
     } else {
       GrSelectEvents (wid, GR_EVENT_MASK_KEY_DOWN |
 		      GR_EVENT_MASK_KEY_UP | GR_EVENT_MASK_TIMEOUT |
 		      GR_EVENT_MASK_FOCUS_IN | GR_EVENT_MASK_FOCUS_OUT |
 		      GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_CLOSE_REQ |
-		      GR_EVENT_MASK_UPDATE | GR_EVENT_MASK_FD_ACTIVITY);
+		      GR_EVENT_MASK_UPDATE | GR_EVENT_MASK_FDINPUT);
 
     }
 /* -- vovan888

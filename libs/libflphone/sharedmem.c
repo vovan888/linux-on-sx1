@@ -19,6 +19,7 @@
 #include <ipc/shareddata.h>
 
 #define SHMID		0x0888
+#define SEMID		0x8888
 #define SHMSIZE		4096
 
 /* arg for semctl system calls. */
@@ -30,10 +31,11 @@ union semun {
         void *__pad;
 };
 
-static int	use_count = 0;
-static int	shmid = 0; /* Shared memory segment ID */
+static int	shmid;
+static int	shmids[SHARED_NUMSEGMENTS]; /* Shared memory segment IDs */
 /* semaphores stuff */
-static int	semid = 0;
+static int	semid;
+static int	semids[SHARED_NUMSEGMENTS];
 const static struct sembuf oper_lock[1] = {{
 	.sem_num	= 0,
 	.sem_op		= -1,
@@ -45,82 +47,82 @@ const static struct sembuf oper_unlock[1] = {{
 	.sem_flg	= SEM_UNDO,
 	}};
 
-static int ShmInit()
+static int ShmInit(unsigned int shared_id)
 {
-	if(!shmid) {
-		/* allocate shared memory segment */
-		shmid = shmget(SHMID, SHMSIZE, IPC_CREAT | S_IRUSR | S_IWUSR );
-		if(shmid < 0) {
-			ERRLOG("Cant create shm object.\n");
-		}
+	/* allocate shared memory segment */
+	shmid = shmget(SHMID + shared_id, SHMSIZE, IPC_CREAT | S_IRUSR | S_IWUSR );
+	if (shmid < 0) {
+		ERRLOG("Cant create shm object.\n");
 	}
-	if(!semid) {
-		/* allocate semaphore */
-		semid = semget(SHMID+1, 1, IPC_CREAT | S_IRUSR | S_IWUSR );
-		if(semid < 0) {
-			ERRLOG("Cant create sem object.\n");
-		} else {
-			/* init semaphore */
-			union semun	arg;
-			unsigned short vals[1];
-			vals[0] = 1;
-			arg.array = vals;
-			semctl(semid, 0, SETALL, arg);
-		}
+
+	/* allocate semaphore */
+	semid = semget(SEMID+shared_id, 1, IPC_CREAT | S_IRUSR | S_IWUSR );
+	if (semid < 0) {
+		ERRLOG("Cant create sem object.\n");
+	} else {
+		/* init semaphore */
+		union semun	arg;
+		unsigned short vals[1];
+		vals[0] = 1;
+		arg.array = vals;
+		semctl(semid, 0, SETALL, arg);
 	}
-	return shmid;
+	return 0;
 }
 
-/* Map shared memory segment
+/* Map shared memory segment with shared_id
  * returns its adress
 */
-SharedData * ShmMap()
+struct SharedSystem *ShmMap(unsigned int shared_id)
 {
 	void * ptr = NULL;
-	if(!shmid)
-		ShmInit();
-	if(shmid) {
+
+	/* check shared_id */
+	if (shared_id > SHARED_NUMSEGMENTS) {
+		return NULL;
+	}
+
+	shmid = shmids[shared_id];
+	semid = semids[shared_id];
+
+	if (! shmid )
+		ShmInit(shared_id);
+	if ( shmid ) {
 		ptr = shmat(shmid, NULL, 0);
-		if(ptr == (void *) -1 ) {
+		if (ptr == (void *) -1 ) {
 			ERRLOG("Cant shmat segment\n");
-		} else {
-			use_count++;
 		}
 	}
-	return (SharedData *) ptr;
+	
+	shmids[shared_id] = shmid;
+	semids[shared_id] = semid;
+
+	return (struct SharedSystem *) ptr;
 }
 
 /* UnMap shared memory segment
  * returns 
 */
-int	ShmUnmap(SharedData * ptr)
+int	ShmUnmap(struct SharedSystem *ptr)
 {
-	if(shmid) {
-		shmdt(ptr);
-		use_count--;
-		if (use_count == 0) {
-			/* remove semaphore */
-			union semun	arg;
-			semctl(semid, 1, IPC_RMID, arg);
-		}
-	}
-	return 0;
+	/*FIXME should we free segments and semaphores ?*/
+	return shmdt(ptr);
 }
 
 /* blocks till the shared mem is busy then locks it */
-int ShmLock ()
+int ShmLock (unsigned int shared_id)
 {
-	if(shmid)
-		return semop(semid, oper_lock, 1);
+	if(shmids[shared_id])
+		return semop(semids[shared_id], oper_lock, 1);
 	else
 		return 0;
 }
 
 /* unlocks shared memory segment */
-int ShmUnlock ()
+int ShmUnlock (unsigned int shared_id)
 {
-	if(shmid)
-		return semop(semid, oper_unlock, 1);
+	if(shmids[shared_id])
+		return semop(semids[shared_id], oper_unlock, 1);
 	else
 		return 0;
 }

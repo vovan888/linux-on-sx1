@@ -1,13 +1,13 @@
-/* libhelper.h
+/* libflphone.h
 *
-* Helper library
+* libflphone library
 *
 * Copyright 2007 by Vladimir Ananiev (Vovan888 at gmail com )
 *
 */
 
-#ifndef _libhelper_h_
-#define _libhelper_h_
+#ifndef _libflphone_h_
+#define _libflphone_h_
 
 /* config functions */
 /* find file on MMC then in local dir */

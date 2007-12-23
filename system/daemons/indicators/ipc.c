@@ -21,7 +21,7 @@ static int client_fd = 0;
 static int val = 0;
 
 /* Register with IPC server */
-int ipc_start(char * servername)
+int ipc_start(unsigned char * servername)
 {
 	int cl_flags;
 	
@@ -31,6 +31,7 @@ int ipc_start(char * servername)
 		fprintf(stderr,"%s: Unable to locate the IPC server.\n",servername);
 	else
 		GrRegisterInput(client_fd);
+	return 0;
 }
 
 /* Handle IPC message 
@@ -42,10 +43,10 @@ int ipc_handle (GR_EVENT * e)
 {
 	int ack = 0, size = 32;
 	unsigned short src = 0;
-	char msg[32];
+	unsigned char msg[32];
 
 	if( (ack = ClGetMessage(&msg, &size, &src)) < 0 )
-		return;
+		return ack;
 	if (ack == CL_CLIENT_BROADCAST)
 		/**/;
 	if (msg[0] == '0') {

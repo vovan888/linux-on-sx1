@@ -10,11 +10,10 @@
 # to run Pixil in a Redhat 7.3 environment. 
 
 BASE_DIR=@installdir@
-
-export LD_LIBRARY_PATH=$BASE_DIR/lib
-export MWFONTDIR=$BASE_DIR/share/fonts/
-
 MWDIR=@mwdir@
+
+export MWFONTDIR=$BASE_DIR/share/fonts/
+export LD_LIBRARY_PATH=$BASE_DIR/lib:$MWDIR/lib
 
 # Verify that everything exists
 

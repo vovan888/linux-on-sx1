@@ -28,7 +28,7 @@
 
 const char lockfile[]="/tmp/"DAEMON_NAME".lock";
 
-SharedData * shdata; /* shared memory segment */
+struct SharedSystem *shdata; /* shared memory segment */
 struct indicator indicators[16];
 
 static int indicators_number;
@@ -48,18 +48,17 @@ static void mainloop(void)
 
 		GrGetNextEvent(&event);
 		switch (event.type) {
-			case GR_EVENT_TYPE_EXPOSURE:
-				wid = event.general.wid;
-				for (i = 0; i < indicators_number; i++) {
-					if (indicators[i].wind_id > 0) {
-						indicators[i].callback(wid, &event);
-					}
+		case GR_EVENT_TYPE_EXPOSURE:
+			wid = event.general.wid;
+			for (i = 0; i < indicators_number; i++) {
+				if (indicators[i].wind_id > 0) {
+					indicators[i].callback(wid, &event);
 				}
-				break;
-			case GR_EVENT_TYPE_FD_ACTIVITY:
-				if (event.fd.can_read)
-					ipc_handle(&event);
-				break;
+			}
+			break;
+		case GR_EVENT_TYPE_FDINPUT:
+			ipc_handle(&event);
+			break;
 		}
 	}
 }
@@ -133,7 +132,7 @@ int main(int argc, char *argv[])
 	
 	ipc_start("indicatord");
 	
-	shdata = ShmMap();
+	shdata = ShmMap(SHARED_SYSTEM);
 
 	main_load_indicators();
 

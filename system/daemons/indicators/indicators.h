@@ -27,11 +27,11 @@ struct indicator {
 
 /* from main.c */
 extern struct indicator indicators[16];
-extern SharedData * shdata; /* shared memory segment */
+extern struct SharedSystem *shdata; /* shared memory segment */
 
 /* from ipc.c */
 int ipc_active (void);
-int ipc_start(char * servername);
+int ipc_start(unsigned char * servername);
 int ipc_handle (GR_EVENT * e);
 
 /* from interface.c */

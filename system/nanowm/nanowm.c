@@ -20,7 +20,7 @@
 GR_SCREEN_INFO si;
 
 /* Register with IPC server */
-int ipc_start(char * servername)
+int ipc_start(unsigned char * servername)
 {
 	int cl_flags, client_fd;
 
@@ -37,7 +37,8 @@ int ipc_start(char * servername)
 /* Handle IPC message */
 int ipc_handle (GR_EVENT * e)
 {
-	int ack, size, src;
+	int ack = 0, size = 32;
+	unsigned short src = 0;
 	char msg[32];
 
 	ack = ClGetMessage(&msg, &size, &src);
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
 
 	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE |
 				GR_EVENT_MASK_KEY_DOWN | GR_EVENT_MASK_KEY_UP |
-				GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER /*| GR_EVENT_MASK_FD_ACTIVITY*/);
+				GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER /*| GR_EVENT_MASK_FDINPUT*/);
 
 	ipc_start("nanowm");
 

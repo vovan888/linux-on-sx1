@@ -10,9 +10,14 @@
 #ifndef _shareddata_h_
 #define _shareddata_h_
 
-/* shared memory structure */
+/* shm segment ids for different data */
+#define SHARED_SYSTEM	0
+#define SHARED_APPS	1
 
-typedef struct {
+#define SHARED_NUMSEGMENTS	2
+
+/* shared memory structure for SHARED_SYSTEM*/
+struct SharedSystem {
 /* powerup data */
 	struct {
 		int reason;
@@ -54,23 +59,23 @@ typedef struct {
 		int profile;
 		
 	} status;
-} SharedData;
+};
 
 /* Map shared memory segment
  * returns its adress
 */
-SharedData * ShmMap();
+struct SharedSystem *ShmMap(unsigned int shared_id);
 
 /* UnMap shared memory segment
  * returns 
 */
-int ShmUnmap(SharedData * ptr);
+int ShmUnmap(struct SharedSystem *ptr);
 
 /* blocks till the shared mem is busy then locks it */
-int ShmLock ();
+int ShmLock (unsigned int shared_id);
 
 /* unlocks shared memory segment */
-int ShmUnlock ();
+int ShmUnlock (unsigned int shared_id);
 
 
 #endif //shareddata_h_
