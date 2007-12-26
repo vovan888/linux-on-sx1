@@ -1,0 +1,73 @@
+#
+# Automatically generated make config: don't edit
+#
+
+#
+# Flphone Settings
+#
+# CONFIG_X11 is not set
+CONFIG_NANOX=y
+CONFIG_SCREEN_WIDTH=176
+CONFIG_SCREEN_HEIGHT=220
+# CONFIG_PM is not set
+
+#
+# Platform Configuration
+#
+# CONFIG_PLATFORM_SX1 is not set
+CONFIG_PLATFORM_X86DEMO=y
+CONFIG_CPU_INTEL=y
+
+#
+# Build Options
+#
+CROSS_COMPILE=y
+CROSS_COMPILER_PREFIX="arm-linux-"
+MW_PREFIX="/home/vovan/work/linux-on-sx1/trunk/target/src/microwin/src"
+INSTALL_PREFIX="/usr/local/flphone/"
+CONFIG_SAMPLES=y
+# CONFIG_DEBUG is not set
+# WERROR is not set
+
+#
+# Applications
+#
+
+#
+# Phone Applications
+#
+CONFIG_PHONEAPPS=y
+CONFIG_DIALER=y
+# CONFIG_INCOMING_CALL is not set
+# CONFIG_CALL_LOGS is not set
+# CONFIG_MESSAGES is not set
+CONFIG_TEST=y
+
+#
+# Media Applications
+#
+# CONFIG_MEDIA is not set
+
+#
+# PIM Applications
+#
+# CONFIG_PIM is not set
+
+#
+# Libraries
+#
+CONFIG_FLNX=y
+CONFIG_LIBFLPHONE=y
+
+#
+# System applications
+#
+CONFIG_NANOWM=y
+CONFIG_IPC=y
+
+#
+# System daemons
+#
+CONFIG_DAEMONS=y
+CONFIG_INDICATORD=y
+CONFIG_GSMMUX=y

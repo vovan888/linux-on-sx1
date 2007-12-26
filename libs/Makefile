@@ -113,11 +113,8 @@ _install_libini: dummy
 	cp -fP libini/src/.libs/libini.so* $(INSTALL_DIR)/lib/
 
 _clean_libini: dummy
-	if [ -f $(BASE_DIR)/libs/libini/makeinclude ]; then \
-		make -C $(BASE_DIR)/libs/libini distclean; \
-	fi
+	make -C $(BASE_DIR)/libs/libini distclean
 	rm -f $(BASE_DIR)/libs/libini/.configured
-	
 	
 $(BASE_DIR)/libs/gsm/.configured: 
 	(cd $(BASE_DIR)/libs/gsm; ./autogen.sh \
@@ -144,9 +141,7 @@ _install_gsmd: dummy
 	cp -fP gsm/src/gsmd/gsmd $(INSTALL_DIR)/sbin/
 
 _clean_gsmd: dummy
-	if [ -f $(BASE_DIR)/libs/gsm/makeinclude ]; then \
-		make -C $(BASE_DIR)/libs/gsm distclean; \
-	fi
+	make -C $(BASE_DIR)/libs/gsm distclean
 	rm -f $(BASE_DIR)/libs/gsm/.configured	
 
 dummy:

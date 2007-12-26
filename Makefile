@@ -42,9 +42,9 @@ TARGET_CROSS=$(subst ",, $(strip $(CROSS_COMPILER_PREFIX)))
 BUILD_SYS=i386-linux
 
 ifeq ($(CROSS_COMPILE),y)
-ifeq ($(CONFIG_TARGET_ARM),y)
+#ifeq ($(CONFIG_TARGET_ARM),y)
 SYS=arm-linux
-endif
+#endif
 ifeq ($(CONFIG_TARGET_I386_UCLIBC),y)
 SYS=i386-uclibc-linux
 endif
