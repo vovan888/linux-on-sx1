@@ -95,6 +95,13 @@ endif
 #CFLAGS += -fPIC
 #endif
 
+#  -fvisibility=hidden support
+
+ifdef CONFIG_GCC_HIDDEN_VISIBILITY
+CFLAGS += -fvisibility=hidden
+CPPFLAGS += -fvisibility=hidden -fvisibility-inlines-hidden
+endif
+
 # Compile with copious debug information
 
 ifeq ($(CONFIG_DEBUG),y)
@@ -227,10 +234,10 @@ $(PAR_CONFIG): $(PAR_TEMPLATE)
 	$(CC) -c $(CFLAGS) $(INCLUDES) -o $@ $<
 
 %.o: %.cxx 
-	$(CXX) -c $(CFLAGS) $(INCLUDES) -o $@ $<
+	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ $<
 
 %.o: %.cpp
-	$(CXX) -c $(CFLAGS) $(INCLUDES) -o $@ $<
+	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $(INCLUDES) -o $@ $<
 
 
 ## These handle multiple platform targets

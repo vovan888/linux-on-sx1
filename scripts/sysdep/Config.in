@@ -92,6 +92,12 @@ config CONFIG_SAMPLES
 	help
 	  Install sample data for the applications
 
+config CONFIG_GCC_HIDDEN_VISIBILITY
+	bool "Build with hidden visibility"
+	default n
+	help
+	  Say Y here if you wish to compile with hidden visibility enabled.
+
 config CONFIG_DEBUG
 	bool "Build with debugging symbols"
 	default n

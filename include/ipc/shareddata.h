@@ -7,6 +7,8 @@
 * Licensed under GPLv2, see LICENSE
 */
 
+#include <libflphone.h>
+
 #ifndef _shareddata_h_
 #define _shareddata_h_
 
@@ -64,18 +66,18 @@ struct SharedSystem {
 /* Map shared memory segment
  * returns its adress
 */
-struct SharedSystem *ShmMap(unsigned int shared_id);
+DLLEXPORT struct SharedSystem *ShmMap(unsigned int shared_id);
 
 /* UnMap shared memory segment
  * returns 
 */
-int ShmUnmap(struct SharedSystem *ptr);
+DLLEXPORT int ShmUnmap(struct SharedSystem *ptr);
 
 /* blocks till the shared mem is busy then locks it */
-int ShmLock (unsigned int shared_id);
+DLLEXPORT int ShmLock (unsigned int shared_id);
 
 /* unlocks shared memory segment */
-int ShmUnlock (unsigned int shared_id);
+DLLEXPORT int ShmUnlock (unsigned int shared_id);
 
 
 #endif //shareddata_h_

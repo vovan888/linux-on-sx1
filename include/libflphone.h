@@ -6,11 +6,23 @@
 *
 */
 
+#include <flphone_config.h>
+
 #ifndef _libflphone_h_
 #define _libflphone_h_
 
+
+/* -fvisibility=hidden support macro */
+#ifdef CONFIG_GCC_HIDDEN_VISIBILITY
+    #define DLLEXPORT __attribute__ ((visibility("default")))
+    #define DLLLOCAL __attribute__ ((visibility("hidden")))
+#else
+    #define DLLEXPORT
+    #define DLLLOCAL
+#endif
+
 /* config functions */
 /* find file on MMC then in local dir */
-char * cfg_findfile(char * filename);
+DLLEXPORT char * cfg_findfile(char * filename);
 
 #endif

@@ -7,6 +7,8 @@
 * Licensed under GPLv2, see LICENSE
 */
 
+#include <libflphone.h>
+
 #ifndef _theme_h_
 #define _theme_h_
 
@@ -55,12 +57,12 @@
 /*
  * Load image from filename and return its ID
 */
-GR_WINDOW_ID theme_load_image(char * filename);
+DLLEXPORT GR_WINDOW_ID theme_load_image(char * filename);
 
 /*
  * Load image defined with <group_index> and <image_index>
  * sets xcoord, ycoord and (GR_IMAGE_ID) pict_id (if contains image name)
  */
-int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord, GR_IMAGE_ID * pict_id);
+DLLEXPORT int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord, GR_IMAGE_ID * pict_id);
 
 #endif

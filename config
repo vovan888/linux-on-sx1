@@ -21,11 +21,13 @@ CONFIG_CPU_INTEL=y
 #
 # Build Options
 #
-# CROSS_COMPILE is not set
+CROSS_COMPILE=y
+CROSS_COMPILER_PREFIX="arm-linux-"
 MW_PREFIX="/home/vovan/work/linux-on-sx1/trunk/target/src/microwin/src"
 INSTALL_PREFIX="/usr/local/flphone/"
 CONFIG_SAMPLES=y
-CONFIG_DEBUG=y
+CONFIG_GCC_HIDDEN_VISIBILITY=y
+# CONFIG_DEBUG is not set
 # WERROR is not set
 
 #
@@ -56,7 +58,7 @@ CONFIG_TEST=y
 # Libraries
 #
 CONFIG_FLNX=y
-CONFIG_LIBHELPER=y
+CONFIG_LIBFLPHONE=y
 
 #
 # System applications
