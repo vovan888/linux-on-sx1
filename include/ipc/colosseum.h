@@ -58,6 +58,19 @@ extern "C"
 #define CL_LOG_CLIENT     2
 #define CL_APPEND_ARGS	  3
 
+/* System Group IDs (one group for every daemon) */
+#define CL_MSG_GROUP_POWER	0xFF00
+#define CL_MSG_GROUP_WM		0xFF01
+#define CL_MSG_GROUP_APPLIST	0xFF02
+#define CL_MSG_GROUP_CALENDAR	0xFF03
+#define CL_MSG_GROUP_CONTACTS	0xFF04
+#define CL_MSG_GROUP_ALARM	0xFF05
+#define CL_MSG_GROUP_CAMERA	0xFF06
+#define CL_MSG_GROUP_SOUND	0xFF07
+#define CL_MSG_GROUP_EVENTLOG	0xFF08
+#define CL_MSG_GROUP_PHONE	0xFF09
+#define CL_MSG_GROUP_MESSAGES	0xFF0A
+
 /* This is the universal broadcast address */
 #define CL_MSG_BROADCAST_ID  0xFFFF
 #define CL_MSG_SERVER_ID     0x0000
