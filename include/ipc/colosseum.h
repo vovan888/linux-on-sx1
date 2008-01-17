@@ -68,7 +68,6 @@ extern "C"
 #define CL_MSG_GROUP_CAMERA	0xFF06
 #define CL_MSG_GROUP_SOUND	0xFF07
 #define CL_MSG_GROUP_EVENTLOG	0xFF08
-#define CL_MSG_GROUP_PHONE	0xFF09
 #define CL_MSG_GROUP_MESSAGES	0xFF0A
 
 /* This is the universal broadcast address */

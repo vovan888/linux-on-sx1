@@ -33,7 +33,8 @@ struct SharedSystem {
 	} wm;
 /* network */
 	struct {
-		char signal; /* network signal */
+		char signal; 	/* network signal strength in dBm*/
+		char bars; 	/* network bars */
 	} network;
 /* SIM */
 	struct {
@@ -48,10 +49,9 @@ struct SharedSystem {
 	} sim;
 /* battery */
 	struct {
-		int chargingstate;
 		int status;
-		int capacity; /* capacity - 0..7 */
-		int lowwarn;
+		int bars; /* capacity - 0..7 */
+		int capacity; /* capacity - 0%..100% */
 	} battery;
 /* phone status */
 	struct {
