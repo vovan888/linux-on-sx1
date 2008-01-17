@@ -775,35 +775,6 @@ int Fl::handle(int e, Fl_Window* window)
 
     fl_xfocus = window; // this should not happen!  But maybe it does:
 
-	if(Fl::e_keysym=='#' || Fl::e_keysym==3/*left-Windows-key*/)
-	{
-		/*
-		printf("Fl.cxx # Fl::e_keysym %c/%i \n", Fl::e_keysym, Fl::e_keysym );
-		Fl_Window *searchwin, *searchparent;
-		  for (searchwin = first_window(); searchwin; searchwin = next_window(searchwin))
-			{
-			printf("searchwin searchwin->label=%s iconlabel=%s xclass=%s\n", searchwin->label(), searchwin->iconlabel(), searchwin->xclass() );
-			searchparent=searchwin;
-			while (searchparent->parent() != NULL)
-				searchparent = (Fl_Window *) searchparent->parent();
-			printf("searchwin parent->label=%s iconlabel=%s xclass=%s\n", searchwin->label(), searchwin->iconlabel(), searchwin->xclass() );
-			GR_WINDOW_ID wid = fl_xid(searchparent);
-			GR_WINDOW_INFO info;
-			GrGetWindowInfo(wid, &info);
-			GR_WM_PROPERTIES props;
-			GrGetWMProperties(wid, &props);
-			printf("title=%s\n", (char *) props.title);
-		  	}
-		// GrMoveCursor (150, 205); // put mouse anywere inside the keyboard picture
-		*/
-		// simulate moving the mouse into the keyboard icon, and pressing left-button. This shows/hides it
-		GrFlush();
-		GrInjectPointerEvent(150, 205, 2/*left-button*/, GR_FALSE/*visible*/ );
-		GrMoveCursor (150, 205); 
-		GrFlush();
-		return 1;
-    }
-
     // Try it as keystroke, sending it to focus and all parents:
     for (wi = grab() ? grab() : focus(); wi; wi = wi->parent())
 	{

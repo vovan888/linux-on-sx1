@@ -1,0 +1,23 @@
+Calendar daemon.
+===============
+
+functionality -  fetch, update, save, and delete calendar entries.
+
+Calendar entry:
+ - type : (appointment,to-do,reminder,event,anniversary)
+ - summary
+ - location
+ - description
+ - start datetime
+ - end datetime
+ - repeat rules
+ - priority
+
+ - status (confirmed etc)
+ 
+Import export to vCalendar or iCalendar
+
+Notifications:
+ - change (added, deleted, changed entry)
+ - progress and completion
+ 

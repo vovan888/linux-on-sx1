@@ -159,6 +159,7 @@ ulong fl_xpixel(uchar r,uchar g,uchar b) {
 
 void fl_color(uchar r,uchar g,uchar b) {
 #ifdef NANO_X			//tanghao
+
   fl_color_ = fl_rgb_color(r, g, b);
   GrSetGCForeground(fl_gc, fl_xpixel(r, g, b));	//(GR_GC_ID gc, GR_COLOR foreground);
   GrSetGCBackground(fl_gc, GR_RGB(200, 200, 200));

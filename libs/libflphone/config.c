@@ -16,9 +16,9 @@
 
 #define PATHS_NUM	2
 #ifdef CONFIG_PLATFORM_X86DEMO
-const char *paths[2] = {"/usr/local/flphone/", NULL };
+const char *paths[PATHS_NUM] = {"/usr/local/flphone/", NULL };
 #else
-const char *paths[2] = {"/usr/flphone/","/mnt/mmc1/" };
+const char *paths[PATHS_NUM] = {"/usr/flphone/","/mnt/mmc1/" };
 #endif
 
 /*

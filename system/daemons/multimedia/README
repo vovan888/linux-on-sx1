@@ -1,0 +1,9 @@
+Multimedia daemon
+=================
+
+
+Audio - play, record, convert (?) audio files, or from buffer
+
+Video - play, record vido clips to/from files or buffers
+
+Tone - play a tone or DTMF tone

@@ -280,18 +280,15 @@ int update = 0;
 // It should return negative on error, 0 if nothing happens before
 // timeout, and >0 if any callbacks were done.
 int fl_wait(double time_to_wait) {
-//fl_wait (int timeout_flag, double time)
 
   if (GrQueueLength()) {do_queued_events(); return 1;}
 
   int msec = 0;
   double mtime = 100.0 * time_to_wait;
 
-/*  if (timeout_flag)
-    if (mtime < 1)
-      msec = 1;
-    else */
-      msec = int (mtime);
+  msec = int (mtime);
+  if (msec < 0)
+  	msec = 0;
 
   GR_EVENT ev;
 
@@ -1009,7 +1006,8 @@ void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap) {
     GR_WINDOW_ID wid;
     int showit = 1;
 
-    wid = GrNewWindow (root, X, Y, W, H, 0, WHITE, BLACK);
+    wid = GrNewWindow (root, X, Y, W, H, 0, MWNOCOLOR, BLACK);
+//    wid = GrNewWindow (root, X, Y, W, H, 0, WHITE, BLACK);
 
     printf("%d = GrNewWindow(%ld)\n", wid, root);
 

@@ -1,0 +1,11 @@
+Contacts daemon
+===============
+
+Database (can be several) - open, close, delete
+Entry (contact) - open, add, delete, sort (by some field)
+Field - add, delete, edit
+
+Search and sort database.
+Quick search by phone numbers
+
+Speed dial information (1 - 9 numbers)

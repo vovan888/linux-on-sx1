@@ -12,7 +12,7 @@
 #ifndef _shareddata_h_
 #define _shareddata_h_
 
-/* shm segment ids for different data */
+/* shm segment shared_id for different data */
 #define SHARED_SYSTEM	0
 #define SHARED_APPS	1
 

@@ -896,3 +896,41 @@ ClRegisterLogger(char *name)
 }
 
 #endif /* HAVE_LOGGING */
+
+/* Register message group
+  when sending message (with ClSendMessage) to the group_id it is delivered to all subscribers */
+int ClRegisterGroup (int group_id)
+{
+
+    cl_pkt_group pkt;
+    int ret;
+
+    if (!g_socket)
+	return (CL_CLIENT_NOCONN);
+
+    memset (&pkt, 0, sizeof (pkt));
+
+    /* Construct the find app packet */
+/*    pkt.src = */
+    pkt.group_id = group_id;
+    pkt.operation = CL_RegisterGroup;
+
+    /* Wait up to timeout seconds */
+    ret = client_MakeRequest (g_socket, CL_PKT_GROUP,
+			      (cl_packet *) & pkt, sizeof (pkt), 0);
+
+    if (ret < 0)
+	return (ret);
+
+    switch (pkt.header.resp) {
+    case CL_E_SPAWNERR:
+	return (CL_CLIENT_NOTFOUND);
+
+    case 0:
+	return (pkt.pid);
+
+    default:
+	printf ("Error %d returned from server\n", pkt.header.resp);
+	return (CL_CLIENT_ERROR);
+    }
+}

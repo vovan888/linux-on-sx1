@@ -83,6 +83,7 @@ extern "C"
 #define CL_PKT_LOG          0x07
 #define CL_PKT_SPAWNAPP     0x08
 #define CL_PKT_APP_INFO     0x09
+#define CL_PKT_GROUP	    0x0A
 #define CL_PKT_MSG_RESPONSE 0x10
 
 /* Error messages from the server to the client */
@@ -133,225 +134,231 @@ extern "C"
 #define CL_APP_INFO_PID  0
 #define CL_APP_INFO_NAME 1
 
-    typedef struct
-    {
-	int flags;
-	unsigned char name[CL_MAX_NAME_LEN + 1];
-	int processid;
-    }
-    cl_app_info;
+typedef struct {
+    int flags;
+    unsigned char name[CL_MAX_NAME_LEN + 1];
+    int processid;
+} cl_app_info;
 
 /* The following are the different packet types we have */
 
 /* This is sent when a recoverable error is encountered */
 /* unrecoverable errors, of course, preclude any communications */
 
-    typedef struct
-    {
-	unsigned char type;
-	unsigned short len;
-	unsigned char resp;
-    }
-    cl_pkt_header;
+typedef struct {
+    unsigned char type;
+    unsigned short len;
+    unsigned char resp;
+} cl_pkt_header;
 
-    typedef struct
-    {
-	cl_pkt_header header;
-	unsigned short error_code;
-    }
-    cl_pkt_error;
+typedef struct {
+    cl_pkt_header header;
+    unsigned short error_code;
+} cl_pkt_error;
 
 /* This is the basic type for passing a true message */
 
-    typedef struct
-    {
-	cl_pkt_header header;
+typedef struct {
+    cl_pkt_header header;
 
-	unsigned short src;	/* This is the app that sent the message */
-	unsigned short dest;	/* This is the destination IPC id */
+    unsigned short src;		/* This is the app that sent the message */
+    unsigned short dest;	/* This is the destination IPC id */
 
-	/* This is the message payload.  We automatically set it */
-	/* to make life easier right now.  This should change */
+    /* This is the message payload.  We automatically set it */
+    /* to make life easier right now.  This should change */
 
-	int msglen;
-	unsigned char message;	/* This is actually a place holder to the rest of the message */
+    int msglen;
+    unsigned char message;	/* This is actually a place holder to the rest of the message */
 
-    }
-    cl_pkt_message;
+} cl_pkt_message;
 
-    typedef struct
-    {
-	cl_pkt_header header;
-	int dummy;
-    }
-    cl_pkt_msg_response;
+typedef struct {
+    cl_pkt_header header;
+    int dummy;
+} cl_pkt_msg_response;
 
 /* A quick little macro to calculate the size of a message packet */
 /* with a given message size */
 
 #define MESSAGE_PKT_SIZE(len) ( sizeof(cl_pkt_message) - 1 + len )
 
-    typedef struct
-    {
-	cl_pkt_header header;
-	/* These are passed by the client */
+typedef struct {
+    cl_pkt_header header;
+    /* These are passed by the client */
 
-	short timeout;
-	unsigned short start_flags;
-	unsigned char name[CL_MAX_NAME_LEN + 1];
-	unsigned char argstr[CL_MAX_ARG_LEN + 1];
+    short timeout;
+    unsigned short start_flags;
+    unsigned char name[CL_MAX_NAME_LEN + 1];
+    unsigned char argstr[CL_MAX_ARG_LEN + 1];
 
-	/* This is set by the server on response */
-	int ipc_id;
-    }
-    cl_pkt_start;
+    /* This is set by the server on response */
+    int ipc_id;
+} cl_pkt_start;
 
-    typedef struct
-    {
-	cl_pkt_header header;
-	/* These are passed by the client */
+typedef struct {
+    cl_pkt_header header;
+    /* These are passed by the client */
 
-	unsigned char name[CL_MAX_NAME_LEN + 1];
-	unsigned char argstr[CL_MAX_ARG_LEN + 1];
+    unsigned char name[CL_MAX_NAME_LEN + 1];
+    unsigned char argstr[CL_MAX_ARG_LEN + 1];
 
-	/* This is set by the server on response */
-	int pid;
-    }
-    cl_pkt_spawn;
+    /* This is set by the server on response */
+    int pid;
+} cl_pkt_spawn;
 
-    typedef struct
-    {
-	cl_pkt_header header;
+typedef struct {
+    cl_pkt_header header;
 
-	int flags;
+    int flags;
 
-	unsigned char name[CL_MAX_NAME_LEN + 1];
-	int processid;
-    }
-    cl_pkt_appinfo;
+    unsigned char name[CL_MAX_NAME_LEN + 1];
+    int processid;
+} cl_pkt_appinfo;
 
-    typedef struct
-    {
-	cl_pkt_header header;
+typedef struct {
+    cl_pkt_header header;
 
-	/* THis is sent by the client */
-	unsigned char name[CL_MAX_NAME_LEN + 1];
+    /* THis is sent by the client */
+    unsigned char name[CL_MAX_NAME_LEN + 1];
 
-	/* These are set by the server on response */
-	int ipc_id;
-    }
-    cl_pkt_findapp;
+    /* These are set by the server on response */
+    int ipc_id;
+} cl_pkt_findapp;
 
-    typedef struct
-    {
-	cl_pkt_header header;
+typedef struct {
+    cl_pkt_header header;
 
-	/* This is a set value, it should *not* be dynamic */
-	unsigned char name[CL_MAX_NAME_LEN + 1];
-	int start_flags;
+    /* This is a set value, it should *not* be dynamic */
+    unsigned char name[CL_MAX_NAME_LEN + 1];
+    int start_flags;
 
-	/* This is returned by the server */
-	int ipc_id;
+    /* This is returned by the server */
+    int ipc_id;
 
-    }
-    cl_pkt_reg;
+} cl_pkt_reg;
 
-    typedef struct
-    {
-	cl_pkt_header header;
+typedef struct {
+    cl_pkt_header header;
 
-	/* This is a set value, it should *not* be dynamic */
-	int id;
+    /* This is a set value, it should *not* be dynamic */
+    int id;
 
-	/* This is returned by the server */
-	unsigned char name[CL_MAX_NAME_LEN + 1];
+    /* This is returned by the server */
+    unsigned char name[CL_MAX_NAME_LEN + 1];
 
-    }
-    cl_pkt_findname;
+} cl_pkt_findname;
 
-    typedef struct
-    {
-	cl_pkt_header header;
+typedef struct {
+    cl_pkt_header header;
 
-	int level;
-	unsigned char message[CL_MAX_LOG_LEN + 1];
-    }
-    cl_pkt_log;
+    int level;
+    unsigned char message[CL_MAX_LOG_LEN + 1];
+} cl_pkt_log;
 
+
+/* This is the message struct for the group operations */
+typedef struct {
+    cl_pkt_header header;
+
+    unsigned short src;		/* This is the app that sent the message */
+    unsigned short group_id;	/* This is the group id */
+
+    int operation; /* operation command */
+
+} cl_pkt_group;
+
+/* operaation for the cl_pkt_group */
+#define CL_RegisterGroup		0
+#define CL_UnRegisterGroup		1
+#define CL_SubscribeToGroup	2
+#define CL_UnSubscribeFromGroup	3
 
 /* This is the main union, that is passed about as part */
 /* of a cl_pkt_buff */
+typedef union {
+    cl_pkt_header header;
+    cl_pkt_reg reg;
+    cl_pkt_start start;
+    cl_pkt_spawn spawn;
+    cl_pkt_appinfo appinfo;
 
-    typedef union
-    {
-	cl_pkt_header header;
-	cl_pkt_reg reg;
-	cl_pkt_start start;
-	cl_pkt_spawn spawn;
-	cl_pkt_appinfo appinfo;
+    cl_pkt_message message;
+    cl_pkt_error error;
 
-	cl_pkt_message message;
-	cl_pkt_error error;
-
-	cl_pkt_findapp findapp;
-	cl_pkt_findname findname;
-	cl_pkt_log log;
-    }
-    cl_packet;
+    cl_pkt_findapp findapp;
+    cl_pkt_findname findname;
+    cl_pkt_log log;
+    cl_pkt_group;
+} cl_packet;
 
 #define CL_MAX_PKT_SIZE  (sizeof(cl_packet) + CL_MAX_MSG_LEN)
+
     /* Register application with IPC server
-         name  - application name
-         flags - different flags returned
+       name  - application name
+       flags - different flags returned
        returns file descriptor of server connection socket
        or <0 if error */
-    int ClRegister(unsigned char *name, int *flags);
+int ClRegister (unsigned char *name, int *flags);
+
+/* Register message group 
+  when sending message (with ClSendMessage) to the group_id it is delivered to all subscribers */
+int ClRegisterGroup (int group_id);
+
+/* UnRegister message group */
+int ClUnRegisterGroup (int group_id);
+
+/* Subscribe to the message group */
+int ClSubscribeToGroup (int group_id);
+
+/* UnSubscribe to the message group */
+int ClUnSubscribeFromGroup (int group_id);
 
     /* Reconnect to the server  */
-    int ClReconnect(unsigned char *name);
+int ClReconnect (unsigned char *name);
 
     /* Close connection to the server */
-    int ClClose(void);
-    
+int ClClose (void);
+
     /* Find application "name" in the IPC server list */
-    int ClFindApp(unsigned char *name);
-    
+int ClFindApp (unsigned char *name);
+
     /* Start application "name", with "args" and "timeout" in seconds */
-    int ClStartApp(unsigned char *name, unsigned char *args, int flags, int timeout);
+int ClStartApp (unsigned char *name, unsigned char *args, int flags,
+		int timeout);
 
     /* Start application "name", with "args" */
-    int ClSpawnApp(unsigned char *name, unsigned char *args);
+int ClSpawnApp (unsigned char *name, unsigned char *args);
 
     /* Returns application info in "info", returns 0 if OK, or <0 if error */
-    int ClGetAppInfo(cl_app_info * info);
+int ClGetAppInfo (cl_app_info * info);
 
     /* Send message "message" with "len" length to the IPC id "id" */
-    int ClSendMessage(int id, void *message, int len);
-    
+int ClSendMessage (int id, void *message, int len);
+
     /* Get message from server.
-      msg - pointer to the  message buffer, where the message is copied;
-      len - pointer to the len var, where the message length is stored
-      src - pointer to the src var, where the IPC id of the sender is stored ?
-    returns CL_CLIENT_BROADCAST or CL_CLIENT_SUCCESS or CL_CLIENT_NODATA - ther is no message in queue*/
-    int ClGetMessage(void *msg, int *len, unsigned short *src);
-    
+       msg - pointer to the  message buffer, where the message is copied;
+       len - pointer to the len var, where the message length is stored
+       src - pointer to the src var, where the IPC id of the sender is stored ?
+       returns CL_CLIENT_BROADCAST or CL_CLIENT_SUCCESS or CL_CLIENT_NODATA - ther is no message in queue */
+int ClGetMessage (void *msg, int *len, unsigned short *src);
+
     /* Waits for the message from server
-      msg - pointer to the  message buffer, where the message is copied;
-      len - pointer to the len var, where the message length is stored
-      returns message source "src" */
-    int ClGetNextMessage(void *msg, int *len);
-    
+       msg - pointer to the  message buffer, where the message is copied;
+       len - pointer to the len var, where the message length is stored
+       returns message source "src" */
+int ClGetNextMessage (void *msg, int *len);
+
     /* Finds application name by id */
-    int ClLookupName(int id, unsigned char *name, int *len);
+int ClLookupName (int id, unsigned char *name, int *len);
 
     /* register "name" as log source */
-    int ClRegisterLogger(char *name);
-    
+int ClRegisterLogger (char *name);
+
     /* log the "message" with "level" to the server`s log */
-    int ClLogMessage(int level, unsigned char *message);
+int ClLogMessage (int level, unsigned char *message);
 
     /* Returns application info in "info", returns 0 if OK, or <0 if error */
-    int clGetAppInfo(cl_app_info * info);
+int clGetAppInfo (cl_app_info * info);
 
 #ifdef __cplusplus
 }

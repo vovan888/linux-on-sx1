@@ -39,6 +39,13 @@ config CONFIG_MESSAGES
 	Say 'yes' here to build the Messages application,
 	starter for all the SMS and MMS related apps
 
+config CONFIG_MENUPUSK
+       bool "Menu pusk on left softkey"
+       default y
+       depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build menu pusk
+
 config CONFIG_TEST
        bool "Test program to play with"
        default y
