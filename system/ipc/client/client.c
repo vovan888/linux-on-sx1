@@ -910,7 +910,7 @@ int ClRegisterGroup (int group_id)
 
     memset (&pkt, 0, sizeof (pkt));
 
-    /* Construct the find app packet */
+    /* Construct the group packet */
 /*    pkt.src = */
     pkt.group_id = group_id;
     pkt.operation = CL_RegisterGroup;
@@ -923,14 +923,12 @@ int ClRegisterGroup (int group_id)
 	return (ret);
 
     switch (pkt.header.resp) {
-    case CL_E_SPAWNERR:
-	return (CL_CLIENT_NOTFOUND);
-
     case 0:
 	return (pkt.pid);
 
     default:
-	printf ("Error %d returned from server\n", pkt.header.resp);
-	return (CL_CLIENT_ERROR);
+	    ret = CL_CLIENT_ERROR;
     }
+
+    return ret;
 }
