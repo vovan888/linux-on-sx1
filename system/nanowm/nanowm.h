@@ -6,7 +6,9 @@
 #ifndef __NANOWM_H
 #define __NANOWM_H
 
+#include <ipc/shareddata.h>
 #include <ipc/colosseum.h>
+#include <ipc/phoneserver.h>
 #include <keys_nanox.h>
 
 #ifdef WMDEBUG
@@ -205,6 +207,8 @@ extern int righthand_resize_hotx, righthand_resize_hoty;
  * Load wallpaper "filename" to the background of "wid" window
  */
 int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index);
+
+extern struct SharedSystem *shdata; /* shared memory segment */
 
 
 #endif

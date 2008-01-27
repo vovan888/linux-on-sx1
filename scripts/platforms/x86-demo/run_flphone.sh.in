@@ -32,7 +32,7 @@ if [ -n "$CLPID" ]; then
 fi
 
 # Start the colosseum server
-$BASE_DIR/sbin/clserver &
+$BASE_DIR/sbin/clserver -c &
 
 # Start the Nano-X server
 $MWDIR/bin/nano-X -e -x 176 -y 220 &
@@ -42,7 +42,7 @@ $BASE_DIR/sbin/nanowm &
 
 sleep 1
 
-# Start Indicator daemons
+# Start Indicator daemon
 $BASE_DIR/sbin/indicatord &
 
 sleep 100000

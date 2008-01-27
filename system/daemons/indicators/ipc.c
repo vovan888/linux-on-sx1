@@ -13,7 +13,6 @@
 #include <string.h>
 #include <sys/select.h>
 
-#include <ipc/colosseum.h>
 #include <nano-X.h>
 #include "indicators.h"
 
@@ -21,7 +20,7 @@ static int client_fd = 0;
 static int val = 0;
 
 /* Register with IPC server */
-int ipc_start(unsigned char * servername)
+int ipc_start(char * servername)
 {
 	int cl_flags;
 	
@@ -31,33 +30,54 @@ int ipc_start(unsigned char * servername)
 		fprintf(stderr,"%s: Unable to locate the IPC server.\n",servername);
 	else
 		GrRegisterInput(client_fd);
+
+	/* Subscribe to different groups */
+	ClSubscribeToGroup(MSG_GROUP_PHONE);
+
 	return 0;
 }
 
-/* Handle IPC message 
- * Message format [Group][Indicator] - 2 bytes
+/* handle group messages */
+int ipc_group_message(unsigned short src, unsigned char *msg_buf)
+{
+	DBGMSG("indicatord: ipc_group_message from %x\n", src);
+	
+	if(src == MSG_GROUP_PHONE ) {
+		struct msg_phone * message = (struct msg_phone *)msg_buf;
+		DBGMSG("indicatord: MSG_GROUP_PHONE message from %x, id=%d\n", src, message->id);
+		switch ( message->id ) {
+			case MSG_PHONE_NETWORK_BARS:
+				
+				break;
+			case MSG_PHONE_BATTERY_STATUS:
+				break;
+			case MSG_PHONE_BATTERY_BARS:
+				indicators[THEME_MAINBATTERY].changed(0);
+				break;
+		}
+	}
+}
+
+
+/* Handle IPC message
  * This message only tells indicator that its value is changed
  * Actual value is stored in sharedmem
 */
 int ipc_handle (GR_EVENT * e)
 {
-	int ack = 0, size = 32;
+	int ack = 0, size = 64;
 	unsigned short src = 0;
-	unsigned char msg[32];
+	unsigned char msg_buf[64];
 
-	if( (ack = ClGetMessage(&msg, &size, &src)) < 0 )
+	DBGMSG("indicatord: ipc_handle\n");
+
+	if( (ack = ClGetMessage(&msg_buf, &size, &src)) < 0 )
 		return ack;
-	if (ack == CL_CLIENT_BROADCAST)
-		/**/;
-	if (msg[0] == '0') {
-		/* DEBUG message from nanowm */
-		indicators[0].changed(val++);
-		if (val > 5)
-			val = 0;
+
+	if (ack == CL_CLIENT_BROADCAST) {
+	/* handle broadcast message */
 	}
-	
-	if (msg[0] == THEME_GROUP_MAINSCREEN) {
-		if(indicators[msg[1]].changed)
-			indicators[msg[1]].changed(1);
-	}
+
+	if (IS_GROUP_MSG(src))
+		ipc_group_message(src, msg_buf);
 }

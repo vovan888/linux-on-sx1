@@ -11,7 +11,7 @@
 #define _phoneserver_h_
 
 /* message group ID */
-#define CL_MSG_GROUP_PHONE      0xFF09
+#define MSG_GROUP_PHONE      0x7009
 
 /* messages ID */
 /* ----------------------------------------------------------------------------------*/
@@ -28,9 +28,20 @@
 #define BATTERY_STATUS_EXTERNAL		0x02
 #define BATTERY_STATUS_CHARGING		0x03
 #define BATTERY_STATUS_LOW		0x04
+
 /* ----------------------------------------------------------------------------------*/
 /* Battery bars (capacity) changes */
 #define MSG_PHONE_BATTERY_BARS			0x03
 
+/* ----------------------------------------------------------------------------------*/
+/* Union of all the message IDs */
+struct msg_phone {
+	unsigned short	group; /* message group */
+	unsigned char	id; /* message ID */
+	union {
+		unsigned char	bars;	/* network or battery bars to display */
+		unsigned char	status;	/* battery status */
+	};
+};
 
 #endif

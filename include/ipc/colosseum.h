@@ -59,19 +59,19 @@ extern "C"
 #define CL_APPEND_ARGS	  3
 
 /* System Group IDs (one group for every daemon) */
-#define CL_MSG_GROUP_POWER	0xFF00
-#define CL_MSG_GROUP_WM		0xFF01
-#define CL_MSG_GROUP_APPLIST	0xFF02
-#define CL_MSG_GROUP_CALENDAR	0xFF03
-#define CL_MSG_GROUP_CONTACTS	0xFF04
-#define CL_MSG_GROUP_ALARM	0xFF05
-#define CL_MSG_GROUP_CAMERA	0xFF06
-#define CL_MSG_GROUP_SOUND	0xFF07
-#define CL_MSG_GROUP_EVENTLOG	0xFF08
-#define CL_MSG_GROUP_MESSAGES	0xFF0A
+#define CL_MSG_GROUP_POWER	0x7000
+#define CL_MSG_GROUP_WM		0x7001
+#define CL_MSG_GROUP_APPLIST	0x7002
+#define CL_MSG_GROUP_CALENDAR	0x7003
+#define CL_MSG_GROUP_CONTACTS	0x7004
+#define CL_MSG_GROUP_ALARM	0x7005
+#define CL_MSG_GROUP_CAMERA	0x7006
+#define CL_MSG_GROUP_SOUND	0x7007
+#define CL_MSG_GROUP_EVENTLOG	0x7008
+#define CL_MSG_GROUP_MESSAGES	0x700A
 
 /* This is the universal broadcast address */
-#define CL_MSG_BROADCAST_ID  0xFFFF
+#define CL_MSG_BROADCAST_ID  0x7FFF
 #define CL_MSG_SERVER_ID     0x0000
 
 #define CL_PKT_ERROR        0x01
@@ -136,7 +136,7 @@ extern "C"
 
 typedef struct {
     int flags;
-    unsigned char name[CL_MAX_NAME_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
     int processid;
 } cl_app_info;
 
@@ -188,8 +188,8 @@ typedef struct {
 
     short timeout;
     unsigned short start_flags;
-    unsigned char name[CL_MAX_NAME_LEN + 1];
-    unsigned char argstr[CL_MAX_ARG_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
+    char argstr[CL_MAX_ARG_LEN + 1];
 
     /* This is set by the server on response */
     int ipc_id;
@@ -199,8 +199,8 @@ typedef struct {
     cl_pkt_header header;
     /* These are passed by the client */
 
-    unsigned char name[CL_MAX_NAME_LEN + 1];
-    unsigned char argstr[CL_MAX_ARG_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
+    char argstr[CL_MAX_ARG_LEN + 1];
 
     /* This is set by the server on response */
     int pid;
@@ -211,7 +211,7 @@ typedef struct {
 
     int flags;
 
-    unsigned char name[CL_MAX_NAME_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
     int processid;
 } cl_pkt_appinfo;
 
@@ -219,7 +219,7 @@ typedef struct {
     cl_pkt_header header;
 
     /* THis is sent by the client */
-    unsigned char name[CL_MAX_NAME_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
 
     /* These are set by the server on response */
     int ipc_id;
@@ -229,7 +229,7 @@ typedef struct {
     cl_pkt_header header;
 
     /* This is a set value, it should *not* be dynamic */
-    unsigned char name[CL_MAX_NAME_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
     int start_flags;
 
     /* This is returned by the server */
@@ -244,7 +244,7 @@ typedef struct {
     int id;
 
     /* This is returned by the server */
-    unsigned char name[CL_MAX_NAME_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
 
 } cl_pkt_findname;
 
@@ -252,7 +252,7 @@ typedef struct {
     cl_pkt_header header;
 
     int level;
-    unsigned char message[CL_MAX_LOG_LEN + 1];
+    char message[CL_MAX_LOG_LEN + 1];
 } cl_pkt_log;
 
 
@@ -267,11 +267,11 @@ typedef struct {
 
 } cl_pkt_group;
 
-/* operaation for the cl_pkt_group */
-#define CL_RegisterGroup		0
-#define CL_UnRegisterGroup		1
-#define CL_SubscribeToGroup	2
-#define CL_UnSubscribeFromGroup	3
+/* operation for the cl_pkt_group */
+#define CL_SubscribeToGroup	0
+#define CL_UnSubscribeFromGroup	1
+
+#define IS_GROUP_MSG(ipc_id) (( ipc_id & 0xFF00) == 0x7000 )
 
 /* This is the main union, that is passed about as part */
 /* of a cl_pkt_buff */
@@ -288,77 +288,80 @@ typedef union {
     cl_pkt_findapp findapp;
     cl_pkt_findname findname;
     cl_pkt_log log;
-    cl_pkt_group;
+    cl_pkt_group group;
 } cl_packet;
 
 #define CL_MAX_PKT_SIZE  (sizeof(cl_packet) + CL_MAX_MSG_LEN)
+
+/* -fvisibility=hidden support macro */
+#ifdef CONFIG_GCC_HIDDEN_VISIBILITY
+    #define DLLEXPORT __attribute__ ((visibility("default")))
+    #define DLLLOCAL __attribute__ ((visibility("hidden")))
+#else
+    #define DLLEXPORT
+    #define DLLLOCAL
+#endif
+
 
     /* Register application with IPC server
        name  - application name
        flags - different flags returned
        returns file descriptor of server connection socket
        or <0 if error */
-int ClRegister (unsigned char *name, int *flags);
-
-/* Register message group 
-  when sending message (with ClSendMessage) to the group_id it is delivered to all subscribers */
-int ClRegisterGroup (int group_id);
-
-/* UnRegister message group */
-int ClUnRegisterGroup (int group_id);
+DLLEXPORT int ClRegister (char *name, int *flags);
 
 /* Subscribe to the message group */
-int ClSubscribeToGroup (int group_id);
+DLLEXPORT int ClSubscribeToGroup (unsigned short group_id);
 
 /* UnSubscribe to the message group */
-int ClUnSubscribeFromGroup (int group_id);
+DLLEXPORT int ClUnSubscribeFromGroup (unsigned short group_id);
 
     /* Reconnect to the server  */
-int ClReconnect (unsigned char *name);
+DLLEXPORT int ClReconnect (char *name);
 
     /* Close connection to the server */
-int ClClose (void);
+DLLEXPORT int ClClose (void);
 
     /* Find application "name" in the IPC server list */
-int ClFindApp (unsigned char *name);
+DLLEXPORT int ClFindApp (char *name);
 
     /* Start application "name", with "args" and "timeout" in seconds */
-int ClStartApp (unsigned char *name, unsigned char *args, int flags,
+DLLEXPORT int ClStartApp (char *name, char *args, int flags,
 		int timeout);
 
     /* Start application "name", with "args" */
-int ClSpawnApp (unsigned char *name, unsigned char *args);
+DLLEXPORT int ClSpawnApp (char *name, char *args);
 
     /* Returns application info in "info", returns 0 if OK, or <0 if error */
-int ClGetAppInfo (cl_app_info * info);
+DLLEXPORT int ClGetAppInfo (cl_app_info * info);
 
     /* Send message "message" with "len" length to the IPC id "id" */
-int ClSendMessage (int id, void *message, int len);
+DLLEXPORT int ClSendMessage (int id, void *message, int len);
 
     /* Get message from server.
        msg - pointer to the  message buffer, where the message is copied;
        len - pointer to the len var, where the message length is stored
        src - pointer to the src var, where the IPC id of the sender is stored ?
        returns CL_CLIENT_BROADCAST or CL_CLIENT_SUCCESS or CL_CLIENT_NODATA - ther is no message in queue */
-int ClGetMessage (void *msg, int *len, unsigned short *src);
+DLLEXPORT int ClGetMessage (void *msg, int *len, unsigned short *src);
 
     /* Waits for the message from server
        msg - pointer to the  message buffer, where the message is copied;
        len - pointer to the len var, where the message length is stored
        returns message source "src" */
-int ClGetNextMessage (void *msg, int *len);
+DLLEXPORT int ClGetNextMessage (void *msg, int *len);
 
     /* Finds application name by id */
-int ClLookupName (int id, unsigned char *name, int *len);
+DLLEXPORT int ClLookupName (int id, char *name, int *len);
 
     /* register "name" as log source */
-int ClRegisterLogger (char *name);
+DLLEXPORT int ClRegisterLogger (char *name);
 
     /* log the "message" with "level" to the server`s log */
-int ClLogMessage (int level, unsigned char *message);
+DLLEXPORT int ClLogMessage (int level, char *message);
 
     /* Returns application info in "info", returns 0 if OK, or <0 if error */
-int clGetAppInfo (cl_app_info * info);
+DLLEXPORT int clGetAppInfo (cl_app_info * info);
 
 #ifdef __cplusplus
 }

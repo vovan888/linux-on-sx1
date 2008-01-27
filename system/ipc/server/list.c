@@ -68,10 +68,10 @@ static cl_pid_t *pidList = 0;
 /* for hashing purposes */
 
 static int
-encode_name(unsigned char *name)
+encode_name(char *name)
 {
 
-    unsigned char *ptr = name;
+    unsigned char *ptr = (unsigned char *)name;
     unsigned char ch = 0;
 
     while (*ptr)
@@ -328,7 +328,7 @@ get_next_app(cl_app_struct * prev)
 }
 
 cl_app_struct *
-get_app_by_name(unsigned char *name)
+get_app_by_name(char *name)
 {
 
     int index = encode_name(name) % CL_HASH_SIZE;
@@ -522,7 +522,7 @@ cl_UpdatePending(int elapsed)
 }
 
 cl_pending_struct *
-cl_SearchPending(unsigned char *name)
+cl_SearchPending(char *name)
 {
     cl_pending_struct *head = cl_pending_list;
 

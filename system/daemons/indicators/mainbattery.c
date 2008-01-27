@@ -17,19 +17,19 @@
 #include "indicators.h"
 
 static GR_IMAGE_ID	battery_image;
-//static	GR_WINDOW_ID	battery_window;
 static	int	battery_frame_width;
 static	int	battery_frame_height;
 static	int	battery_current = 0; /*FIXME*/
-static GR_GC_ID		gc; /* current Graphic Context */ 
-static	int xcoord, ycoord; /* XY coordinates of indicator */
+static	int	xcoord, ycoord; /* XY coordinates of indicator */
 #define MAINBATTERY_NUMFRAMES	6
 
 static int mainbattery_show(int frame);
 
 static void mainbattery_changed_callback(int new_value)
 {
-	battery_current = shdata -> battery.capacity;
+	DBGMSG("mainbattery_changed_callback\n");
+
+	battery_current = shdata -> battery.bars;
 
 	mainbattery_show(battery_current);
 }
@@ -37,10 +37,8 @@ static void mainbattery_changed_callback(int new_value)
 static void mainbattery_event_callback(GR_WINDOW_ID window, GR_EVENT *event)
 {
 	DBGMSG("mainbattery_event_callback\n");
-	switch(event->type) {
-		case GR_EVENT_TYPE_EXPOSURE:
-			mainbattery_show(battery_current);
-	}
+
+	mainbattery_show(battery_current);
 }
 
 /* create mainbattery indicator */
@@ -48,7 +46,6 @@ int mainbattery_create( struct indicator * ind)
 {
 	GR_IMAGE_INFO	iinfo;
 
-	gc = GrNewGC();
 	/* Get the image from theme */
 	int ret = theme_get_image(THEME_GROUP_MAINSCREEN, THEME_MAINBATTERY,
 					&xcoord, &ycoord, &battery_image);

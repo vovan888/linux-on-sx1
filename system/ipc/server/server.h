@@ -43,7 +43,7 @@
 #include <sys/time.h>
 
 #ifdef DEBUG
-#define DPRINT(str, args...) printf("DEBUG: " str, ## args)
+#define DPRINT(str, args...) printf("CLSERVER DEBUG: " str, ## args)
 #else
 #define DPRINT(str, args...)
 #endif
@@ -68,7 +68,7 @@ cl_pkt_buff;
 
 typedef struct cl_app_t
 {
-    unsigned char cl_name[CL_MAX_NAME_LEN + 1];	/* The unique name of the app */
+    char cl_name[CL_MAX_NAME_LEN + 1];	/* The unique name of the app */
     unsigned short cl_socket;	/* The socket the app is attached to */
     unsigned short cl_id;	/* The ipc ID assigned to the app */
     unsigned char cl_flags;	/* Various flags */
@@ -107,7 +107,7 @@ typedef struct cl_pending_t
 
     struct cl_pending_t *next;
 
-    unsigned char name[CL_MAX_NAME_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
     cl_pkt_start request;
 
 }
@@ -115,7 +115,7 @@ cl_pending_struct;
 
 typedef struct cl_pid
 {
-    unsigned char name[CL_MAX_NAME_LEN + 1];
+    char name[CL_MAX_NAME_LEN + 1];
     int pid;
     struct cl_pid *next;
 }
@@ -156,6 +156,8 @@ int cl_ClientRead(int, cl_pkt_buff **);
 int cl_GetClientSockets(fd_set *, fd_set *, fd_set *);
 void cl_CloseClient(int);
 
+int deliver_message(cl_app_struct * dest, cl_pkt_buff * pkt);
+
 /* Packet functions */
 
 int cl_SendError(cl_app_struct *, int, cl_packet *, int);
@@ -164,7 +166,7 @@ int cl_SendMessage(cl_app_struct *, cl_pkt_buff *);
 
 /* Searching functions */
 
-cl_app_struct *get_app_by_name(unsigned char *);
+cl_app_struct *get_app_by_name(char *);
 cl_app_struct *get_app_by_id(int);
 cl_app_struct *get_app_by_socket(int);
 
@@ -196,7 +198,7 @@ void cl_CloseApp(cl_app_struct * app);
 cl_pending_struct *cl_AllocPending(void);
 void cl_FreePending(cl_pending_struct *);
 void cl_UpdatePending(int);
-cl_pending_struct *cl_SearchPending(unsigned char *);
+cl_pending_struct *cl_SearchPending(char *);
 int cl_havePending(void);
 
 /* Packet handling functions */
@@ -222,6 +224,15 @@ cl_pid_t *cl_findNameByPid(int pidnum);
 /* Misc functions */
 int cl_GetNextId(void);
 int cl_doLog(int level, char *app, char *message, ...);
+
+/* Group functions */
+
+/* add subscription to list */
+int subscr_add(unsigned short group_id, cl_app_struct * client);
+/* delete subscription from list */
+int subscr_del(unsigned short group_id, cl_app_struct * client);
+/* Send message pkt to the group_id */
+int subscr_send(unsigned short group_id, cl_app_struct * client, cl_pkt_buff *pkt);
 
 #ifdef HAVE_LOGGING
 

@@ -162,10 +162,23 @@ void do_key_down(GR_EVENT_KEYSTROKE *event)
 
 	/* FIXME: Implement keyboard shortcuts */
 	/* DEBUG keys */
+	printf("key_down:\n");
 	if (event -> ch == Menu) {
 		int client;
-		client = ClFindApp ("indicatord");
-		ClSendMessage(client,"0", 1);
+		int	ret;
+//		client = ClFindApp ("indicatord");
+//		ClSendMessage(client,"0", 1);
+		struct msg_phone	msg;
+
+		msg.group = MSG_GROUP_PHONE;
+		msg.id = MSG_PHONE_BATTERY_BARS;
+		msg.bars = 3;
+
+		shdata -> battery.bars = 3;
+		
+//		ret = ClSendMessage(client, &msg, sizeof(struct msg_phone));
+		ret = ClSendMessage(MSG_GROUP_PHONE, &msg, sizeof(struct msg_phone));
+		printf("key_down: %d\n",ret);
 	}
 }
 

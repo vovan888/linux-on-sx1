@@ -50,8 +50,8 @@ struct SharedSystem {
 /* battery */
 	struct {
 		int status;
-		int bars; /* capacity - 0..7 */
-		int capacity; /* capacity - 0%..100% */
+		int bars;	/* capacity - 0..7 */
+		int capacity;	/* capacity - 0%..100% */
 	} battery;
 /* phone status */
 	struct {

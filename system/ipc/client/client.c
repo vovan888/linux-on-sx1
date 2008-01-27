@@ -383,7 +383,7 @@ client_MakeRequest(int sock, int packet_type,
 }
 
 static int
-local_Register(unsigned char *name, int inflags, int *outflags)
+local_Register(char *name, int inflags, int *outflags)
 {
 
     struct sockaddr_un saddr;
@@ -455,13 +455,13 @@ local_Register(unsigned char *name, int inflags, int *outflags)
 }
 
 int
-ClRegister(unsigned char *name, int *flags)
+ClRegister(char *name, int *flags)
 {
     return (local_Register(name, CL_NORMAL_CLIENT, flags));
 }
 
 int
-ClReconnect(unsigned char *name)
+ClReconnect(char *name)
 {
     g_socket = 0;
     return (local_Register(name, CL_NORMAL_CLIENT, 0));
@@ -495,7 +495,7 @@ ClClose(void)
 }
 
 int
-ClFindApp(unsigned char *name)
+ClFindApp(char *name)
 {
 
     cl_pkt_findapp pkt;
@@ -531,7 +531,7 @@ ClFindApp(unsigned char *name)
 }
 
 int
-ClStartApp(unsigned char *name, unsigned char *args, int flags, int timeout)
+ClStartApp(char *name, char *args, int flags, int timeout)
 {
 
     cl_pkt_start pkt;
@@ -577,7 +577,7 @@ ClStartApp(unsigned char *name, unsigned char *args, int flags, int timeout)
 }
 
 int
-ClSpawnApp(unsigned char *name, unsigned char *args)
+ClSpawnApp(char *name, char *args)
 {
 
     cl_pkt_spawn pkt;
@@ -734,7 +734,7 @@ ClSendMessage(int id, void *message, int len)
 }
 
 int
-ClLookupName(int id, unsigned char *name, int *len)
+ClLookupName(int id, char *name, int *len)
 {
 
     int ret;
@@ -851,7 +851,7 @@ ClGetNextMessage(void *msg, int *len)
 #ifdef HAVE_LOGGING
 
 int
-ClLogMessage(int level, unsigned char *message)
+ClLogMessage(int level, char *message)
 {
 
     cl_pkt_log pkt;
@@ -884,7 +884,7 @@ ClRegisterLogger(char *name)
 #else /* HAVE_LOGGING */
 
 int
-ClLogMessage(int level, unsigned char *name)
+ClLogMessage(int level, char *name)
 {
     return (CL_E_NOTIMPLEMENT);
 }
@@ -897,38 +897,42 @@ ClRegisterLogger(char *name)
 
 #endif /* HAVE_LOGGING */
 
-/* Register message group
+/* Subscribe client to message group group_id
   when sending message (with ClSendMessage) to the group_id it is delivered to all subscribers */
-int ClRegisterGroup (int group_id)
+int ClSubscribeToGroup (unsigned short group_id)
 {
+	
+	cl_pkt_group pkt;
+	int ret;
+	
+	if (!g_socket)
+		return (CL_CLIENT_NOCONN);
+	
+	memset (&pkt, 0, sizeof (pkt));
+	
+	/* Construct the group packet */
+	/*    pkt.src = */
+	pkt.header.type = CL_PKT_GROUP;
+	pkt.header.len = sizeof(pkt);
 
-    cl_pkt_group pkt;
-    int ret;
-
-    if (!g_socket)
-	return (CL_CLIENT_NOCONN);
-
-    memset (&pkt, 0, sizeof (pkt));
-
-    /* Construct the group packet */
-/*    pkt.src = */
-    pkt.group_id = group_id;
-    pkt.operation = CL_RegisterGroup;
-
-    /* Wait up to timeout seconds */
-    ret = client_MakeRequest (g_socket, CL_PKT_GROUP,
-			      (cl_packet *) & pkt, sizeof (pkt), 0);
-
-    if (ret < 0)
-	return (ret);
-
-    switch (pkt.header.resp) {
-    case 0:
-	return (pkt.pid);
-
-    default:
-	    ret = CL_CLIENT_ERROR;
-    }
-
-    return ret;
+	pkt.group_id = group_id;
+	pkt.operation = CL_SubscribeToGroup;
+	
+	/* Wait up to timeout seconds */
+//	ret = client_MakeRequest (g_socket, CL_PKT_GROUP,
+//				(cl_packet *) & pkt, sizeof (pkt), 0);
+	ret = client_SendToServer(g_socket, (unsigned char *) &pkt, sizeof(pkt));
+	
+	if (ret < 0)
+		return (ret);
+	
+	switch (pkt.header.resp) {
+	case 0:
+		ret = 0;
+	
+	default:
+		ret = CL_CLIENT_ERROR;
+	}
+	
+	return ret;
 }

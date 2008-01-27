@@ -52,8 +52,7 @@ handle_server_message(cl_app_struct * app, cl_pkt_message * msg)
     return (0);
 }
 
-static int
-deliver_message(cl_app_struct * dest, cl_pkt_buff * pkt)
+int deliver_message(cl_app_struct * dest, cl_pkt_buff * pkt)
 {
 
     if (!pkt || !dest)
@@ -127,6 +126,21 @@ cl_SendMessage(cl_app_struct * req, cl_pkt_buff * pkt)
     response.header.type = CL_PKT_MSG_RESPONSE;
     response.header.len = sizeof(cl_pkt_msg_response);
 
+    /* Group message */
+    if (IS_GROUP_MSG(msg->dest)) {
+
+	if (cl_chatty)
+	    DO_LOG(CL_LOG_DEBUG, "GROUP MSG from %s[%d] to [%x]\n", req->cl_name,req->cl_id, msg->dest);
+
+	subscr_send(msg->dest, req, pkt);
+
+	/* It is important to send *something* back to the client. */
+	cl_SendPacket(req, (cl_packet *) & response,
+		      sizeof(cl_pkt_msg_response));
+	return ((stored ? 1 : 0));
+    }
+
+    /* Message to the IPC server */
     if (msg->dest == CL_MSG_SERVER_ID) {
 	if (cl_chatty)
 	    DO_LOG(CL_LOG_DEBUG, "SERVER MSG [%s]", req->cl_name);

@@ -87,7 +87,7 @@ cl_HandleClientReq(cl_app_struct * app)
 
     pkt = (cl_packet *) data->data;
 
-    DPRINT("IN (%s):  Size [%d] Type [%d]\n", app->cl_name, pkt->header.len,
+    DPRINT("CLSERVER IN (%s):  Size [%d] Type [%d]\n", app->cl_name, pkt->header.len,
 	   pkt->header.type);
 
     switch (pkt->header.type) {
@@ -140,6 +140,21 @@ cl_HandleClientReq(cl_app_struct * app)
 	else
 	    result = cl_HandleFindApp(app, (cl_pkt_findapp *) & pkt->findapp);
 
+	break;
+
+    case CL_PKT_GROUP:
+
+		if (pkt->group.operation == CL_SubscribeToGroup) {
+			subscr_add(pkt->group.group_id, app);
+			result = 0;
+		}
+
+		if (pkt->group.operation == CL_UnSubscribeFromGroup) {
+			subscr_del(pkt->group.group_id, app);
+			result = 0;
+		}
+	/* It is important to send *something* back to the client. */
+//	cl_SendPacket(app, (cl_packet *) pkt, sizeof(cl_pkt_group));
 	break;
 
 #ifdef HAVE_LOGGING

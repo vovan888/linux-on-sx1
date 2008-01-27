@@ -232,7 +232,7 @@ local_ForkApp(char *exec, char *astr, char *workdir)
 
 cl_pending_struct *
 cl_AddPending(cl_app_struct * parent,
-	      unsigned char *name, int flags, int timeout, cl_pkt_start * req)
+	      char *name, int flags, int timeout, cl_pkt_start * req)
 {
 
     cl_pending_struct *pend = cl_AllocPending();
@@ -496,7 +496,7 @@ cl_HandleRegisterApp(cl_app_struct * req, cl_pkt_reg * pkt)
 	/* or the app crashed and we didn't know about it */
 
 	/* Send the error packet to the old socket. */
-	/* if it is successful, then we have a supid program */
+	/* if it is successful, then we have a stupid program */
 	/* otherwise, the socket is invalid, and we'll kill  */
 	/* it automagically */
 

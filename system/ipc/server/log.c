@@ -279,8 +279,8 @@ cl_doLog(int level, char *app, char *message, ...)
 
     va_list ap;
 
-    if (level > cl_logLevel)
-	return (0);
+//    if (level > cl_logLevel)
+//	return (0);
 
     /* If we are in daemon mode, then we have no controlling deamon */
     /* Redirect our stuff to syslog instead */

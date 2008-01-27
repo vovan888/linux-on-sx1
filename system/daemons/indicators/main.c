@@ -30,6 +30,7 @@ const char lockfile[]="/tmp/"DAEMON_NAME".lock";
 
 struct SharedSystem *shdata; /* shared memory segment */
 struct indicator indicators[16];
+GR_GC_ID	gc; /* current Graphic Context */ 
 
 static int indicators_number;
 
@@ -68,11 +69,9 @@ int main_load_indicators ()
 	memset(indicators, 0, sizeof(indicators));
 
 	/* Select events for the ROOT window */
-	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE);
+	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT);
 
 // debug - draw a cross
-static GR_GC_ID		gc; /* current Graphic Context */ 
-gc = GrNewGC();
 GrLine(GR_ROOT_WINDOW_ID, gc, 0,0, 176,220);
 GrLine(GR_ROOT_WINDOW_ID, gc, 0,220, 176,0);
 
@@ -82,7 +81,10 @@ GrLine(GR_ROOT_WINDOW_ID, gc, 0,220, 176,0);
 	/* setup THEME_MAINSIGNAL */
 	mainsignal_create(&indicators[THEME_MAINSIGNAL]);
 
-	indicators_number = 2;
+	/* setup THEME_DATETIME */
+//	maindatetime_create(&indicators[THEME_DATETIME]);
+
+	indicators_number = THEME_DATETIME;
 }
 
 
@@ -129,12 +131,13 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 	GrReqShmCmds(4096);
+	gc = GrNewGC();
 	
+	main_load_indicators();
+
 	ipc_start("indicatord");
 	
 	shdata = ShmMap(SHARED_SYSTEM);
-
-	main_load_indicators();
 
 	mainloop();
 

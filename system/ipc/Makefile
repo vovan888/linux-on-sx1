@@ -35,7 +35,6 @@ _build_ipc: $(BASE_DIR)/system/ipc/client/.configured
 	rm -f $(STAGE_DIR)/lib/ipc.a $(STAGE_DIR)/lib/libipc.so*
 	ln -s $(BASE_DIR)/system/ipc/client/libipc.a $(STAGE_DIR)/lib
 	ln -s $(BASE_DIR)/system/ipc/client/libipc.so $(STAGE_DIR)/lib
-	ln -s $(BASE_DIR)/system/ipc/client/libipc.so $(STAGE_DIR)/lib/libipc.so.1
 
 _install_ipc: dummy
 	cp -fP client/libipc.so* $(INSTALL_DIR)/lib/

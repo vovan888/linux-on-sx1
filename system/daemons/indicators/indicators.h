@@ -14,6 +14,8 @@
 #include <debug.h>
 #include <theme.h>
 #include <ipc/shareddata.h>
+#include <ipc/colosseum.h>
+#include <ipc/phoneserver.h>
 
 typedef void (*event_callback_p)(GR_WINDOW_ID, GR_EVENT *);
 typedef void (*changed_callback_p)(int);
@@ -28,19 +30,20 @@ struct indicator {
 /* from main.c */
 extern struct indicator indicators[16];
 extern struct SharedSystem *shdata; /* shared memory segment */
+extern GR_GC_ID  gc;	/* current graphic context */
 
 /* from ipc.c */
 int ipc_active (void);
-int ipc_start(unsigned char * servername);
+int ipc_start (char * servername);
 int ipc_handle (GR_EVENT * e);
-
-/* from interface.c */
-int multi_init (struct indicator * ind);
 
 /* from mainbattery.c */
 int mainbattery_create( struct indicator * ind);
 
 /* from mainsignal.c */
 int mainsignal_create( struct indicator * ind);
+
+/* datetime.c - create maindatetime indicator */
+int maindatetime_create( struct indicator * ind);
 
 #endif
