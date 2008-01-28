@@ -959,9 +959,9 @@ int ClUnSubscribeFromGroup (unsigned short group_id)
 	pkt.operation = CL_UnSubscribeFromGroup;
 	
 	/* Wait up to timeout seconds */
-	ret = client_MakeRequest (g_socket, CL_PKT_GROUP,
-				(cl_packet *) & pkt, sizeof (pkt), 0);
-//	ret = client_SendToServer(g_socket, (unsigned char *) &pkt, sizeof(pkt));
+//	ret = client_MakeRequest (g_socket, CL_PKT_GROUP,
+//				(cl_packet *) & pkt, sizeof (pkt), 0);
+	ret = client_SendToServer(g_socket, (unsigned char *) &pkt, sizeof(pkt));
 	
 	if (ret < 0)
 		return (ret);
