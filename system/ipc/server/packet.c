@@ -154,7 +154,7 @@ cl_HandleClientReq(cl_app_struct * app)
 			result = 0;
 		}
 	/* It is important to send *something* back to the client. */
-//	cl_SendPacket(app, (cl_packet *) pkt, sizeof(cl_pkt_group));
+	cl_SendPacket(app, (cl_packet *) pkt, sizeof(cl_pkt_group));
 	break;
 
 #ifdef HAVE_LOGGING

@@ -13,7 +13,7 @@
 /* message group ID */
 #define MSG_GROUP_PHONE      0x7009
 
-/* messages ID */
+/* messages IDs */
 /* ----------------------------------------------------------------------------------*/
 /* how many signal strength bars to display to the user. Is sent when value is changed. 
    Current value is in SharedData segment */

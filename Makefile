@@ -135,6 +135,7 @@ $(STAGE_DIR):
 $(INSTALL_DIR):
 	@ mkdir -p $(INSTALL_DIR)/lib
 	@ mkdir -p $(INSTALL_DIR)/bin
+	@ mkdir -p $(INSTALL_DIR)/sbin
 	@ mkdir -p $(INSTALL_DIR)/etc
 	@ mkdir -p $(INSTALL_DIR)/share
 	@ mkdir -p $(INSTALL_DIR)/share/data

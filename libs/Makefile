@@ -12,9 +12,10 @@ export LD=$(TARGET_CROSS)ld
 
 # FLNX, libibi, libgsm are always built
 
-local-target-y=flnx libini gsmd
+local-target-y=libini gsmd
 #target-y=flek/src
 
+target-$(CONFIG_FLNX) += flnx
 target-$(CONFIG_LIBFLPHONE) += libflphone
 
 target-$(CONFIG_PIM_ADDRESS) += pim
@@ -134,11 +135,7 @@ _build_gsmd: $(BASE_DIR)/libs/gsm/.configured
 
 _install_gsmd: dummy
 	cp -fP gsm/src/libgsmd/.libs/libgsmd.so* $(INSTALL_DIR)/lib/
-	if [ $(INSTALL_DIR)/sbin ]; then \
-		rm -r $(INSTALL_DIR)/sbin; \
-	fi
-	mkdir $(INSTALL_DIR)/sbin	
-	cp -fP gsm/src/gsmd/gsmd $(INSTALL_DIR)/sbin/
+	cp -fP gsm/src/gsmd/gsmd $(INSTALL_DIR)/sbin
 
 _clean_gsmd: dummy
 	make -C $(BASE_DIR)/libs/gsm distclean

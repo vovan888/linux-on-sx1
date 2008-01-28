@@ -46,7 +46,7 @@ int subscr_add(unsigned short group_id, cl_app_struct * client)
 
 	if (!sub)
 		return -1;
-
+	/* FIXME check if the subscription already exist */
 	DPRINT("subscr_add: group %x, client %s[%d]\n",group_id, client->cl_name, client->cl_id);
 	/* fill the struct */
 	sub->group_id = group_id;

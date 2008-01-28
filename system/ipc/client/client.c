@@ -936,3 +936,43 @@ int ClSubscribeToGroup (unsigned short group_id)
 	
 	return ret;
 }
+
+/* UnSubscribe client from message group group_id
+*/
+int ClUnSubscribeFromGroup (unsigned short group_id)
+{
+	
+	cl_pkt_group pkt;
+	int ret;
+	
+	if (!g_socket)
+		return (CL_CLIENT_NOCONN);
+	
+	memset (&pkt, 0, sizeof (pkt));
+	
+	/* Construct the group packet */
+	/*    pkt.src = */
+	pkt.header.type = CL_PKT_GROUP;
+	pkt.header.len = sizeof(pkt);
+
+	pkt.group_id = group_id;
+	pkt.operation = CL_UnSubscribeFromGroup;
+	
+	/* Wait up to timeout seconds */
+	ret = client_MakeRequest (g_socket, CL_PKT_GROUP,
+				(cl_packet *) & pkt, sizeof (pkt), 0);
+//	ret = client_SendToServer(g_socket, (unsigned char *) &pkt, sizeof(pkt));
+	
+	if (ret < 0)
+		return (ret);
+	
+	switch (pkt.header.resp) {
+		case 0:
+			ret = 0;
+	
+		default:
+			ret = CL_CLIENT_ERROR;
+	}
+	
+	return ret;
+}

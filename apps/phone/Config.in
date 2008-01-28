@@ -3,6 +3,7 @@ menu "Phone Applications"
 config CONFIG_PHONEAPPS
        bool "Build Phone Applications"
        default y
+       depends CONFIG_FLNX
        help
 	Say 'yes' here to build the FLTK Phone and other
 	applications

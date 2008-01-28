@@ -22,7 +22,7 @@ GR_SCREEN_INFO si;
 struct SharedSystem *shdata; /* shared memory segment */
 
 /* Register with IPC server */
-int ipc_start(unsigned char * servername)
+int ipc_start(char * servername)
 {
 	int cl_flags, client_fd;
 
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 
 	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE |
 				GR_EVENT_MASK_KEY_DOWN | GR_EVENT_MASK_KEY_UP |
-				GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER /*| GR_EVENT_MASK_FDINPUT*/);
+				GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER | GR_EVENT_MASK_FDINPUT);
 
 	/* IPC init */
 	ipc_start("nanowm");
@@ -132,9 +132,9 @@ int main(int argc, char *argv[])
 			case GR_EVENT_TYPE_CHLD_UPDATE:
 				do_update(&event.update);
 				break;
-/*			case GR_EVENT_TYPE_FDINPUT:
+			case GR_EVENT_TYPE_FDINPUT:
 				ipc_handle(&event);
-				break;*/
+				break;
 			default:
 				fprintf(stderr, "Got unexpected event %d\n",
 								event.type);

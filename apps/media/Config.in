@@ -3,6 +3,7 @@ menu 'Media Applications'
 config CONFIG_MEDIA
        bool "Build Media Applications"
        default y
+       depends CONFIG_FLNX
        help
         Say 'yes' here to build the FLTK Phone and other
         applications
