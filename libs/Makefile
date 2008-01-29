@@ -12,10 +12,9 @@ export LD=$(TARGET_CROSS)ld
 
 # FLNX, libini, libgsm are always built
 local-target-y=libini gsmd
+local-target-$(CONFIG_FLNX) += flnx
 
 target-y=libflphone libtheme
-
-target-$(CONFIG_FLNX) += flnx
 
 target-$(CONFIG_PIM_ADDRESS) += pim
 target-$(CONFIG_PIM_NOTEPAD) += pim
