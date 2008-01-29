@@ -1,37 +1,6 @@
 README
-Themed elements:
 
-Title Bar	Contains elements that require defined positions including:
-Battery level
-Signal level
-Window caption
-Time
 
-Status indicators:
-Roaming
-Messages
-Call active
-Bluetooth
-Infrared
-
-Home/Call Screen	Displays commonly accessed information such as:
-Background - default or custom background
-Number of missed calls
-Number of new messages
-Time and date
-Operator name
-Profile
-Information box
-#Dialer button for touchscreen mode
-#PIN entry pad for touchscreen mode
-Status indicators:
-Alarm
-Lock
-Call divert
-Roaming
-Messages
-Call active
-
-Context Bar	Rectangular area at the bottom of the screen
-Usually contains three buttons corresponding to context buttons on the keypad.
-Displays as either text or icons.
+This lib contains different, non-graphic functions:
+- configuration
+- 

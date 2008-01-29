@@ -1,8 +1,9 @@
-# tools/Makefile
-# This will build all of the nessesary libraries
+# daemons/Makefile
+# This will build all of the nessesary daemons
 
 target-y=
-target-$(CONFIG_INDICATORD) += indicators
+target-$(CONFIG_ALARMD)		+= alarmd
+target-$(CONFIG_INDICATORD)	+= indicators
 
 # This will ensure that we only build one target at a time
 DIRS=$(sort $(target-y))

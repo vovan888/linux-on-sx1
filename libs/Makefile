@@ -10,13 +10,12 @@ export NM=$(TARGET_CROSS)nm
 export RANLIB=$(TARGET_CROSS)ranlib
 export LD=$(TARGET_CROSS)ld
 
-# FLNX, libibi, libgsm are always built
-
+# FLNX, libini, libgsm are always built
 local-target-y=libini gsmd
-#target-y=flek/src
+
+target-y=libflphone libtheme
 
 target-$(CONFIG_FLNX) += flnx
-target-$(CONFIG_LIBFLPHONE) += libflphone
 
 target-$(CONFIG_PIM_ADDRESS) += pim
 target-$(CONFIG_PIM_NOTEPAD) += pim

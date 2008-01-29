@@ -1,9 +1,12 @@
-# libflphone/Makefile
+# libtheme/Makefile
 
-LIB_STATIC=libflphone.a
-LIB_SHARED=libflphone.so
+LIB_STATIC=libtheme.a
+LIB_SHARED=libtheme.so
 
 SRC=${shell ls *.c}
 OBJS=${SRC:.c=.o}
 
 include $(BASE_DIR)/Rules.make
+
+
+
