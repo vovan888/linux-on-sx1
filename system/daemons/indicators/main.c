@@ -26,11 +26,11 @@
 
 #define DAEMON_NAME "indicatord"
 
-const char lockfile[]="/tmp/"DAEMON_NAME".lock";
+const char lockfile[] = "/tmp/" DAEMON_NAME ".lock";
 
-struct SharedSystem *shdata; /* shared memory segment */
+struct SharedSystem *shdata;	/* shared memory segment */
 struct indicator indicators[16];
-GR_GC_ID	gc; /* current Graphic Context */ 
+GR_GC_ID gc;			/* current Graphic Context */
 
 static int indicators_number;
 
@@ -64,16 +64,17 @@ static void mainloop(void)
 	}
 }
 
-int main_load_indicators ()
+int main_load_indicators()
 {
 	memset(indicators, 0, sizeof(indicators));
 
 	/* Select events for the ROOT window */
-	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT);
+	GrSelectEvents(GR_ROOT_WINDOW_ID,
+		       GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT);
 
 // debug - draw a cross
-GrLine(GR_ROOT_WINDOW_ID, gc, 0,0, 176,220);
-GrLine(GR_ROOT_WINDOW_ID, gc, 0,220, 176,0);
+	GrLine(GR_ROOT_WINDOW_ID, gc, 0, 0, 176, 220);
+	GrLine(GR_ROOT_WINDOW_ID, gc, 0, 220, 176, 0);
 
 	/* setup THEME_MAINBATTERY */
 	mainbattery_create(&indicators[THEME_MAINBATTERY]);
@@ -82,35 +83,34 @@ GrLine(GR_ROOT_WINDOW_ID, gc, 0,220, 176,0);
 	mainsignal_create(&indicators[THEME_MAINSIGNAL]);
 
 	/* setup THEME_DATETIME */
-//	maindatetime_create(&indicators[THEME_DATETIME]);
+//      maindatetime_create(&indicators[THEME_DATETIME]);
 
 	indicators_number = THEME_DATETIME;
 }
 
-
 int main(int argc, char *argv[])
 {
-	
+
 	pid_t pid = 0;
 	int pathfd_;
 	char buf[512];
 	int ret;
-	
-//	signal(SIGINT, signal_handler);
-//	signal(SIGTERM, signal_handler);
-//	signal(SIGHUP, signal_handler);
-	
+
+//      signal(SIGINT, signal_handler);
+//      signal(SIGTERM, signal_handler);
+//      signal(SIGHUP, signal_handler);
+
 	memset(buf, 0, sizeof(buf));
 	pid = getpid();
-	
+
 	if (!access(lockfile, F_OK)) {
 		printf("Warning - found a stale lockfile.  Deleting it...\n");
 		unlink(lockfile);
 	}
-	
+
 	pathfd_ = open(lockfile, O_RDWR | O_TRUNC | O_CREAT);
 	if (pathfd_ == -1) {
-		perror("open(): "DAEMON_NAME);
+		perror("open(): " DAEMON_NAME);
 		exit(errno);
 	}
 	sprintf(buf, "%d", pid);
@@ -120,11 +120,11 @@ int main(int argc, char *argv[])
 		exit(errno);
 	}
 	close(pathfd_);
-	
+
 	/* This is the sigchild handler, useful for when our children die */
-	
+
 	//    signal(SIGCHLD, application_handler);
-	
+
 	if (GrOpen() < 0) {
 		error("Couldn't connect to Nano-X server!\n");
 		unlink(lockfile);
@@ -132,11 +132,11 @@ int main(int argc, char *argv[])
 	}
 	GrReqShmCmds(4096);
 	gc = GrNewGC();
-	
+
 	main_load_indicators();
 
 	ipc_start("indicatord");
-	
+
 	shdata = ShmMap(SHARED_SYSTEM);
 
 	mainloop();

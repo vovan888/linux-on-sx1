@@ -16,23 +16,23 @@
 #include <nxcolors.h>
 #include "indicators.h"
 
-static GR_IMAGE_ID	signal_image;
-static	int	signal_frame_width;
-static	int	signal_frame_height;
-static	int	signal_current = 0; /*FIXME*/
-static	int	xcoord, ycoord; /* XY coordinates of indicator */
+static GR_IMAGE_ID signal_image;
+static int signal_frame_width;
+static int signal_frame_height;
+static int signal_current = 0;
+/*FIXME*/ static int xcoord, ycoord;	/* XY coordinates of indicator */
 #define MAINSIGNAL_NUMFRAMES	6
 
 static int mainsignal_show(int frame);
 
 static void mainsignal_changed_callback(int new_value)
 {
-	signal_current = shdata -> network.signal;
+	signal_current = shdata->network.signal;
 
 	mainsignal_show(signal_current);
 }
 
-static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT *event)
+static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
 {
 	DBGMSG("mainsignal_event_callback\n");
 
@@ -40,13 +40,13 @@ static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT *event)
 }
 
 /* create mainsignal indicator */
-int mainsignal_create( struct indicator * ind)
+int mainsignal_create(struct indicator *ind)
 {
-	GR_IMAGE_INFO	iinfo;
+	GR_IMAGE_INFO iinfo;
 
 	/* Get the image from theme */
 	int ret = theme_get_image(THEME_GROUP_MAINSCREEN, THEME_MAINSIGNAL,
-					&xcoord, &ycoord, &signal_image);
+				  &xcoord, &ycoord, &signal_image);
 
 	if (ret == -1)
 		return -1;
@@ -59,11 +59,11 @@ int mainsignal_create( struct indicator * ind)
 	/* show indicator */
 	mainsignal_show(1);
 	/* set the callback */
-	ind -> callback = &mainsignal_event_callback;
-	ind -> changed = &mainsignal_changed_callback;
-	ind -> wind_id = GR_ROOT_WINDOW_ID;
+	ind->callback = &mainsignal_event_callback;
+	ind->changed = &mainsignal_changed_callback;
+	ind->wind_id = GR_ROOT_WINDOW_ID;
 
-	return 0;	
+	return 0;
 }
 
 /* show current signal state */
@@ -74,14 +74,14 @@ static int mainsignal_show(int frame)
 	/* draw frame (part) of the image */
 	if (frame < MAINSIGNAL_NUMFRAMES) {
 		/* clear the area under the indicator to background pixmap */
-		GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord, 
-			signal_frame_width, signal_frame_height, 0);
+		GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
+			    signal_frame_width, signal_frame_height, 0);
 		/* Draw the indicator */
 		GrDrawImagePartToFit(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord,
-			signal_frame_width, signal_frame_height,
-			signal_frame_width * frame, 0,
-			signal_frame_width, signal_frame_height, 
-			signal_image);
+				     signal_frame_width, signal_frame_height,
+				     signal_frame_width * frame, 0,
+				     signal_frame_width, signal_frame_height,
+				     signal_image);
 	}
 	return 0;
 }

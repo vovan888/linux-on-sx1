@@ -20,14 +20,15 @@ static int client_fd = 0;
 static int val = 0;
 
 /* Register with IPC server */
-int ipc_start(char * servername)
+int ipc_start(char *servername)
 {
 	int cl_flags;
-	
+
 	client_fd = ClRegister(servername, &cl_flags);
-	
+
 	if (client_fd <= 0)
-		fprintf(stderr,"%s: Unable to locate the IPC server.\n",servername);
+		fprintf(stderr, "%s: Unable to locate the IPC server.\n",
+			servername);
 	else
 		GrRegisterInput(client_fd);
 
@@ -40,30 +41,28 @@ int ipc_start(char * servername)
 /* handle group messages */
 int ipc_group_message(unsigned short src, unsigned char *msg_buf)
 {
-	DBGMSG("indicatord: ipc_group_message from %x\n", src);
-	
-	if(src == MSG_GROUP_PHONE ) {
-		struct msg_phone * message = (struct msg_phone *)msg_buf;
-		DBGMSG("indicatord: MSG_GROUP_PHONE message from %x, id=%d\n", src, message->id);
-		switch ( message->id ) {
-			case MSG_PHONE_NETWORK_BARS:
-				
-				break;
-			case MSG_PHONE_BATTERY_STATUS:
-				break;
-			case MSG_PHONE_BATTERY_BARS:
-				indicators[THEME_MAINBATTERY].changed(0);
-				break;
+	if (src == MSG_GROUP_PHONE) {
+		struct msg_phone *message = (struct msg_phone *)msg_buf;
+		DBGMSG("indicatord: MSG_GROUP_PHONE message from %x, id=%d\n",
+		       src, message->id);
+		switch (message->id) {
+		case MSG_PHONE_NETWORK_BARS:
+
+			break;
+		case MSG_PHONE_BATTERY_STATUS:
+			break;
+		case MSG_PHONE_BATTERY_BARS:
+			indicators[THEME_MAINBATTERY].changed(0);
+			break;
 		}
 	}
 }
-
 
 /* Handle IPC message
  * This message only tells indicator that its value is changed
  * Actual value is stored in sharedmem
 */
-int ipc_handle (GR_EVENT * e)
+int ipc_handle(GR_EVENT * e)
 {
 	int ack = 0, size = 64;
 	unsigned short src = 0;
@@ -71,11 +70,11 @@ int ipc_handle (GR_EVENT * e)
 
 	DBGMSG("indicatord: ipc_handle\n");
 
-	if( (ack = ClGetMessage(&msg_buf, &size, &src)) < 0 )
+	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
 		return ack;
 
 	if (ack == CL_CLIENT_BROADCAST) {
-	/* handle broadcast message */
+		/* handle broadcast message */
 	}
 
 	if (IS_GROUP_MSG(src))
