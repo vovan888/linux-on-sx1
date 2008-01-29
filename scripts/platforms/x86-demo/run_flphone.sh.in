@@ -43,9 +43,9 @@ $BASE_DIR/sbin/nanowm &
 sleep 1
 
 # Start Indicator daemon
-$BASE_DIR/sbin/indicatord &
+$BASE_DIR/sbin/indicatord
 
-sleep 100000
+#sleep 100000
 
 ## Welcome back  Shut down pending daemons
 killall -TERM -q $BASE_DIR/sbin/clserver 
