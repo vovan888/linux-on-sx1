@@ -6,6 +6,11 @@ config CONFIG_DAEMONS
        help
        Say yes here to build the daemons
 
+config CONFIG_ALARMD
+       bool "Alarms daemon"
+       depends CONFIG_DAEMONS
+       default y
+
 config CONFIG_INDICATORD
        bool "Indicators daemon"
        depends CONFIG_DAEMONS
