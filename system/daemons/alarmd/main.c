@@ -5,6 +5,7 @@
 * Copyright 2008 by Vladimir Ananiev (Vovan888 at gmail com )
 *
 * Licensed under GPLv2, see LICENSE
+* portions of the code are from Linux kernel/Documentation/rtc.txt
 */
 
 #include <flphone_config.h>
@@ -34,6 +35,8 @@ const char lockfile[] = "/tmp/" DAEMON_NAME ".lock";
 static const char default_rtc[] = "/dev/rtc";
 static int rtc_fd;		/* RTC file descriptor */
 static int irq_count = 0;	/* irq (1 second) counter */
+static int minutes_sync = 0;	/* sync to minutes change ? */
+static int minutes_count = 0;	/* sync to minutes change ? */
 
 /* IPC interface */
 struct SharedSystem *shdata;	/* shared memory segment */
@@ -48,6 +51,8 @@ static void handle_rtc(int fd)
 {
 	int retval;
 	unsigned long data;
+	struct rtc_time rtc_tm;
+	struct msg_alarm msg;
 
 	/* This read won't block */
 	retval = read(fd, &data, sizeof(unsigned long));
@@ -59,18 +64,45 @@ static void handle_rtc(int fd)
 	/* here we have one second passed, so increase irq count */
 	irq_count++;
 
-	/*TODO send PPS (pulse per second message) */
+	/* sync with the minutes changes */
+	if (!minutes_sync) {
+		/* Read the RTC time/date */
+		retval = ioctl(fd, RTC_RD_TIME, &rtc_tm);
+		if (retval == -1) {
+			perror("ioctl");
+			exit(errno);
+		}
 
-	/*TODO send PPM (pulse per minute message)
+		/* Check current time: minutes */	
+		if (rtc_tm.tm_min == 0) {
+			irq_count = 0;
+			minutes_sync = 1;
+		}
+	}
+
+
+	/*TODO send PPS (pulse per second message)
+	  maybe it is too often ?*/
+
+	/*Send PPM (pulse per minute message)
 	   this message should be sent on the first second of minute 
 	   (syncronized with time) */
 	if ((irq_count % 60) == 0) {
-		printf("minute left=%d\n", irq_count);
+		DBGMSG("ALARMD: minute message sent\n");
+		msg.id = MSG_ALARM_PPM;
+		retval = ClSendMessage(MSG_GROUP_ALARM, &msg, sizeof(struct msg_alarm));
+
+		minutes_count++;
 	}
 
-	/*TODO send PPH (pulse per hour message)
+	/*Send PPH (pulse per hour message)
 	   this message should be sent on the first second of hour
 	   (syncronized with time) */
+	if (((minutes_count % 60) == 0) && minutes_sync) {
+		DBGMSG("ALARMD: hour message sent\n");
+		msg.id = MSG_ALARM_PPH;
+		retval = ClSendMessage(MSG_GROUP_ALARM, &msg, sizeof(struct msg_alarm));
+	}
 }
 
 static void mainloop(void)
@@ -172,6 +204,23 @@ static void alarmd_check_lockfile(void)
 
 }
 
+static void alarmd_exit(void)
+{
+	int retval;
+
+	/* Turn off update interrupts */
+	retval = ioctl(rtc_fd, RTC_UIE_OFF, 0);
+	if (retval == -1) {
+		perror("ioctl");
+		exit(errno);
+	}
+
+	/* IPC stuff */
+	ShmUnmap(shdata);
+	unlink(lockfile);
+
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -181,8 +230,7 @@ int main(int argc, char *argv[])
 
 	mainloop();
 
-	ShmUnmap(shdata);
-	unlink(lockfile);
+	alarmd_exit();
 
 	return 0;
 }

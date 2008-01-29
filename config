@@ -22,7 +22,7 @@ CONFIG_CPU_INTEL=y
 # Build Options
 #
 # CROSS_COMPILE is not set
-MW_PREFIX="/home/vovan/work/linux-on-sx1/trunk/target/src/microwin/src"
+MW_PREFIX="/work/x/nanox-dev/microwin/src"
 INSTALL_PREFIX="/usr/local/flphone"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set

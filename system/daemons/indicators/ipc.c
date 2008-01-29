@@ -56,6 +56,8 @@ int ipc_group_message(unsigned short src, unsigned char *msg_buf)
 			break;
 		}
 	}
+
+	return 0;
 }
 
 /* Handle IPC message
@@ -79,4 +81,6 @@ int ipc_handle(GR_EVENT * e)
 
 	if (IS_GROUP_MSG(src))
 		ipc_group_message(src, msg_buf);
+
+	return 0;
 }

@@ -11,37 +11,21 @@
 #define _alarmd_h_
 
 /* message group ID */
-#define MSG_GROUP_PHONE      0x7009
+#define MSG_GROUP_ALARM      0x7005
 
 /* messages IDs */
 /* ----------------------------------------------------------------------------------*/
-/* how many signal strength bars to display to the user. Is sent when value is changed. 
-   Current value is in SharedData segment */
-#define MSG_PHONE_NETWORK_BARS			0x01
-
-/* ----------------------------------------------------------------------------------*/
-/* Notification about battery status changes */
-#define MSG_PHONE_BATTERY_STATUS		0x02
-/* Status values */
-#define BATTERY_STATUS_UNKNOWN		0x00
-#define BATTERY_STATUS_POWERED		0x01
-#define BATTERY_STATUS_EXTERNAL		0x02
-#define BATTERY_STATUS_CHARGING		0x03
-#define BATTERY_STATUS_LOW		0x04
-
-/* ----------------------------------------------------------------------------------*/
-/* Battery bars (capacity) changes */
-#define MSG_PHONE_BATTERY_BARS			0x03
+/* This message is sent every minute */
+#define MSG_ALARM_PPM			0x01
+/* This message is sent every hour */
+#define MSG_ALARM_PPH			0x02
 
 /* ----------------------------------------------------------------------------------*/
 /* Union of all the message IDs */
-struct msg_phone {
-	unsigned short	group; /* message group */
-	unsigned char	id; /* message ID */
+struct msg_alarm {
+	unsigned char id;	/* message ID */
 	union {
-		unsigned char	bars;	/* network or battery bars to display */
-		unsigned char	status;	/* battery status */
-	};
+	 /*TODO*/};
 };
 
 #endif

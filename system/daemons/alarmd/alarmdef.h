@@ -1,4 +1,4 @@
-/* alarmd.h
+/* alarmdef.h
 *
 *  main module utils
 *
@@ -6,15 +6,15 @@
 *
 * Licensed under GPLv2, see LICENSE
 */
-#ifndef _alarmd_h_
-#define _alarmd_h_
+#ifndef _alarmdef_h_
+#define _alarmdef_h_
 
 #include <nano-X.h>
 #include <debug.h>
 #include <theme.h>
 #include <ipc/shareddata.h>
 #include <ipc/colosseum.h>
-#include <ipc/phoneserver.h>
+#include <ipc/alarmd.h>
 
 extern struct SharedSystem *shdata;	/* shared memory segment */
 
