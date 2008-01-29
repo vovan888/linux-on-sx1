@@ -67,7 +67,7 @@ void *my_malloc(size_t size)
 //const char *active_theme_path = "/home/flphone/.config/activetheme";
 #endif
 
-#define ACTIVETHEME_PATH	"/home/orb1t/work/linux-on-sx1/host/flphone/apps/phone/menu/share/activetheme/"
+//#define ACTIVETHEME_PATH	"/home/orb1t/work/linux-on-sx1/host/flphone/apps/phone/menu/share/activetheme/"
 
 #define GROUP_MENU	0
 
@@ -119,7 +119,7 @@ int ttheme_load_item(int menu_group_index, int item_index, MITEM *item ){
 		menu_config_fd = ini_open (filename, "r", "#;");
 		free (filename);
 		if (menu_config_fd == NULL) {
-			fprintf (stderr, "theme_get: Unable to open theme config file\n");
+			fprintf (stderr, "theme_get: Unable to open theme config file %s\n", path);
 			return -1;
 		}
 
@@ -328,8 +328,10 @@ void handle_mouse_event(MSTATE *state){
 void set_item_selection ( MSTATE *state, int num ){
 	int i = 0;
 	MITEM *t;
+	GR_WM_PROPERTIES props;
+
 	t = state->main_menu;
-printf ( "\nSelecting Item #%i", num );
+printf ( "Selecting Item #%i\n", num );
 
 	if ( num <= state->numitems ) {
 		if ( num >= 0 ){
@@ -339,15 +341,18 @@ printf ( "\nSelecting Item #%i", num );
 			}
 		}
 	}
+	/* set current item background */
 	GrSetWindowBackgroundColor ( t->wid, CURRENT_ITEM_BACKGROUND_COLOUR );
-	if ( state->cur_sel_item != NULL )
+
+	if ( state->cur_sel_item != NULL ) {
 		GrSetWindowBackgroundColor ( state->cur_sel_item->wid, ITEM_BACKGROUND_COLOUR );
+	}
 	state->cur_sel_item = t;
 	state->cur_sel_item_num = i;
 }
 
 void handle_key_event ( MSTATE *state ){
-	printf ( "\n!got keyboard event, state->event.keystroke.ch = %i", state->event.keystroke.ch ); 
+	printf ( "!got keyboard event, state->event.keystroke.ch = %i\n", state->event.keystroke.ch ); 
 	int k;
 	switch(state->event.keystroke.ch) {
 		case MWKEY_LEFT:
@@ -363,6 +368,9 @@ void handle_key_event ( MSTATE *state ){
 				set_item_selection ( state, state->cur_sel_item_num + 1 );
                 	break;
                 case MWKEY_UP:
+			if ( state->cur_sel_item_num < 3 )
+				set_item_selection ( state, state->numitems );
+			else
 				set_item_selection ( state, state->cur_sel_item_num - 3 );
                 	break;
                 case MWKEY_DOWN:
@@ -424,22 +432,25 @@ int main(int argc, char *argv[]){
 	GrSetGCForeground(state->gc, ITEM_TEXT_COLOUR);
 	GrSetGCBackground(state->gc, ITEM_BACKGROUND_COLOUR);
 
-	GrClearWindow(GR_ROOT_WINDOW_ID, GR_TRUE);
+/* vovan888: why clear root window ? */
+//	GrClearWindow(GR_ROOT_WINDOW_ID, GR_TRUE);
 
 	//state->menu_window = GrNewWindowWithTitle(GR_ROOT_WINDOW_ID, 0, 20, 176, 220, 0, ITEM_BACKGROUND_COLOUR, 0,"launcher");
-	state->menu_window = GrNewWindowWithTitle(GR_ROOT_WINDOW_ID, 0, 20, 176, 220, 0, MWNOCOLOR, 0,"launcher");
+	state->menu_window = GrNewWindow(GR_ROOT_WINDOW_ID, 0, 20, 176, 200, 0, MWNOCOLOR, 0);
 
 	GrSelectEvents(state->menu_window, GR_EVENT_MASK_CLOSE_REQ | GR_EVENT_MASK_KEY_DOWN );
 	props.flags = GR_WM_FLAGS_PROPS;
-	props.props = GR_WM_PROPS_NOMOVE | GR_WM_PROPS_NODECORATE | GR_WM_PROPS_NOAUTOMOVE | GR_WM_PROPS_NOAUTORESIZE;
+	props.props = GR_WM_PROPS_NOMOVE | GR_WM_PROPS_NODECORATE | GR_WM_PROPS_NOAUTOMOVE | GR_WM_PROPS_NOAUTORESIZE | GR_WM_PROPS_NOBACKGROUND;
 	GrSetWMProperties(state->menu_window, &props);
 
+	GrMapWindow(state->menu_window);
+	GrSetFocus(state->menu_window);
 
 	MITEM *xxx;
 	xxx = state->main_menu;
 	int x = 0, y = 0, cnt = 1;
 	while ( xxx != NULL ){
-		xxx->wid = GrNewWindowWithTitle (state->menu_window, x + 5, y + 5, ITEM_WIDTH, ITEM_HEIGHT, 1,  ITEM_BACKGROUND_COLOUR, ITEM_BORDER_COLOUR,"launcher_b");
+		xxx->wid = GrNewWindow(state->menu_window, x + 5, y + 5, ITEM_WIDTH, ITEM_HEIGHT, 0,  ITEM_BACKGROUND_COLOUR, ITEM_BORDER_COLOUR);
 		GrSelectEvents(xxx->wid, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_BUTTON_DOWN );
 		GrMapWindow(xxx->wid);
 		xxx = xxx->next;

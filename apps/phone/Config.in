@@ -3,7 +3,6 @@ menu "Phone Applications"
 config CONFIG_PHONEAPPS
        bool "Build Phone Applications"
        default y
-       depends CONFIG_FLNX
        help
 	Say 'yes' here to build the FLTK Phone and other
 	applications
@@ -46,6 +45,13 @@ config CONFIG_MENUPUSK
        depends CONFIG_PHONEAPPS
        help
 	Say 'yes' here to build menu pusk
+
+config CONFIG_MAINMENU
+       bool "Main menu"
+       default y
+       depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build main menu
 
 config CONFIG_TEST
        bool "Test program to play with"

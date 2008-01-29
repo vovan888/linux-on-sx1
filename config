@@ -22,7 +22,7 @@ CONFIG_CPU_INTEL=y
 # Build Options
 #
 # CROSS_COMPILE is not set
-MW_PREFIX="/work/x/nanox-dev/microwin/src"
+MW_PREFIX="/home/vovan/work/linux-on-sx1/trunk/target/src/microwin/src"
 INSTALL_PREFIX="/usr/local/flphone"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set
@@ -42,6 +42,7 @@ CONFIG_PHONEAPPS=y
 # CONFIG_CALL_LOGS is not set
 # CONFIG_MESSAGES is not set
 # CONFIG_MENUPUSK is not set
+CONFIG_MAINMENU=y
 # CONFIG_TEST is not set
 
 #
@@ -58,7 +59,7 @@ CONFIG_MEDIA=y
 #
 # Libraries
 #
-CONFIG_FLNX=y
+# CONFIG_FLNX is not set
 CONFIG_LIBFLPHONE=y
 
 #
@@ -71,5 +72,6 @@ CONFIG_IPC=y
 # System daemons
 #
 CONFIG_DAEMONS=y
+CONFIG_ALARMD=y
 CONFIG_INDICATORD=y
 CONFIG_GSMMUX=y
