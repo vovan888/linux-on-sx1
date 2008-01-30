@@ -22,14 +22,15 @@
 struct SharedSystem {
 /* powerup data */
 	struct {
-		int reason;
-		int selftest;
-		int swreason;
-		int temp;
+		char egold_ping_ok;
+		char reason;
+		char selftest;
+		char swreason;
+		char temp;
 	} powerup;
 /* nanowm data */
 	struct {
-		int root_displayed; /* is root window displayed ? */
+		char root_displayed; /* is root window displayed ? */
 	} wm;
 /* network */
 	struct {
@@ -44,8 +45,8 @@ struct SharedSystem {
 		int owned;
 		int pendinglock;
 		int lockstatus;
-		int domesticlang;
-		int simlock;
+		char domesticlang;
+		char simlock;
 	} sim;
 /* battery */
 	struct {

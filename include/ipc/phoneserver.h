@@ -38,6 +38,7 @@
 struct msg_phone {
 	unsigned short	group; /* message group */
 	unsigned char	id; /* message ID */
+
 	union {
 		unsigned char	bars;	/* network or battery bars to display */
 		unsigned char	status;	/* battery status */

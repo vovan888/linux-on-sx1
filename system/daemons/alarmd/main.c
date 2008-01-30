@@ -218,6 +218,7 @@ static void alarmd_exit(void)
 	/* IPC stuff */
 	ShmUnmap(shdata);
 	unlink(lockfile);
+	close(rtc_fd);
 
 }
 

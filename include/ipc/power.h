@@ -1,6 +1,6 @@
-/* alarmd.h
+/* power.h
 *
-*  Alarm daemon IPC messages
+*  Power daemon IPC messages
 *
 * Copyright 2008 by Vladimir Ananiev (Vovan888 at gmail com )
 *
@@ -11,8 +11,7 @@
 #define _alarmd_h_
 
 /* message group ID */
-#define MSG_GROUP_ALARM      0x7005
-
+#define CL_MSG_GROUP_POWER	0x7000
 /* messages IDs */
 /* ----------------------------------------------------------------------------------*/
 /* This message is sent every minute */
