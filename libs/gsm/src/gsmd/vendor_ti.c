@@ -37,76 +37,39 @@
 #include <gsmd/vendorplugin.h>
 #include <gsmd/unsolicited.h>
 
-#if 0
-#include "vendorplugin.h"
 
-static int 
-ti_getopt(struct gsmd *gh, int optname, void *optval, int *optlen)
-{
-	switch (optname) {
-	case GSMD_OPT_CIPHER_IND:
-		/* FIXME: send AT%CPRI=? */
-		break;
-	default:
-		return -EINVAL;
-	}
-}
-
-static int 
-ti_setopt(struct gsmd *gh, int optname, const void *optval, int optlen)
-{
-	switch (optname) {
-	case GSMD_OPT_CIPHER_IND:
-		/* FIXME: send AT%CPRI= */
-		break;
-	default:
-		return -EINVAL;
-	}
-}
-
-#endif
-
-
-static int csq_parse(char *buf, int len, const char *param,
+static int csq_parse(const char *buf, int len, const char *param,
 		     struct gsmd *gsmd)
 {
-	char *tok;
 	struct gsmd_evt_auxdata *aux;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_SIGNAL,
-					     sizeof(*aux));
+	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
+			GSMD_EVT_SIGNAL, sizeof(*aux));
 
 	DEBUGP("entering csq_parse param=`%s'\n", param);
 	if (!ucmd)
 		return -EINVAL;
-	
-	
+
 	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
-	tok = strtok(param, ",");
-	if (!tok)
+	if (sscanf(param, " %hhi, %hhi",
+				&aux->u.signal.sigq.rssi,
+				&aux->u.signal.sigq.ber) < 2)
 		goto out_free_io;
-	
-	aux->u.signal.sigq.rssi = atoi(tok);
-
-	tok = strtok(NULL, ",");
-	if (!tok)
-		goto out_free_io;
-
-	aux->u.signal.sigq.ber = atoi(tok);
 
 	usock_evt_send(gsmd, ucmd, GSMD_EVT_SIGNAL);
-
 	return 0;
 
 out_free_io:
-	free(ucmd);
+	talloc_free(ucmd);
 	return -EIO;
 }
 
-static int cpri_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
+static int cpri_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
 	char *tok1, *tok2;
-
-	tok1 = strtok(buf, ",");
+	char tx_buf[20];
+	
+	strcpy(tx_buf, buf);
+	tok1 = strtok(tx_buf, ",");
 	if (!tok1)
 		return -EIO;
 	
@@ -142,7 +105,7 @@ static int cpri_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
 	return 0;
 }
 
-static int ctzv_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
+static int ctzv_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
 	/* FIXME: decide what to do with it.  send as event to clients? or keep
 	 * locally? Offer option to sync system RTC? */
@@ -150,14 +113,16 @@ static int ctzv_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
 }
 
 /* Call Progress Information */
-static int cpi_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
+static int cpi_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
 	char *tok;
 	struct gsmd_evt_auxdata *aux;
 	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
 						   GSMD_EVT_OUT_STATUS,
 						   sizeof(*aux));
-	
+	char tx_buf[64];
+
+	strcpy(tx_buf, buf);
 	DEBUGP("entering cpi_parse param=`%s'\n", param);
 	if (!ucmd)
 		return -EINVAL;
@@ -167,7 +132,7 @@ static int cpi_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
 	/* Format: cId, msgType, ibt, tch, dir,[mode],[number],[type],[alpha],[cause],line */
 
 	/* call ID */
-	tok = strtok(buf, ",");
+	tok = strtok(tx_buf, ",");
 	if (!tok)
 		goto out_free_io;
 
@@ -257,7 +222,7 @@ static int cpi_detect_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	er = extrsp_parse(cmd, resp);
 	if (!er)
 		return -EINVAL;
-
+	
 	if (extrsp_supports(er, 0, 3))
 		return gsmd_simplecmd(g, "AT%CPI=3");
 	else if (extrsp_supports(er, 0, 2))
@@ -294,7 +259,7 @@ static int ticalypso_initsettings(struct gsmd *g)
 	rc |= gsmd_simplecmd(g, "AT%CUNS=0");
 
 	/* enable %CPI: call progress indication */
-	cmd = atcmd_fill("AT%CPI=?", 9, &cpi_detect_cb, g, 0);
+	cmd = atcmd_fill("AT%CPI=?", 9, &cpi_detect_cb, g, 0, NULL);
 	if (cmd)
 		atcmd_submit(g, cmd);
 

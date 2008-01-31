@@ -41,6 +41,7 @@
 #include <gsmd/unsolicited.h>
 
 static void *__atcmd_ctx;
+static int remove_timer(struct gsmd_atcmd * cmd);
 
 enum final_result_codes {
 	GSMD_RESULT_OK = 0,
@@ -48,12 +49,14 @@ enum final_result_codes {
 	NUM_FINAL_RESULTS,
 };
 
+#if 0
 static const char *final_results[] = {
 	"OK",
 	"ERROR",
 	"+CME ERROR:",
 	"+CMS ERROR:",
 };
+#endif
 
 /* we basically implement a parse that can deal with
  * - receiving and queueing commands from higher level of libgmsd
@@ -112,7 +115,7 @@ static int llparse_byte(struct llparser *llp, char byte)
 	case LLPARSE_STATE_IDLE_CR:
 		if (byte == '\n')
 			llp->state = LLPARSE_STATE_IDLE_LF;
-		else
+		else if (byte != '\r')
 			llp->state = LLPARSE_STATE_ERROR;
 		break;
 	case LLPARSE_STATE_IDLE_LF:
@@ -187,6 +190,7 @@ static int llparse_init(struct llparser *llp)
 	return 0;
 }
 
+#if 0
 /* mid-level parser */
 
 static int parse_final_result(const char *res)
@@ -199,6 +203,56 @@ static int parse_final_result(const char *res)
 	
 	return -1;
 }
+#endif
+
+void atcmd_wake_pending_queue (struct gsmd *g) 
+{
+        g->gfd_uart.when |= GSMD_FD_WRITE;
+}
+
+void atcmd_wait_pending_queue (struct gsmd *g) 
+{
+        g->gfd_uart.when &= ~GSMD_FD_WRITE;
+}
+
+
+static int atcmd_done(struct gsmd *g, struct gsmd_atcmd *cmd, const char *buf)
+{
+        int rc = 0;
+	/* remove timer if get respond before timeout */
+	remove_timer(cmd);
+        if (!cmd->cb) {
+                gsmd_log(GSMD_NOTICE, "command without cb!!!\n");
+        } else {
+                DEBUGP("Calling final cmd->cb()\n");
+                /* send final result code if there is no information
+                * response in mlbuf */
+                if (g->mlbuf_len) {
+                        cmd->resp = (char *) g->mlbuf;
+                        g->mlbuf[g->mlbuf_len] = 0;
+                } else {
+                        cmd->resp = (char *) buf;
+                }
+                rc = cmd->cb(cmd, cmd->ctx, cmd->resp);
+                DEBUGP("Clearing mlbuf\n");
+                memset(g->mlbuf, 0, MLPARSE_BUF_SIZE);
+                g->mlbuf_len = 0;
+        }
+        
+        /* remove from list of currently executing cmds */
+        llist_del(&cmd->list);
+        talloc_free(cmd);
+        
+        /* if we're finished with current commands, but still have pending
+        * commands: we want to WRITE again */
+        if (llist_empty(&g->busy_atcmds)) {
+                //g->clear_to_send = 1;
+                if (!llist_empty(&g->pending_atcmds)) {
+                        atcmd_wake_pending_queue(g);
+                }
+        }
+        return rc;
+}
 
 static int ml_parse(const char *buf, int len, void *ctx)
 {
@@ -206,6 +260,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	struct gsmd_atcmd *cmd = NULL;
 	int rc = 0;
 	int cme_error = 0;
+	int cms_error = 0;
 
 	DEBUGP("buf=`%s'(%d)\n", buf, len);
 
@@ -269,6 +324,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 			DEBUGP("error number %lu\n", err_nr);
 			if (cmd)
 				cmd->ret = err_nr;
+			cms_error = 1;
 			goto final_cb;
 		}
 
@@ -315,9 +371,10 @@ static int ml_parse(const char *buf, int len, void *ctx)
 					gsmd_log(GSMD_NOTICE, "command without cb!!!\n");
 				} else {
 					DEBUGP("Calling cmd->cb()\n");
-					cmd->resp = g->mlbuf;
+					cmd->resp = (char *) g->mlbuf;
 					rc = cmd->cb(cmd, cmd->ctx, cmd->resp);
 					DEBUGP("Clearing mlbuf\n");
+					memset(g->mlbuf, 0, MLPARSE_BUF_SIZE);
 				}
 				g->mlbuf_len = 0;
 			}
@@ -351,7 +408,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 
 		/* FIXME: handling of those special commands in response to
 		 * ATD / ATA */
-		if (!strncmp(buf, "NO CARRIER", 11) ||
+		if (!strncmp(buf, "NO CARRIER", 10) ||
 		    ((g->flags & GSMD_FLAG_V0) && buf[0] == '3')) {
 			/* Part of Case 'D' */
 			goto final_cb;
@@ -376,8 +433,8 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	g->mlbuf_len += len;
 
 	if (g->mlunsolicited) {
-		rc = unsolicited_parse(g, g->mlbuf, g->mlbuf_len,
-				strchr(g->mlbuf, ':') + 1);
+		rc = unsolicited_parse(g, (const char*) g->mlbuf, (int) g->mlbuf_len,
+				strchr((const char*)g->mlbuf, ':') + 1);
 		if (rc == -EAGAIN) {
 			/* The parser wants one more line of
 			 * input.  Wait for the next line, concatenate
@@ -387,9 +444,8 @@ static int ml_parse(const char *buf, int len, void *ctx)
 		}
 		g->mlunsolicited = 0;
 		g->mlbuf_len = 0;
-		return rc;
 	}
-	return 0;
+	return rc;
 
 final_cb:
 	/* if reach here, the final result code of a command has been reached */
@@ -399,33 +455,11 @@ final_cb:
 
 	if (cmd && cme_error)
 		generate_event_from_cme(g, cmd->ret);
+	
+	if (cmd && cms_error)
+		generate_event_from_cms(g, cmd->ret);
 
-	if (!cmd->cb) {
-		gsmd_log(GSMD_NOTICE, "command without cb!!!\n");
-	} else {
-		DEBUGP("Calling final cmd->cb()\n");
-		/* send final result code if there is no information
-		 * response in mlbuf */
-		if (g->mlbuf_len) {
-			cmd->resp = g->mlbuf;
-			g->mlbuf[g->mlbuf_len] = 0;
-		} else
-			cmd->resp = buf;
-		rc = cmd->cb(cmd, cmd->ctx, cmd->resp);
-		DEBUGP("Clearing mlbuf\n");
-		g->mlbuf_len = 0;
-	}
-
-	/* remove from list of currently executing cmds */
-	llist_del(&cmd->list);
-	talloc_free(cmd);
-
-	/* if we're finished with current commands, but still have pending
-	 * commands: we want to WRITE again */
-	if (llist_empty(&g->busy_atcmds) && !llist_empty(&g->pending_atcmds))
-		g->gfd_uart.when |= GSMD_FD_WRITE;
-
-	return rc;
+	return atcmd_done(g, cmd, buf);
 }
 
 /* called when the modem asked for a new line of a multiline atcmd */
@@ -433,7 +467,8 @@ static int atcmd_prompt(void *data)
 {
 	struct gsmd *g = data;
 
-	g->gfd_uart.when |= GSMD_FD_WRITE;
+        atcmd_wake_pending_queue(g);
+	return 0;
 }
 
 /* callback to be called if [virtual] UART has some data for us */
@@ -487,6 +522,8 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 			write(fd, "\r", 1);
 
 			if (!pos->buflen) {
+				/* success: create atcommand timeout timer */
+				pos->timeout = pos->create_timer_func(g);  
 				/* success: remove from global list of
 				 * to-be-sent atcmds */
 				llist_del(&pos->list);
@@ -505,15 +542,62 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 		}
 
 		/* Either pending_atcmds is empty or a command has to wait */
-		g->gfd_uart.when &= ~GSMD_FD_WRITE;
+                atcmd_wait_pending_queue(g);
 	}
 
 	return 0;
 }
 
+static void discard_timeout(struct gsmd_timer *tmr, void *data) 
+{
+        struct gsmd *g=data;
+        struct gsmd_atcmd *cmd=NULL;
+        DEBUGP("discard time out!!\n");
+        if (!llist_empty(&g->busy_atcmds)) {
+                cmd = llist_entry(g->busy_atcmds.next,struct gsmd_atcmd, list);
+        }
+        if (!cmd) { 
+                DEBUGP("ERROR!! busy_atcmds is NULL\n");
+                return;
+        }
+        if (cmd->timeout != tmr) {
+                DEBUGP("ERROR!! cmd->timeout != tmr\n");
+                return;
+        }
+
+        gsmd_timer_free(cmd->timeout);
+        cmd->timeout = NULL;
+
+	if (cmd->cb) {
+		cmd->resp = "Timeout";
+                cmd->cb(cmd, cmd->ctx, cmd->resp);
+	}
+	
+	// discard the timeout at command
+	llist_del(&cmd->list);
+	talloc_free(cmd);
+	
+	// pass the next pending at command
+	if (llist_empty(&g->busy_atcmds) && !llist_empty(&g->pending_atcmds)) {
+		atcmd_wake_pending_queue(g);
+	}
+}
+
+static struct gsmd_timer * discard_timer(struct gsmd *g)
+{
+        
+	struct timeval tv;
+	tv.tv_sec = GSMD_ATCMD_TIMEOUT;
+	tv.tv_usec = 0;
+         
+	DEBUGP("Create discard timer\n");
+	
+	return gsmd_timer_create(&tv, &discard_timeout, g);
+}
 
 struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
-			      atcmd_cb_t cb, void *ctx, u_int16_t id)
+			      atcmd_cb_t cb, void *ctx, u_int16_t id,
+			      create_timer_t ct)
 {
 	int buflen = strlen(cmd);
 	struct gsmd_atcmd *atcmd;
@@ -534,21 +618,68 @@ struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 	atcmd->cur = atcmd->buf;
 	atcmd->cb = cb;
 	atcmd->resp = NULL;
+	atcmd->timeout = NULL;
 	strncpy(atcmd->buf, cmd, buflen-1);
+
+	if (!ct)
+		atcmd->create_timer_func = discard_timer; 
+	else
+		atcmd->create_timer_func = ct;
 
 	return atcmd;
 }
 
+static int remove_timer(struct gsmd_atcmd * cmd)
+{
+	if (cmd->timeout) {
+		DEBUGP("Get respond before timeout, remove timer!\n");
+		gsmd_timer_unregister(cmd->timeout);
+		gsmd_timer_free(cmd->timeout);
+		cmd->timeout = NULL;
+	} else {
+		DEBUGP("ERROR!! The %s response comes too late!!\n", cmd->buf);
+	}
+
+	return 0;
+}
+
+
 /* submit an atcmd in the global queue of pending atcmds */
 int atcmd_submit(struct gsmd *g, struct gsmd_atcmd *cmd)
 {
+
+	if (g->machinepl->ex_submit) {
+		DEBUGP("extra-submiting command\n");
+		g->machinepl->ex_submit(g);
+	}
 	DEBUGP("submitting command `%s'\n", cmd->buf);
 
-	if (llist_empty(&g->pending_atcmds))
-		g->gfd_uart.when |= GSMD_FD_WRITE;
 	llist_add_tail(&cmd->list, &g->pending_atcmds);
+	if (llist_empty(&g->busy_atcmds) && !llist_empty(&g->pending_atcmds)) {
+		atcmd_wake_pending_queue(g);
+	}
 
 	return 0;
+}
+
+/* cancel a currently executing atcmd by issuing the command given as
+ * parameter, usually AT ot ATH.  */
+int cancel_atcmd(struct gsmd *g, struct gsmd_atcmd *cmd)
+{
+        struct gsmd_atcmd *cur;
+        if (llist_empty(&g->busy_atcmds)) {
+                return atcmd_submit(g, cmd);
+        }
+        cur = llist_entry(g->busy_atcmds.next, struct gsmd_atcmd, list);
+        DEBUGP("cancelling command `%s' with an `%s'\n", cur->buf, cmd->buf);
+        
+        if (g->mlbuf_len) {
+                DEBUGP("Discarding mlbuf: %.*s\n", g->mlbuf_len, g->mlbuf);
+                g->mlbuf_len = 0;
+        }
+        
+        llist_add(&cmd->list, &g->pending_atcmds);
+        return atcmd_done(g, cur, "ERROR");
 }
 
 void atcmd_drain(int fd)
@@ -581,6 +712,7 @@ int atcmd_init(struct gsmd *g, int sockfd)
 
 	g->mlbuf_len = 0;
 	g->mlunsolicited = 0;
+	g->alive_responded = 0;
 
 	g->llp.cur = g->llp.buf;
 	g->llp.len = sizeof(g->llp.buf);
@@ -590,4 +722,31 @@ int atcmd_init(struct gsmd *g, int sockfd)
 	g->llp.flags = LGSM_ATCMD_F_EXTENDED;
 
 	return gsmd_register_fd(&g->gfd_uart);
+}
+
+/* remove from the queues any command whose .ctx matches given */
+int atcmd_terminate_matching(struct gsmd *g, void *ctx)
+{
+	int num = 0;
+	struct gsmd_atcmd *cmd, *pos;
+
+	llist_for_each_entry_safe(cmd, pos, &g->busy_atcmds, list)
+		if (cmd->ctx == ctx) {
+			cmd->ret = -ESHUTDOWN;
+			cmd->cb(cmd, cmd->ctx, "ERROR");
+			cmd->cb = NULL;
+			cmd->ctx = NULL;
+			num ++;
+		}
+
+	llist_for_each_entry_safe(cmd, pos, &g->pending_atcmds, list)
+		if (cmd->ctx == ctx) {
+			llist_del(&cmd->list);
+			cmd->ret = -ESHUTDOWN;
+			cmd->cb(cmd, cmd->ctx, "ERROR");
+			talloc_free(cmd);
+			num ++;
+		}
+
+	return num;
 }

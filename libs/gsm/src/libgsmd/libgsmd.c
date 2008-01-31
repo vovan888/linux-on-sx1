@@ -32,8 +32,10 @@
 
 #include <gsmd/usock.h>
 #include <libgsmd/libgsmd.h>
+#include <libgsmd/event.h>
 
 #include "lgsm_internals.h"
+
 
 static int lgsm_get_packet(struct lgsm_handle *lh)
 {
@@ -56,6 +58,7 @@ static int lgsm_get_packet(struct lgsm_handle *lh)
 
 	return 0;
 }
+
 
 static int lgsm_open_backend(struct lgsm_handle *lh, const char *device)
 {
@@ -133,7 +136,7 @@ void lgsm_unregister_handler(struct lgsm_handle *lh, int type)
 }
 
 /* blocking read and processing of packets until packet matching 'id' is found */
-int lgsm_blocking_wait_packet(struct lgsm_handle *lh, u_int16_t id, 
+int lgsm_blocking_wait_packet(struct lgsm_handle *lh, u_int16_t id,
 			      struct gsmd_msg_hdr *gmh, int rlen)
 {
 	int rc;
@@ -222,11 +225,7 @@ int lgsm_send_simple(struct lgsm_handle *lh, int type, int sub_type)
 	if (!gmh)
 		return -ENOMEM;
 	rc = lgsm_send(lh, gmh);
-	if (rc < gmh->len + sizeof(*gmh)) {
-		lgsm_gmh_free(gmh);
-		return -EIO;
-	}
-	lgsm_gmh_free(gmh);
 
-	return 0;
+	lgsm_gmh_free(gmh);
+	return rc;
 }

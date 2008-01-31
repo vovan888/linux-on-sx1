@@ -44,6 +44,8 @@
 #include <gsmd/usock.h>
 #include <gsmd/vendorplugin.h>
 #include <gsmd/talloc.h>
+#include <gsmd/sms.h>
+#include <gsmd/unsolicited.h>
 
 #define GSMD_ALIVECMD		"AT"
 #define GSMD_ALIVE_INTERVAL	5*60
@@ -56,29 +58,23 @@ static int daemonize = 0;
  * either OK or ERROR is allowed since, both mean the modem still responds
  */
 
-
-struct gsmd_alive_priv {
-	struct gsmd *gsmd;
-	int alive_responded;
-};
-
 static int gsmd_alive_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
-	struct gsmd_alive_priv *alp = ctx;
+	struct gsmd *g = ctx;
 
 	if (!strcmp(resp, "OK") || !strcmp(resp, "ERROR") ||
-	    ((alp->gsmd->flags & GSMD_FLAG_V0) && resp[0] == '0'))
-		alp->alive_responded = 1;
+	    ((g->flags & GSMD_FLAG_V0) && resp[0] == '0'))
+		g->alive_responded = 1;
 	return 0;
 }
 
 static void alive_tmr_cb(struct gsmd_timer *tmr, void *data)
 {
-	struct gsmd_alive_priv *alp = data;
+	struct gsmd *g = data;
 
-	DEBUGP("gsmd_alive timer expired\n", alp);
+	DEBUGP("gsmd_alive timer expired\n");
 
-	if (alp->alive_responded == 0) {
+	if (g->alive_responded == 0) {
 		gsmd_log(GSMD_FATAL, "modem dead!\n");
 		exit(3);
 	} else
@@ -87,33 +83,29 @@ static void alive_tmr_cb(struct gsmd_timer *tmr, void *data)
 	/* FIXME: update some global state */
 
 	gsmd_timer_free(tmr);
-	talloc_free(alp);
+}
+
+static struct gsmd_timer * alive_timer(struct gsmd *g)
+{
+ 	struct timeval tv;
+	tv.tv_sec = GSMD_ALIVE_TIMEOUT;
+	tv.tv_usec = 0;
+
+	return gsmd_timer_create(&tv, &alive_tmr_cb, g);
 }
 
 static int gsmd_modem_alive(struct gsmd *gsmd)
 {
 	struct gsmd_atcmd *cmd;
-	struct gsmd_alive_priv *alp;
-	struct timeval tv;
 
-	alp = talloc(gsmd_tallocs, struct gsmd_alive_priv);
-	if (!alp)
-		return -ENOMEM;
-
-	alp->gsmd = gsmd;
-	alp->alive_responded = 0;
+	gsmd->alive_responded = 0;
 
 	cmd = atcmd_fill(GSMD_ALIVECMD, strlen(GSMD_ALIVECMD)+1, 
-			 &gsmd_alive_cb, alp, 0);
+			 &gsmd_alive_cb, gsmd, 0, alive_timer);
 	if (!cmd) {
-		talloc_free(alp);
 		return -ENOMEM;
 	}
 
-	tv.tv_sec = GSMD_ALIVE_TIMEOUT;
-	tv.tv_usec = 0;
-	gsmd_timer_create(&tv, &alive_tmr_cb, alp);
-	
 	return atcmd_submit(gsmd, cmd);
 }
 
@@ -155,10 +147,20 @@ static int gsmd_test_atcb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	return 0;
 }
 
+static int gsmd_get_imsi_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
+{
+	struct gsmd *g = ctx;
+
+	DEBUGP("imsi : %s\n", resp);
+	strcpy(g->imsi, resp);
+
+	return 0;
+}
+
 int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 {
 	struct gsmd_atcmd *cmd;
-	cmd = atcmd_fill(cmdtxt, strlen(cmdtxt)+1, &gsmd_test_atcb, NULL, 0);
+	cmd = atcmd_fill(cmdtxt, strlen(cmdtxt)+1, &gsmd_test_atcb, NULL, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
 	
@@ -167,7 +169,7 @@ int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 
 static int gsmd_initsettings2(struct gsmd *gsmd)
 {
-	int rc;
+	int rc = 0;
 	
 	/* echo on, verbose */
 	rc |= gsmd_simplecmd(gsmd, "ATE0V1");
@@ -180,14 +182,17 @@ static int gsmd_initsettings2(struct gsmd *gsmd)
 	/* use +CLIP: to indicate CLIP */
 	rc |= gsmd_simplecmd(gsmd, "AT+CLIP=1");
 	/* use +COLP: to indicate COLP */
-	rc |= gsmd_simplecmd(gsmd, "AT+COLP=1");
+	/* set it 0 to disable subscriber info and avoid cme err 512 */
+	rc |= gsmd_simplecmd(gsmd, "AT+COLP=0");
+	/* use +CCWA: to indicate waiting call */
+	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
 	/* configure message format as PDU mode*/
 	/* FIXME: TEXT mode support!! */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMGF=0");
-#if 0
-	/* Select TE character set */		
-	rc |= gsmd_simplecmd(gsmd, "AT+CSCS=\"UCS2\"");
-#endif
+	/* reueset imsi */
+	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 7+1,
+					&gsmd_get_imsi_cb, gsmd, 0, NULL));
+
 
 	sms_cb_init(gsmd);
 
@@ -226,21 +231,12 @@ static int firstcmd_atcb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	return gsmd_initsettings2(gsmd);
 }
 
-static void firstcmd_tmr_cb(struct gsmd_timer *tmr, void *data)
-{
-	if (firstcmd_response == 0) {
-		gsmd_log(GSMD_FATAL, "No response from GSM Modem");
-		exit(4);
-	}
-	gsmd_timer_free(tmr);
-}
 
 int gsmd_initsettings(struct gsmd *gsmd)
 {
 	struct gsmd_atcmd *cmd;
-	struct timeval tv;
 
-	cmd = atcmd_fill("ATZ", strlen("ATZ")+1, &firstcmd_atcb, gsmd, 0);
+	cmd = atcmd_fill("ATZ", strlen("ATZ")+1, &firstcmd_atcb, gsmd, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
 
@@ -259,9 +255,9 @@ static struct bdrt bdrts[] = {
 	{ 38400, B38400 },
 	{ 57600, B57600 },
 	{ 115200, B115200 },
-/*	{ 230400, B230400 },
+	{ 230400, B230400 },
 	{ 460800, B460800 },
-	{ 921600, B921600 },*/
+	{ 921600, B921600 },
 };
 
 static int set_baudrate(int fd, int baudrate, int hwflow)
@@ -278,23 +274,26 @@ static int set_baudrate(int fd, int baudrate, int hwflow)
 		return -EINVAL;
 	
 	i = tcgetattr(fd, &ti);
-	if (i < 0)
-		return i;
+	if (i < 0) {
+                return -errno;
+        }
 	
 	i = cfsetispeed(&ti, B0);
-	if (i < 0)
-		return i;
+	if (i < 0) {
+                return -errno;
+        }
 	
 	i = cfsetospeed(&ti, bd);
-	if (i < 0)
-		return i;
+	if (i < 0) {
+                return -errno;
+        }
 	
 	if (hwflow)
 		ti.c_cflag |= CRTSCTS;
 	else
 		ti.c_cflag &= ~CRTSCTS;
 
-	return tcsetattr(fd, 0, &ti);
+	return tcsetattr(fd, 0, &ti) ? -errno : 0;
 }
 
 static int gsmd_initialize(struct gsmd *g)
@@ -374,14 +373,12 @@ int main(int argc, char **argv)
 	int bps = 115200;
 	int hwflow = 0;
 	char *device = NULL;
-	char *logfile = "syslog";
 	char *vendor_name = NULL;
 	char *machine_name = NULL;
 	int wait = -1;
 
 	signal(SIGTERM, sig_handler);
 	signal(SIGINT, sig_handler);
-	signal(SIGSEGV, sig_handler);
 	signal(SIGUSR1, sig_handler);
 	signal(SIGALRM, sig_handler);
 	
@@ -483,8 +480,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-  write(fd, "\r", 1);
-  sleep(1);
+        write(fd,"\r",1);
 	atcmd_drain(fd);
 
 	if (usock_init(&g) < 0) {

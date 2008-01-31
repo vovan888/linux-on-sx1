@@ -1,3 +1,25 @@
+/* libgsmd pin support
+ *
+ * (C) 2006-2007 by OpenMoko, Inc.
+ * Written by Harald Welte <laforge@openmoko.org>
+ * All Rights Reserved
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,7 +29,7 @@
 #include <libgsmd/libgsmd.h>
 
 static const char *pin_type_names[__NUM_GSMD_PIN] = {
-	[GSMD_PIN_NONE]		= "NONE",
+	[GSMD_PIN_READY]	= "READY",
 	[GSMD_PIN_SIM_PIN]	= "SIM PIN",
 	[GSMD_PIN_SIM_PUK]	= "SIM PUK",
 	[GSMD_PIN_PH_SIM_PIN]	= "Phone-to-SIM PIN",
@@ -33,7 +55,13 @@ const char *lgsm_pin_name(enum gsmd_pin_type ptype)
 	return pin_type_names[ptype];
 }
 
-int lgsm_pin(struct lgsm_handle *lh, unsigned int type, char *pin, char *newpin)
+int lgsm_pin_status(struct lgsm_handle *lh)
+{
+	return lgsm_send_simple(lh, GSMD_MSG_PIN, GSMD_PIN_GET_STATUS);
+}
+
+int lgsm_pin(struct lgsm_handle *lh, unsigned int type,
+		const char *pin, const char *newpin)
 {
 	int rc;
 	struct {
@@ -52,9 +80,7 @@ int lgsm_pin(struct lgsm_handle *lh, unsigned int type, char *pin, char *newpin)
 		return -ENOMEM;
 
 	gm->gp.type = type;
-
-	gm->gp.pin[0] = '\0';
-	strcat(gm->gp.pin, pin);
+	strncpy(gm->gp.pin, pin, sizeof(gm->gp.pin));
 
 	switch (type) {
 	case GSMD_PIN_SIM_PUK:
@@ -62,10 +88,11 @@ int lgsm_pin(struct lgsm_handle *lh, unsigned int type, char *pin, char *newpin)
 		/* GSM 07.07 explicitly states that only those two PUK types
 		 * require a new pin to be specified! Don't know if this is a
 		 * bug or a feature. */
-		if (!newpin)
+		if (!newpin) {
+			free(gm);
 			return -EINVAL;
-		gm->gp.newpin[0] = '\0';
-		strcat(gm->gp.newpin, newpin);
+		}
+		strncpy(gm->gp.newpin, newpin, sizeof(gm->gp.newpin));
 		break;
 	default:
 		break;
@@ -76,3 +103,4 @@ int lgsm_pin(struct lgsm_handle *lh, unsigned int type, char *pin, char *newpin)
 
 	return rc;
 }
+

@@ -26,6 +26,7 @@
 
 #include <libgsmd/libgsmd.h>
 #include <libgsmd/misc.h>
+#include <libgsmd/sms.h>
 
 #include <gsmd/usock.h>
 #include <gsmd/event.h>
@@ -37,11 +38,17 @@ int lgsm_get_netreg_state(struct lgsm_handle *lh,
 		enum lgsm_netreg_state *state)
 {
 	*state = lh->netreg_state;
+	return 0;
 }
 
 int lgsm_oper_get(struct lgsm_handle *lh)
 {
 	return lgsm_send_simple(lh, GSMD_MSG_NETWORK, GSMD_NETWORK_OPER_GET);
+}
+
+int lgsm_oper_n_get(struct lgsm_handle *lh)
+{
+	return lgsm_send_simple(lh, GSMD_MSG_NETWORK, GSMD_NETWORK_OPER_N_GET);
 }
 
 int lgsm_opers_get(struct lgsm_handle *lh)
@@ -72,6 +79,11 @@ int lgsm_netreg_register(struct lgsm_handle *lh, gsmd_oper_numeric oper)
 int lgsm_netreg_deregister(struct lgsm_handle *lh)
 {
 	return lgsm_send_simple(lh, GSMD_MSG_NETWORK, GSMD_NETWORK_DEREGISTER);
+}
+
+int lgsm_netreg_query(struct lgsm_handle *lh)
+{
+	return lgsm_send_simple(lh, GSMD_MSG_NETWORK, GSMD_NETWORK_QUERY_REG);
 }
 
 int lgsm_signal_quality(struct lgsm_handle *lh)
@@ -132,4 +144,36 @@ int lgsm_prefoper_get_space(struct lgsm_handle *lh)
 int lgsm_get_subscriber_num(struct lgsm_handle *lh)
 {
 	return lgsm_send_simple(lh, GSMD_MSG_NETWORK, GSMD_NETWORK_GET_NUMBER);
+}
+
+int lgsm_voicemail_set(struct lgsm_handle *lh, const char *number)
+{
+	struct gsmd_msg_hdr *gmh;
+	struct gsmd_voicemail *vmail;
+
+	gmh = lgsm_gmh_fill(GSMD_MSG_NETWORK,
+			GSMD_NETWORK_VMAIL_SET, sizeof(*vmail));
+	if (!gmh)
+		return -ENOMEM;
+
+	vmail = (struct gsmd_voicemail *) gmh->data;
+	vmail->enable = 1;
+	if (lgsm_number2addr(&vmail->addr, number, 0)){
+		lgsm_gmh_free(gmh);
+		return -EINVAL;
+	}
+
+	if (lgsm_send(lh, gmh) < gmh->len + sizeof(*gmh)) {
+		lgsm_gmh_free(gmh);
+		return -EIO;
+	}
+
+	lgsm_gmh_free(gmh);
+	return 0;
+}
+
+/* Get currently configured voice mail number */
+int lgsm_voicemail_get(struct lgsm_handle *lh)
+{
+	return lgsm_send_simple(lh, GSMD_MSG_NETWORK, GSMD_NETWORK_VMAIL_GET);
 }

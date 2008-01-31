@@ -2,7 +2,8 @@
 #define _GSMD_USOCK_H
 
 #include <gsmd/event.h>
-
+#include <gsmd/ts0707.h>
+#include <gsmd/ts0705.h>
 #define GSMD_UNIX_SOCKET "\0gsmd"
 //#define GSMD_UNIX_SOCKET_TYPE SOCK_SEQPACKET
 #define GSMD_UNIX_SOCKET_TYPE SOCK_STREAM
@@ -23,6 +24,7 @@ enum gsmd_msg_type {
 	GSMD_MSG_PIN		= 8,
 	GSMD_MSG_SMS		= 9,
 	GSMD_MSG_CB		= 10,
+	GSMD_MSG_MODEM		= 11,
 	__NUM_GSMD_MSGS
 };
 
@@ -39,6 +41,83 @@ enum gsmd_msg_voicecall_type {
 	GSMD_VOICECALL_DTMF	= 4,
 	GSMD_VOICECALL_VOL_SET	= 5,
 	GSMD_VOICECALL_VOL_GET	= 6,
+	GSMD_VOICECALL_GET_STAT	= 7,
+	GSMD_VOICECALL_CTRL	= 8,
+	GSMD_VOICECALL_FWD_DIS	= 9,
+	GSMD_VOICECALL_FWD_EN	= 10,
+	GSMD_VOICECALL_FWD_STAT	= 11,
+	GSMD_VOICECALL_FWD_REG	= 12,
+	GSMD_VOICECALL_FWD_ERAS	= 13,
+};
+
+
+/*  call direction from 3GPP TS 07.07, Clause 7.17 */
+enum gsmd_call_dire {
+	GSMD_CALL_DIRE_MO	= 0,
+	GSMD_CALL_DIRE_MT	= 1,
+};
+
+/*  call state from 3GPP TS 07.07, Clause 7.17 */
+enum gsmd_call_stat {
+	GSMD_CALL_STAT_ACTIVE	= 0,
+	GSMD_CALL_STAT_HELD	= 1,
+	GSMD_CALL_STAT_DIALING	= 2,
+	GSMD_CALL_STAT_ALERTING	= 3,
+	GSMD_CALL_STAT_INCOMING	= 4,
+	GSMD_CALL_STAT_WAITING	= 5,
+};
+
+/*  call mode from 3GPP TS 07.07, Clause 7.17 */
+enum gsmd_call_mode {
+	GSMD_CALL_MODE_VOICE		= 0,
+	GSMD_CALL_MODE_DATA		= 1,
+	GSMD_CALL_MODE_FAX		= 2,
+	GSMD_CALL_MODE_VOICE_DATA	= 3,
+	GSMD_CALL_MODE_VOICE_DATA_ALT	= 4,
+	GSMD_CALL_MODE_VOICE_FAX_ALT	= 5,	
+	GSMD_CALL_MODE_DATA_VOICE	= 6,
+	GSMD_CALL_MODE_DATA_VOICE_ALT	= 7,
+	GSMD_CALL_MODE_FAX_VOICE_ALT	= 8,
+	GSMD_CALL_MODE_UNKNOWN		= 9,
+};
+
+/*  multiparty(conference) from 3GPP TS 07.07, Clause 7.17 */
+enum gsmd_call_mpty {
+	GSMD_CALL_MPTY_NO	= 0,
+	GSMD_CALL_MPTY_YES	= 1,
+};
+
+/* 
+ * call related supplementary services from 3GPP TS 02.30 4.5.5.1 
+ * R - Release
+ * A - Accept
+ * H - Hold
+ * M - Multiparty
+ */
+enum gsmd_call_ctrl_proc {
+	GSMD_CALL_CTRL_R_HLDS			= 0,	// 0
+	GSMD_CALL_CTRL_UDUB			= 1,	// 0
+	GSMD_CALL_CTRL_R_ACTS_A_HLD_WAIT	= 2,	// 1	
+	GSMD_CALL_CTRL_R_ACT_X			= 3,	// 1x
+	GSMD_CALL_CTRL_H_ACTS_A_HLD_WAIT	= 4,	// 2
+	GSMD_CALL_CTRL_H_ACTS_EXCEPT_X		= 5,	// 2x
+	GSMD_CALL_CTRL_M_HELD			= 6,	// 3
+};
+
+/* call forward reason from 3GPP TS 07.07 subclause 07.10 */
+enum gsmd_call_fwd_reason {
+	GSMD_CALL_FWD_REASON_UNCOND		= 0,
+	GSMD_CALL_FWD_REASON_BUSY		= 1, 
+	GSMD_CALL_FWD_REASON_NO_REPLY		= 2,
+	GSMD_CALL_FWD_REASON_NOT_REACHABLE	= 3,
+	GSMD_CALL_FWD_REASON_ALL_FORWARD	= 4,
+	GSMD_CALL_FWD_REASON_ALL_COND_FORWARD	= 5, 
+};
+
+/* call forward status from 3GPP TS 07.07 subclause 07.10 */
+enum gsmd_call_fwd_status {
+	GSMD_CALL_FWD_STATUS_NOT_ACTIVE	= 0,
+	GSMD_CALL_FWD_STATUS_ACTIVE	= 1,
 };
 
 /* Handset / MT related commands */
@@ -49,11 +128,18 @@ enum gsmd_msg_phone_type {
 
 enum gsmd_msg_pin_type {
 	GSMD_PIN_INPUT		= 1,
+	GSMD_PIN_GET_STATUS     = 2,
 };
 
 enum gsmd_msg_phone {
 	GSMD_PHONE_POWERUP	= 1,
 	GSMD_PHONE_POWERDOWN	= 2,
+	GSMD_PHONE_GET_IMSI     = 3,
+};
+
+enum gsmd_msg_modem {
+	GSMD_MODEM_POWERUP	= 1,
+	GSMD_MODEM_POWERDOWN	= 2,
 };
 
 enum gsmd_msg_cb {
@@ -67,14 +153,16 @@ enum gsmd_msg_network {
 	GSMD_NETWORK_VMAIL_GET	= 3,
 	GSMD_NETWORK_VMAIL_SET	= 4,
 	GSMD_NETWORK_OPER_GET	= 5,
-	GSMD_NETWORK_OPER_LIST	= 6,
-	GSMD_NETWORK_CIND_GET	= 7,
-	GSMD_NETWORK_DEREGISTER	= 8,
-	GSMD_NETWORK_GET_NUMBER = 9,
-	GSMD_NETWORK_PREF_LIST  = 10,
-	GSMD_NETWORK_PREF_DEL   = 11,
-	GSMD_NETWORK_PREF_ADD   = 12,
-	GSMD_NETWORK_PREF_SPACE = 13,
+	GSMD_NETWORK_OPER_N_GET	= 6,
+	GSMD_NETWORK_OPER_LIST	= 7,
+	GSMD_NETWORK_CIND_GET	= 8,
+	GSMD_NETWORK_DEREGISTER	= 9,
+	GSMD_NETWORK_GET_NUMBER = 10,
+	GSMD_NETWORK_PREF_LIST  = 11,
+	GSMD_NETWORK_PREF_DEL   = 12,
+	GSMD_NETWORK_PREF_ADD   = 13,
+	GSMD_NETWORK_PREF_SPACE = 14,
+	GSMD_NETWORK_QUERY_REG  = 15,
 };
 
 enum gsmd_msg_sms {
@@ -110,16 +198,68 @@ enum gsmd_msg_sms_fmt {
 enum {
 	MESSAGE_CLASS_CLASS0		= 0x00,
 	MESSAGE_CLASS_CLASS1		= 0x01,
-	MESSAGE_CLASS_CLASS2		= 0x10,
-	MESSAGE_CLASS_CLASS3		= 0x11,
+	MESSAGE_CLASS_CLASS2		= 0x02,
+	MESSAGE_CLASS_CLASS3		= 0x03,
 };
 
 enum gsmd_sms_alphabet {
 	ALPHABET_DEFAULT		= (0x00<<2),
 	ALPHABET_8BIT			= (0x01<<2),
-	ALPHABET_UCS2			= (0x10<<2),
-	ALPHABET_RESERVED		= (0x11<<2),
+	ALPHABET_UCS2			= (0x02<<2),
+	ALPHABET_RESERVED		= (0x03<<2),
 };
+
+/* bit 1 & bit0 */
+enum gsmd_sms_msg_class {
+	MSG_CLASS_CLASS0	= 0,
+	MSG_CLASS_CLASS1	= 1,
+	MSG_CLASS_CLASS2	= 2,
+	MSG_CLASS_CLASS3	= 3,
+	MSG_CLASS_NONE		= 4,
+};
+
+/* bit 3 & bit 2*/
+enum gsmd_sms_alphabet_type {
+	SMS_ALPHABET_7_BIT_DEFAULT 	= 0,
+	SMS_ALPHABET_8_BIT		= 1,
+	SMS_ALPHABET_UCS2		= 2,
+	SMS_ALPHABET_RESESRVED		= 3,
+};
+
+enum gsmd_sms_msg_compressed {
+	NOT_COMPRESSED	= 0,
+	COMPRESSED	= 1,
+};
+
+/* message waiting indication */
+enum gsmd_sms_msg_waiting_group {
+	MESSAGE_WAITING_NONE		= 0,
+	MESSAGE_WAITING_DISCARD	= 1,
+	MESSAGE_WAITING_STORE		= 2,
+	MESSAGE_WAITING_NONE_1111	= 3,
+};
+
+enum gsmd_sms_msg_waiting_type {
+	MESSAGE_WAITING_VOICEMAIL	= 0,
+	MESSAGE_WAITING_FAX 		= 1,
+	MESSAGE_WAITING_EMAIL 		= 2,
+	MESSAGE_WAITING_OTHER 		= 3,
+};
+
+enum gsmd_sms_msg_waiting_active {
+	NOT_ACTIVE	= 0,
+	ACTIVE		= 1,
+};
+
+struct gsmd_sms_datacodingscheme {
+	enum gsmd_sms_msg_class		        msg_class;
+	enum gsmd_sms_alphabet_type 		alphabet;
+	enum gsmd_sms_msg_compressed        	is_compressed;
+	enum gsmd_sms_msg_waiting_group 	mwi_group;
+	enum gsmd_sms_msg_waiting_active    	mwi_active;
+	enum gsmd_sms_msg_waiting_type    	mwi_kind;
+	u_int8_t                            	raw_dcs_data;
+} __attribute__ ((packed));
 
 /* Refer to GSM 03.40 subclause 9.2.3.1 */
 enum gsmd_sms_tp_mti {
@@ -194,8 +334,6 @@ enum gsmd_msg_phonebook {
 	GSMD_PHONEBOOK_GET_SUPPORT	= 6,
 	GSMD_PHONEBOOK_LIST_STORAGE	= 7,
 	GSMD_PHONEBOOK_SET_STORAGE	= 8,
-	GSMD_PHONEBOOK_RETRIEVE_READRG	= 9,
-	GSMD_PHONEBOOK_RETRIEVE_FIND	= 10,
 };
 
 /* Type-of-Address, Numbering-Plan-Identification field, GSM 03.40, 9.1.2.5 */
@@ -250,6 +388,44 @@ struct gsmd_voicemail {
 	struct gsmd_addr addr;
 } __attribute__ ((packed));
 
+#define GSMD_ALPHA_MAXLEN	20
+
+/* call status from 3GPP TS 07.07 clause 07.17 */
+struct gsmd_call_status {
+	int8_t idx;
+	u_int8_t dir;
+	u_int8_t stat;
+	u_int8_t mode;
+	u_int8_t mpty;
+	char number[GSMD_ADDR_MAXLEN+1];	
+	u_int8_t type;
+	char alpha[GSMD_ALPHA_MAXLEN+1];
+	int is_last;	
+} __attribute__ ((packed));
+
+/* call status from 3GPP TS 07.07 clause 7.12 */
+struct gsmd_call_ctrl {
+	enum gsmd_call_ctrl_proc proc;	
+	u_int8_t idx;
+} __attribute__ ((packed));
+
+/* call forwarding register from 3GPP TS 07.07 clause 7.10 */
+struct gsmd_call_fwd_reg {
+	enum gsmd_call_fwd_reason reason;
+	struct gsmd_addr addr;
+} __attribute__ ((packed));
+
+/* status of call forwarding from 3GPP TS 07.07 clause 7.10 */
+struct gsmd_call_fwd_stat {
+	enum gsmd_call_fwd_status status; 
+	u_int8_t classx;
+	struct gsmd_addr addr;
+	char subaddr[16+1];
+	u_int8_t satype;
+	u_int8_t time;
+	int is_last;	
+} __attribute__ ((packed));
+
 #define GSMD_PIN_MAXLEN		8
 struct gsmd_pin {
 	enum gsmd_pin_type type;
@@ -269,6 +445,7 @@ struct gsmd_evt_auxdata {
 			struct gsmd_addr addr;
 		} colp;
 		struct {
+			char alpha[GSMD_ALPHA_MAXLEN+1];
 			int inlined;
 			u_int8_t memtype;
 			int index;
@@ -309,8 +486,20 @@ struct gsmd_evt_auxdata {
 			u_int16_t net_state_gsm;
 			u_int16_t net_state_gprs;
 		} cipher;
+		struct {
+			enum gsm0707_cme_error number;
+		} cme_err;
+		struct {
+			enum gsm0705_cms_error number;
+		} cms_err;
+		struct {
+			struct gsmd_addr addr;
+			u_int8_t classx;
+			char	alpha[GSMD_ALPHA_MAXLEN+1];
+			u_int8_t cli; 
+		} ccwa;
 	} u;
-	u_int8_t data[0];
+	u_int8_t data[0];        
 } __attribute__ ((packed));
 
 /* Refer to GSM 07.05 subclause 3.5.4 */
@@ -325,6 +514,9 @@ struct gsmd_sms {
 	u_int8_t length;	
 	u_int8_t coding_scheme;
 	int has_header;
+	int is_voicemail;
+	struct gsmd_sms_datacodingscheme dcs;
+	enum gsmd_sms_tp_mti tp_mti;
 	char data[GSMD_SMS_DATA_MAXLEN+1];	
 } __attribute__ ((packed));
 
@@ -428,10 +620,15 @@ struct gsmd_phonebook_readrg {
 #define	GSMD_PB_NUMB_MAXLEN	44
 #define GSMD_PB_TEXT_MAXLEN	14
 struct gsmd_phonebook {
-	u_int8_t index;
+	int8_t index;
 	char numb[GSMD_PB_NUMB_MAXLEN+1];
 	u_int8_t type;
 	char text[GSMD_PB_TEXT_MAXLEN+1];
+} __attribute__ ((packed));
+
+struct gsmd_phonebooks {
+	struct gsmd_phonebook pb;
+	int8_t is_last;
 } __attribute__ ((packed));
 
 /* Refer to GSM 07.07 subclause 8.13 */
@@ -515,6 +712,19 @@ struct gsmd_msg_hdr {
 	u_int8_t data[];
 } __attribute__((packed));
 
+struct gsmd_msg_auxdata {
+    union {
+        struct {
+            struct gsmd_signal_quality sigq;
+        } signal;
+        struct {
+            char name[16];
+        } current_operator;
+        /* add more here please */
+    } u;
+    u_int8_t data[0];
+} __attribute__ ((packed));
+
 #ifdef __GSMD__
 
 #include <gsmd/usock.h>
@@ -529,19 +739,16 @@ struct gsmd_ucmd {
 	char buf[];
 } __attribute__ ((packed));
 
-struct gsmd_phonebooks {
-	struct llist_head list;
-	struct gsmd_phonebook pb;
-} __attribute__ ((packed));
-
 extern struct gsmd_ucmd *ucmd_alloc(int extra_size);
 extern int usock_init(struct gsmd *g);
 extern void usock_cmd_enqueue(struct gsmd_ucmd *ucmd, struct gsmd_user *gu);
 extern struct gsmd_ucmd *usock_build_event(u_int8_t type, u_int8_t subtype, u_int16_t len);
 extern int usock_evt_send(struct gsmd *gsmd, struct gsmd_ucmd *ucmd, u_int32_t evt);
-extern struct gsmd_ucmd *gsmd_ucmd_fill(int len, u_int8_t msg_type,
-		u_int8_t msg_subtype, u_int16_t id);
-
+extern int gsmd_ucmd_submit(struct gsmd_user *gu, u_int8_t msg_type,
+		u_int8_t msg_subtype, u_int16_t id, int len, const void *data);
+extern int gsmd_opname_init(struct gsmd *g);
+extern int gsmd_opname_add(struct gsmd *g, const char *numeric_bcd_string,
+		const char *alnum_long);
 #endif /* __GSMD__ */
 
 #endif

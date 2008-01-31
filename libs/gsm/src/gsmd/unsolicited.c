@@ -35,6 +35,7 @@
 #include <gsmd/ts0707.h>
 #include <gsmd/unsolicited.h>
 #include <gsmd/talloc.h>
+#include <gsmd/sms.h>
 
 struct gsmd_ucmd *usock_build_event(u_int8_t type, u_int8_t subtype, u_int16_t len)
 {
@@ -92,24 +93,82 @@ int usock_evt_send(struct gsmd *gsmd, struct gsmd_ucmd *ucmd, u_int32_t evt)
 	return num_sent;
 }
 
-static int ring_parse(char *buf, int len, const char *param,
+static void state_ringing_timeout(struct gsmd_timer *timer, void *opaque)
+{
+	struct gsmd *gsmd = (struct gsmd *) opaque;
+	struct gsmd_ucmd *ucmd;
+	struct gsmd_evt_auxdata *aux;
+
+	gsmd->dev_state.ring_check = 0;
+	gsmd_timer_free(timer);
+
+	/* Update state */
+	if (!gsmd->dev_state.ringing)
+		return;
+	gsmd->dev_state.ringing = 0;
+
+	gsmd_log(GSMD_INFO, "an incoming call timed out\n");
+
+	/* Generate a timeout event */
+	ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CALL,
+			sizeof(struct gsmd_evt_auxdata));	
+	if (!ucmd)
+		goto err;
+
+	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
+	aux->u.call.type = GSMD_CALL_TIMEOUT;
+
+	if (usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CALL) < 0)
+		goto err;
+	return;
+err:
+	gsmd_log(GSMD_ERROR, "event generation failed\n");
+}
+
+#define GSMD_RING_MAX_JITTER (200 * 1000)	/* 0.2 s */
+
+static void state_ringing_update(struct gsmd *gsmd)
+{
+	struct timeval tv;
+
+	if (gsmd->dev_state.ring_check)
+		gsmd_timer_unregister(gsmd->dev_state.ring_check);
+
+	/* Update state */
+	gsmd->dev_state.ringing = 1;
+
+	tv.tv_sec = 1;
+	tv.tv_usec = GSMD_RING_MAX_JITTER;
+
+	if (gsmd->dev_state.ring_check) {
+		gsmd->dev_state.ring_check->expires = tv;
+		gsmd_timer_register(gsmd->dev_state.ring_check);
+	} else
+		gsmd->dev_state.ring_check = gsmd_timer_create(&tv,
+				&state_ringing_timeout, gsmd);
+}
+
+static int ring_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
-	/* FIXME: generate ring event */
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CALL,
-					     sizeof(struct gsmd_evt_auxdata));	
+        struct gsmd_ucmd *ucmd;
 	struct gsmd_evt_auxdata *aux;
+
+        state_ringing_update(gsmd);
+        ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CALL,
+                        sizeof(struct gsmd_evt_auxdata));
+	/* FIXME: generate ring event */
 	if (!ucmd)
 		return -ENOMEM;
 
-	aux = (struct gsmd_evt_auxdata *)ucmd->buf;
+	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
 
 	aux->u.call.type = GSMD_CALL_UNSPEC;
 
 	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CALL);
 }
 
-static int cring_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
+static int cring_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
 	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CALL,
 					     sizeof(struct gsmd_evt_auxdata));
@@ -134,20 +193,44 @@ static int cring_parse(char *buf, int len, const char *param, struct gsmd *gsmd)
 		/* FIXME: change event type to GPRS */
 		talloc_free(ucmd);
 		return 0;
-	}
+	} else {
+                aux->u.call.type = GSMD_CALL_UNSPEC;
+        }
 	/* FIXME: parse all the ALT* profiles, Chapter 6.11 */
 
 	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CALL);
 }
 
 /* Chapter 7.2, network registration */
-static int creg_parse(char *buf, int len, const char *param,
+static int creg_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	const char *comma = strchr(param, ',');
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_NETREG,
-					     sizeof(struct gsmd_evt_auxdata));
+	struct gsmd_ucmd *ucmd;
 	struct gsmd_evt_auxdata *aux;
+	int prev_registered = gsmd->dev_state.registered;
+	int state;
+	char *end;
+
+	state = strtol(param, &end, 10);
+	if (!(end > param)) {
+		gsmd_log(GSMD_ERROR, "Bad +CREG format, not updating state\n");
+		return -EINVAL;
+	}
+
+	/* Update our knowledge about our state */
+	gsmd->dev_state.registered =
+		(state == GSMD_NETREG_REG_HOME ||
+		 state == GSMD_NETREG_REG_ROAMING);
+
+	/* Intialise things that depend on network registration */
+	if (gsmd->dev_state.registered && !prev_registered) {
+		sms_cb_network_init(gsmd);
+	}
+
+	/* Notify clients */
+	ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_NETREG,
+			sizeof(struct gsmd_evt_auxdata));
 	if (!ucmd)
 		return -ENOMEM;
 	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
@@ -163,52 +246,71 @@ static int creg_parse(char *buf, int len, const char *param,
 	} else
 		aux->u.netreg.lac = aux->u.netreg.ci = 0;
 
-	/* Intialise things that depend on network registration */
-	if (aux->u.netreg.state == GSMD_NETREG_REG_HOME ||
-			aux->u.netreg.state == GSMD_NETREG_REG_ROAMING) {
-		sms_cb_network_init(gsmd);
-	}
-
 	return usock_evt_send(gsmd, ucmd, GSMD_EVT_NETREG);
+
 }
 
 /* Chapter 7.11, call waiting */
-static int ccwa_parse(char *buf, int len, const char *param,
+static int ccwa_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
-	const char *token;
-	unsigned int type;
+	struct gsmd_evt_auxdata *aux;
+	struct gsm_extrsp *er;
 	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_CALL_WAIT,
-					     sizeof(struct gsmd_addr));
-	struct gsmd_addr *gaddr;
-
+					     sizeof(struct gsmd_evt_auxdata));
+	
 	if (!ucmd)
 		return -ENOMEM;
 
-	gaddr = (struct gsmd_addr *) ucmd->buf;
-	memset(gaddr, 0, sizeof(*gaddr));
+	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
+	
+	er = extrsp_parse(gsmd_tallocs, param);
 
-	/* parse address (phone number) */
-	token = strtok(buf, ",");
-	if (!token)
+	if ( !er ) 
+		return -ENOMEM;
+
+	if ( er->num_tokens == 5 &&
+			er->tokens[0].type == GSMD_ECMD_RTT_STRING &&
+			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
+			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
+			er->tokens[3].type == GSMD_ECMD_RTT_EMPTY &&
+			er->tokens[4].type == GSMD_ECMD_RTT_NUMERIC ) {
+		/*
+		 * <number>,<type>,<class>,[<alpha>][,<CLI validity>]
+		 */
+		
+		strcpy(aux->u.ccwa.addr.number, er->tokens[0].u.string);
+		aux->u.ccwa.addr.type = er->tokens[1].u.numeric;
+		aux->u.ccwa.classx = er->tokens[2].u.numeric;
+		aux->u.ccwa.alpha[0] = '\0';
+		aux->u.ccwa.cli = er->tokens[4].u.numeric; 
+	} 
+	else if ( er->num_tokens == 5 &&
+			er->tokens[0].type == GSMD_ECMD_RTT_STRING &&
+			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
+			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
+			er->tokens[3].type == GSMD_ECMD_RTT_STRING &&
+			er->tokens[4].type == GSMD_ECMD_RTT_NUMERIC ) {
+		/*
+		 * <number>,<type>,<class>,[<alpha>][,<CLI validity>]
+		 */
+		
+		strcpy(aux->u.ccwa.addr.number, er->tokens[0].u.string);
+		aux->u.ccwa.addr.type = er->tokens[1].u.numeric;
+		aux->u.ccwa.classx = er->tokens[2].u.numeric;
+		strcpy(aux->u.ccwa.alpha, er->tokens[3].u.string);
+		aux->u.ccwa.cli = er->tokens[4].u.numeric; 
+	}
+	else {
+		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
-	strncpy(gaddr->number, token, GSMD_ADDR_MAXLEN);
-
-	/* parse type */
-	token = strtok(NULL, ",");
-	if (!token)
-		return -EINVAL;
-	type = atoi(token) & 0xff;
-	gaddr->type = type;
-
-	/* FIXME: parse class */
-	token = strtok(NULL, ",");
+	}
 
 	return usock_evt_send(gsmd, ucmd, GSMD_EVT_CALL_WAIT);
 }
 
 /* Chapter 7.14, unstructured supplementary service data */
-static int cusd_parse(char *buf, int len, const char *param,
+static int cusd_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	/* FIXME: parse */
@@ -216,7 +318,7 @@ static int cusd_parse(char *buf, int len, const char *param,
 }
 
 /* Chapter 7.15, advise of charge */
-static int cccm_parse(char *buf, int len, const char *param,
+static int cccm_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	/* FIXME: parse */
@@ -224,7 +326,7 @@ static int cccm_parse(char *buf, int len, const char *param,
 }
 
 /* Chapter 10.1.13, GPRS event reporting */
-static int cgev_parse(char *buf, int len, const char *param,
+static int cgev_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	/* FIXME: parse */
@@ -232,7 +334,7 @@ static int cgev_parse(char *buf, int len, const char *param,
 }
 
 /* Chapter 10.1.14, GPRS network registration status */
-static int cgreg_parse(char *buf, int len, const char *param,
+static int cgreg_parse(const char *buf, int len, const char *param,
 		       struct gsmd *gsmd)
 {
 	/* FIXME: parse */
@@ -240,7 +342,7 @@ static int cgreg_parse(char *buf, int len, const char *param,
 }
 
 /* Chapter 7.6, calling line identification presentation */
-static int clip_parse(char *buf, int len, const char *param,
+static int clip_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CLIP,
@@ -268,7 +370,7 @@ static int clip_parse(char *buf, int len, const char *param,
 }
 
 /* Chapter 7.9, calling line identification presentation */
-static int colp_parse(char *buf, int len, const char *param,
+static int colp_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_OUT_COLP,
@@ -294,7 +396,7 @@ static int colp_parse(char *buf, int len, const char *param,
 	return usock_evt_send(gsmd, ucmd, GSMD_EVT_OUT_COLP);
 }
 
-static int ctzv_parse(char *buf, int len, const char *param,
+static int ctzv_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_TIMEZONE,
@@ -318,7 +420,7 @@ static int ctzv_parse(char *buf, int len, const char *param,
 	return usock_evt_send(gsmd, ucmd, GSMD_EVT_TIMEZONE);
 }
 
-static int copn_parse(char *buf, int len, const char *param,
+static int copn_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	struct gsm_extrsp *er = extrsp_parse(gsmd_tallocs, param);
@@ -367,11 +469,10 @@ static const struct gsmd_unsolicit gsm0707_unsolicit[] = {
 static struct gsmd_unsolicit unsolicit[256] = {{ 0, 0 }};
 
 /* called by midlevel parser if a response seems unsolicited */
-int unsolicited_parse(struct gsmd *g, char *buf, int len, const char *param)
+int unsolicited_parse(struct gsmd *g, const char *buf, int len, const char *param)
 {
 	struct gsmd_unsolicit *i;
 	int rc;
-	struct gsmd_vendor_plugin *vpl = g->vendorpl;
 
 	/* call unsolicited code parser */
 	for (i = unsolicit; i->prefix; i ++) {
@@ -441,13 +542,13 @@ static unsigned int errors_creating_events[] = {
 	GSM0707_CME_SIM_NOT_INSERTED,
 	GSM0707_CME_SIM_PIN_REQUIRED,
 	GSM0707_CME_SIM_PUK_REQUIRED,
-	GSM0707_CME_SIM_FAILURE,
+/*	GSM0707_CME_SIM_FAILURE,
 	GSM0707_CME_SIM_BUSY,
-	GSM0707_CME_SIM_WRONG,
+	GSM0707_CME_SIM_WRONG,*/
 	GSM0707_CME_SIM_PIN2_REQUIRED,
 	GSM0707_CME_SIM_PUK2_REQUIRED,
-	GSM0707_CME_MEMORY_FULL,
-	GSM0707_CME_MEMORY_FAILURE,
+/*	GSM0707_CME_MEMORY_FULL,
+	GSM0707_CME_MEMORY_FAILURE,*/    
 	GSM0707_CME_NETPERS_PIN_REQUIRED,
 	GSM0707_CME_NETPERS_PUK_REQUIRED,
 	GSM0707_CME_NETSUBSET_PIN_REQUIRED,
@@ -470,84 +571,74 @@ static int is_in_array(unsigned int val, unsigned int *arr, unsigned int arr_len
 	return 0;
 }
 
+const int pintype_from_cme[GSM0707_CME_UNKNOWN] = {
+	[GSM0707_CME_PH_SIM_PIN_REQUIRED]	= GSMD_PIN_PH_SIM_PIN,
+	[GSM0707_CME_PH_FSIM_PIN_REQUIRED]	= GSMD_PIN_PH_FSIM_PIN,
+	[GSM0707_CME_PH_FSIM_PUK_REQUIRED]	= GSMD_PIN_PH_FSIM_PUK,
+	[GSM0707_CME_SIM_PIN_REQUIRED]		= GSMD_PIN_SIM_PIN,
+	[GSM0707_CME_SIM_PUK_REQUIRED]		= GSMD_PIN_SIM_PUK,
+	[GSM0707_CME_SIM_PIN2_REQUIRED]		= GSMD_PIN_SIM_PIN2,
+	[GSM0707_CME_SIM_PUK2_REQUIRED]		= GSMD_PIN_SIM_PUK2,
+	[GSM0707_CME_NETPERS_PIN_REQUIRED]	= GSMD_PIN_PH_NET_PIN,
+	[GSM0707_CME_NETPERS_PUK_REQUIRED]	= GSMD_PIN_PH_NET_PUK,
+	[GSM0707_CME_NETSUBSET_PIN_REQUIRED]	= GSMD_PIN_PH_NETSUB_PIN,
+	[GSM0707_CME_NETSUBSET_PUK_REQUIRED]	= GSMD_PIN_PH_NETSUB_PUK,
+	[GSM0707_CME_PROVIDER_PIN_REQUIRED]	= GSMD_PIN_PH_SP_PIN,
+	[GSM0707_CME_PROVIDER_PUK_REQUIRED]	= GSMD_PIN_PH_SP_PUK,
+	[GSM0707_CME_CORPORATE_PIN_REQUIRED]	= GSMD_PIN_PH_CORP_PIN,
+	[GSM0707_CME_CORPORATE_PUK_REQUIRED]	= GSMD_PIN_PH_CORP_PUK,
+	/* FIXME: */
+	[GSM0707_CME_SIM_FAILURE]		= 0,
+	[GSM0707_CME_SIM_BUSY]			= 0,
+	[GSM0707_CME_SIM_WRONG]			= 0,
+	[GSM0707_CME_MEMORY_FULL]		= 0,
+	[GSM0707_CME_MEMORY_FAILURE]		= 0,
+	[GSM0707_CME_PHONE_FAILURE]		= 0,
+	[GSM0707_CME_PHONE_NOCONNECT]		= 0,
+	[GSM0707_CME_PHONE_ADAPT_RESERVED]	= 0,
+	[GSM0707_CME_SIM_NOT_INSERTED]		= 0,
+};
 
 int generate_event_from_cme(struct gsmd *g, unsigned int cme_error)
 {
 	struct gsmd_ucmd *gu;
 	struct gsmd_evt_auxdata *eaux;
+
 	if (!is_in_array(cme_error, errors_creating_events,
-			 ARRAY_SIZE(errors_creating_events)))
-		return 0;
+		ARRAY_SIZE(errors_creating_events))) {
+
+		gu = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_ERROR, sizeof(*eaux));
+		if (!gu)
+			return -1;
+		eaux = ((void *)gu) + sizeof(*gu);
+		eaux->u.cme_err.number = cme_error;
+		return usock_evt_send(g, gu, GSMD_EVT_IN_ERROR);
+ 	} else {
+		if (cme_error >= GSM0707_CME_UNKNOWN ||
+				!pintype_from_cme[cme_error])
+			return 0;
+
+		gu = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_PIN,
+				sizeof(*eaux));
+		if (!gu)
+			return -1;
+
+		eaux = ((void *)gu) + sizeof(*gu);
+		eaux->u.pin.type = pintype_from_cme[cme_error];
+		return usock_evt_send(g, gu, GSMD_EVT_PIN);
+	}
+}
+
+int generate_event_from_cms(struct gsmd *g, unsigned int cms_error)
+{
+	struct gsmd_ucmd *gu;
+	struct gsmd_evt_auxdata *eaux;
 	
-	gu = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_PIN, sizeof(*eaux));
+	gu = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_ERROR, sizeof(*eaux));
 	if (!gu)
 		return -1;
 	eaux = ((void *)gu) + sizeof(*gu);
-
-	switch (cme_error) {
-	case GSM0707_CME_PH_SIM_PIN_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_SIM_PIN;
-		break;
-	case GSM0707_CME_PH_FSIM_PIN_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_FSIM_PIN;
-		break;
-	case GSM0707_CME_PH_FSIM_PUK_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_FSIM_PUK;
-		break;
-	case GSM0707_CME_SIM_PIN_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_SIM_PIN;
-		break;
-	case GSM0707_CME_SIM_PUK_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_SIM_PUK;
-		break;
-	case GSM0707_CME_SIM_PIN2_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_SIM_PIN2;
-		break;
-	case GSM0707_CME_SIM_PUK2_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_SIM_PUK2;
-		break;
-	case GSM0707_CME_NETPERS_PIN_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_NET_PIN;
-		break;
-	case GSM0707_CME_NETPERS_PUK_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_NET_PUK;
-		break;
-	case GSM0707_CME_NETSUBSET_PIN_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_NETSUB_PIN;
-		break;
-	case GSM0707_CME_NETSUBSET_PUK_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_NETSUB_PUK;
-		break;
-	case GSM0707_CME_PROVIDER_PIN_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_SP_PIN;
-		break;
-	case GSM0707_CME_PROVIDER_PUK_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_SP_PUK;
-		break;
-	case GSM0707_CME_CORPORATE_PIN_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_CORP_PIN;
-		break;
-	case GSM0707_CME_CORPORATE_PUK_REQUIRED:
-		eaux->u.pin.type = GSMD_PIN_PH_CORP_PUK;
-		break;
-
-	case GSM0707_CME_SIM_FAILURE:
-	case GSM0707_CME_SIM_BUSY:
-	case GSM0707_CME_SIM_WRONG:
-	case GSM0707_CME_MEMORY_FULL:
-	case GSM0707_CME_MEMORY_FAILURE:
-	case GSM0707_CME_PHONE_FAILURE:
-	case GSM0707_CME_PHONE_NOCONNECT:
-	case GSM0707_CME_PHONE_ADAPT_RESERVED:
-	case GSM0707_CME_SIM_NOT_INSERTED:
-		/* FIXME */
-		talloc_free(gu);
-		return 0;
-		break;
-	default:
-		talloc_free(gu);
-		return 0;
-		break;
-	}
-	return usock_evt_send(g, gu, GSMD_EVT_PIN);
+	eaux->u.cms_err.number = cms_error;
+	return usock_evt_send(g, gu, GSMD_EVT_IN_ERROR);
 }
+

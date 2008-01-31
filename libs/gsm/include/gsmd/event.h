@@ -15,15 +15,16 @@ enum gsmd_events {
 	GSMD_EVT_CALL_WAIT	= 10,	/* Call Waiting */
 	GSMD_EVT_TIMEZONE	= 11,	/* Timezone change */
 	GSMD_EVT_SUBSCRIPTIONS	= 12,	/* To which events are we subscribed to */
-	GSMD_EVT_CIPHER		= 13,	/* Chiphering Information */
-	GSMD_EVT_IN_CBM		= 14,	/* Incoming Cell Broadcat message */
+	GSMD_EVT_CIPHER		= 13,	/* Ciphering Information */
+	GSMD_EVT_IN_CBM		= 14,	/* Incoming Cell Broadcast message */
 	GSMD_EVT_IN_DS		= 15,	/* SMS Status Report */
+	GSMD_EVT_IN_ERROR	= 16,	/* CME/CMS error */
 	__NUM_GSMD_EVT
 };
 
 /* Chapter 8.3 */
 enum gsmd_pin_type {			/* waiting for ... */
-	GSMD_PIN_NONE		= 0,	/* not for any PIN */
+	GSMD_PIN_READY		= 0,	/* not pending for any password */
 	GSMD_PIN_SIM_PIN	= 1,	/* SIM PIN */
 	GSMD_PIN_SIM_PUK	= 2,	/* SIM PUK */
 	GSMD_PIN_PH_SIM_PIN	= 3,	/* phone-to-SIM passowrd */
@@ -50,6 +51,7 @@ enum gsmd_call_type {
 	GSMD_CALL_DATA_SYNC	= 5,
 	GSMD_CALL_DATA_REL_ASYNC= 6,
 	GSMD_CALL_DATA_REL_SYNC	= 7,
+        GSMD_CALL_TIMEOUT       = 8,
 	__NUM_GSMD_CALL
 };
 

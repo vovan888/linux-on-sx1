@@ -1,3 +1,23 @@
+/* libgsmd sms support
+ *
+ * (C) 2007 by OpenMoko, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -115,7 +135,7 @@ int lgsm_sms_send(struct lgsm_handle *lh,
 	/* FIXME: only support PDU mode */
 	struct gsmd_msg_hdr *gmh;
 	struct gsmd_sms_submit *gss;
-	int i, rc;
+	int rc;
 
 	gmh = lgsm_gmh_fill(GSMD_MSG_SMS,
 			GSMD_SMS_SEND, sizeof(*gss));
@@ -238,7 +258,6 @@ int packing_7bit_character(const char *src, struct lgsm_sms *dest)
 {
 	int i,j = 0;
 	unsigned char ch1, ch2;
-	char tmp[2];
 	int shift = 0;
 
 	dest->alpha = ALPHABET_DEFAULT;

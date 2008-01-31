@@ -4,6 +4,7 @@
 #ifdef __GSMD__
 
 #include <sys/types.h>
+#include <sys/time.h>
 
 #include <common/linux_list.h>
 
@@ -19,6 +20,7 @@ void *gsmd_tallocs;
 #define LGSM_ATCMD_F_PARAM	0x02	/* as opposed to action */
 #define LGSM_ATCMD_F_LFCR	0x04	/* accept LFCR as a line terminator */
 
+typedef struct gsmd_timer * (create_timer_t)(struct gsmd *data);
 struct gsmd_atcmd {
 	struct llist_head list;
 	void *ctx;
@@ -28,6 +30,8 @@ struct gsmd_atcmd {
 	u_int32_t buflen;
 	u_int16_t id;
 	u_int8_t flags;
+        struct gsmd_timer *timeout;
+	create_timer_t * create_timer_func;  
 	char *cur;
 	char buf[];
 };
@@ -67,6 +71,8 @@ struct gsmd;
 #define GSMD_FLAG_V0		0x0001	/* V0 responses to be expected from TA */
 #define GSMD_FLAG_SMS_FMT_TEXT	0x0002	/* TODO Use TEXT rather than PDU mode */
 
+#define GSMD_ATCMD_TIMEOUT	60	/* If doesn get respond within 60 secs, discard */
+
 struct gsmd {
 	unsigned int flags;
 	int interpreter_ready;
@@ -84,6 +90,8 @@ struct gsmd {
 	unsigned char *mlbuf;		/* ml_parse buffer */
 	unsigned int mlbuf_len;
 	int mlunsolicited;
+	int alive_responded;
+	char imsi[16];			/* imsi mem space */
 };
 
 struct gsmd_user {
@@ -92,9 +100,6 @@ struct gsmd_user {
 	struct gsmd *gsmd;
 	struct gsmd_fd gfd;				/* the socket */
 	u_int32_t subscriptions;		/* bitmaks of subscribed event groups */
-
-	struct llist_head pb_readrg_list;	/* our READRG phonebook list */
-	struct llist_head pb_find_list;		/* our FIND phonebook list */
 };
 
 #define GSMD_DEBUG	1	/* debugging information */
@@ -114,6 +119,8 @@ void __gsmd_log(int level, const char *file, int line, const char *function, con
 #define DEBUGP(x, args ...)	gsmd_log(GSMD_DEBUG, x, ## args)
 
 extern int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt);
+extern int gsmd_initsettings(struct gsmd *gsmd);
+extern int gsmd_alive_start(struct gsmd *gsmd);
 
 /***********************************************************************
  * timer handling
@@ -127,8 +134,7 @@ struct gsmd_timer {
 };
 
 int gsmd_timer_init(void);
-void gmsd_timer_check_n_run(void);
-
+void gsmd_timer_check_n_run(void);
 struct gsmd_timer *gsmd_timer_alloc(void);
 int gsmd_timer_register(struct gsmd_timer *timer);
 void gsmd_timer_unregister(struct gsmd_timer *timer);

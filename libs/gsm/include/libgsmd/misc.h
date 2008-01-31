@@ -9,6 +9,7 @@
 #include <libgsmd/libgsmd.h>
 
 extern int lgsm_phone_power(struct lgsm_handle *lh, int power);
+extern int lgsm_modem_power(struct lgsm_handle *lh, int power);
 
 enum lgsm_info_type {
 	LGSM_INFO_TYPE_NONE		= 0,
@@ -33,20 +34,14 @@ extern int lgsm_pin_auth(struct lgsm_handle *lh, const char *pin);
 /* Get Signal Strehngth (Chapter 8.5) */
 extern int lgsm_signal_quality(struct lgsm_handle *h);
 
-/* Set voice mail number */
-extern int lgsm_voicemail_set(struct lgsm_handle *lh,
-			      struct lgsm_addr *addr);
-
-/* Get currently configured voice mail number */
-extern int lgsm_voicemail_get(struct lgsm_handle *lh,
-			      struct lgsm_addr *addr);
-
 /* Operator Selection, Network Registration */
 extern int lgsm_oper_get(struct lgsm_handle *lh);
+extern int lgsm_oper_n_get(struct lgsm_handle *lh);
 extern int lgsm_opers_get(struct lgsm_handle *lh);
 extern int lgsm_netreg_register(struct lgsm_handle *lh,
 		gsmd_oper_numeric oper);
 extern int lgsm_netreg_deregister(struct lgsm_handle *lh);
+extern int lgsm_netreg_query(struct lgsm_handle *lh);
 
 enum lgsm_netreg_state {
 	LGSM_NETREG_ST_NOTREG		= 0,
@@ -76,5 +71,10 @@ extern int lgsm_get_subscriber_num(struct lgsm_handle *lh);
 /* GPRS related functions */
 /* TBD */
 
-
+/* Retrieve IMSI information */
+extern int lgsm_get_imsi(struct lgsm_handle *lh);
+/* Set voice mail number */
+extern int lgsm_voicemail_set(struct lgsm_handle *lh, const char *number);
+/* Get currently configured voice mail number */
+extern int lgsm_voicemail_get(struct lgsm_handle *lh);
 #endif

@@ -42,6 +42,8 @@ static int insms_handler(struct lgsm_handle *lh, int evt,
 	char payload[GSMD_SMS_DATA_MAXLEN];
 	if (aux->u.sms.inlined) {
 		sms = (struct gsmd_sms_list *) aux->data;
+		if(sms->payload.is_voicemail)
+			printf("EVENT: You have a voice mail \n");
 		printf("EVENT: Incoming SMS from/to %s%s, at %i%i-%i%i-%i%i "
 				"%i%i:%i%i:%i%i, GMT%c%i\n",
 				((sms->addr.type & __GSMD_TOA_TON_MASK) ==
@@ -62,6 +64,8 @@ static int insms_handler(struct lgsm_handle *lh, int evt,
 				(sms->time_stamp[6] & 8) ? '-' : '+',
 				(((sms->time_stamp[6] << 4) |
 				  (sms->time_stamp[6] >> 4)) & 0x3f) >> 2);
+		if ( strlen(aux->u.sms.alpha) )		  
+			printf("From %s\n", aux->u.sms.alpha);
 		if (sms->payload.coding_scheme == ALPHABET_DEFAULT) {
 			unpacking_7bit_character(&sms->payload, payload);
 			printf("\"%s\"\n", payload);
@@ -113,7 +117,7 @@ static int incbm_handler(struct lgsm_handle *lh, int evt,
 				msg->page, msg->pages);
 
 		if (msg->coding_scheme == ALPHABET_DEFAULT) {
-			cbm_unpacking_7bit_character(msg->data, payload);
+			cbm_unpacking_7bit_character((char *)msg->data, payload);
 			printf("\"%s\"\n", payload);
 		} else if (msg->coding_scheme == ALPHABET_8BIT)
 			printf("8-bit encoded data\n");
@@ -174,6 +178,8 @@ static int netreg_handler(struct lgsm_handle *lh, int evt, struct gsmd_evt_auxda
 	case GSMD_NETREG_REG_ROAMING:
 		printf("registered (roaming) ");
 		break;
+	default:
+		break;
 	}
 
 	if (aux->u.netreg.lac)
@@ -189,6 +195,12 @@ static int netreg_handler(struct lgsm_handle *lh, int evt, struct gsmd_evt_auxda
 static int sigq_handler(struct lgsm_handle *lh, int evt, struct gsmd_evt_auxdata *aux)
 {
 	printf("EVENT: Signal Quality: %u\n", aux->u.signal.sigq.rssi);
+	return 0;
+}
+
+static int ccwa_handler(struct lgsm_handle *lh, int evt, struct gsmd_evt_auxdata *aux)
+{
+	printf("EVENT: Call Waiting: %s,%d\n", aux->u.ccwa.addr.number, aux->u.ccwa.addr.type);
 	return 0;
 }
 
@@ -231,6 +243,16 @@ static int cprog_handler(struct lgsm_handle *lh, int evt, struct gsmd_evt_auxdat
 	return 0;
 }
 
+static int error_handler(struct lgsm_handle *lh, int evt, struct gsmd_evt_auxdata *aux)
+{
+	if(aux->u.cme_err.number)
+		printf("cme error: %u\n", aux->u.cme_err.number);
+	else if(aux->u.cms_err.number)
+		printf("cms error: %u\n", aux->u.cms_err.number);
+		
+	return 0;
+}
+
 int event_init(struct lgsm_handle *lh)
 {
 	int rc;
@@ -244,7 +266,8 @@ int event_init(struct lgsm_handle *lh)
 	rc |= lgsm_evt_handler_register(lh, GSMD_EVT_NETREG, &netreg_handler);
 	rc |= lgsm_evt_handler_register(lh, GSMD_EVT_SIGNAL, &sigq_handler);
 	rc |= lgsm_evt_handler_register(lh, GSMD_EVT_OUT_STATUS, &cprog_handler);
-
+	rc |= lgsm_evt_handler_register(lh, GSMD_EVT_IN_ERROR, &error_handler);
+	rc |= lgsm_evt_handler_register(lh, GSMD_EVT_CALL_WAIT, &ccwa_handler);
 	return rc;
 }
 

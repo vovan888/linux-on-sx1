@@ -67,7 +67,6 @@ struct gsm_extrsp *extrsp_parse(const void *ctx, const char *input)
 {
 	const char *cur = input;
 	struct gsm_extrsp *er;
-	int cur_tok = 0;
 	enum parser_state state = IDLE;
 	char buf[512];
 	char *cur_buf = buf;
@@ -166,8 +165,16 @@ struct gsm_extrsp *extrsp_parse(const void *ctx, const char *input)
 				/* ERROR */
 			}
 			break;
+		default:
+			break;
 		}
 		cur++;
+	}
+
+	if (state == TOKEN_NUMERIC) {
+		/* end of number */
+		cur_token->u.numeric = atoi(buf);
+		er->num_tokens++;
 	}
 
 	//extrsp_dump(er);
