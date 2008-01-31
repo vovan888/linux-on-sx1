@@ -766,11 +766,12 @@ int process_client(const int fd)
 /*-----------------------------------------------------------------*/
 static int extension_init(void)
 {
+	int cl_flags;
 	/* TODO handle errors here */
 
 	extension_init_serial();
 
-	ipc_fd = ipc_start("sx1_dsy");
+	ipc_fd = ClRegister("ipc_ext", &cl_flags);
 
 	shdata = ShmMap(SHARED_SYSTEM);
 

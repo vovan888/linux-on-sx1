@@ -83,9 +83,11 @@ int main_load_indicators()
 	mainsignal_create(&indicators[THEME_MAINSIGNAL]);
 
 	/* setup THEME_DATETIME */
-//      maindatetime_create(&indicators[THEME_DATETIME]);
+	maindatetime_create(&indicators[THEME_DATETIME]);
 
 	indicators_number = THEME_DATETIME;
+
+	return 0;
 }
 
 int main(int argc, char *argv[])

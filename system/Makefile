@@ -1,8 +1,8 @@
 # system/Makefile
 
 
-local-target-y= platform
-#target-y= platform
+#local-target-y= platform
+target-y= platform
 #target-y= ipc daemons gsmmux nanowm platform
 
 #note! sequence dependent :), ipc should be listed first.

@@ -45,12 +45,15 @@ sleep 1
 # Start Indicator daemon
 $BASE_DIR/sbin/indicatord &
 
-sleep 1
+#sleep 1
 
-$BASE_DIR/sbin/alarmd
+$BASE_DIR/sbin/alarmserver
 #sleep 100000
 
 ## Welcome back  Shut down pending daemons
 killall -TERM -q $BASE_DIR/sbin/clserver 
-killall -TERM -q $BASE_DIR/sbin/alarmd
+killall -TERM -q $BASE_DIR/sbin/alarmserver
 killall -TERM -q $BASE_DIR/sbin/indicatord
+
+# press enter to exit
+read

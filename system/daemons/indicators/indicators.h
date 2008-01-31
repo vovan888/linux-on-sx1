@@ -15,6 +15,7 @@
 #include <ipc/shareddata.h>
 #include <ipc/colosseum.h>
 #include <ipc/phoneserver.h>
+#include <ipc/alarmd.h>
 
 typedef void (*event_callback_p) (GR_WINDOW_ID, GR_EVENT *);
 typedef void (*changed_callback_p) (int);

@@ -35,6 +35,8 @@ int ipc_start(char *servername)
 	/* Subscribe to different groups */
 	ClSubscribeToGroup(MSG_GROUP_PHONE);
 
+	ClSubscribeToGroup(MSG_GROUP_ALARM);
+
 	return 0;
 }
 
@@ -55,6 +57,17 @@ int ipc_group_message(unsigned short src, unsigned char *msg_buf)
 			indicators[THEME_MAINBATTERY].changed(0);
 			break;
 		}
+	}
+
+	if (src == MSG_GROUP_ALARM) {
+		struct msg_phone *message = (struct msg_phone *)msg_buf;
+		DBGMSG("indicatord: MSG_GROUP_ALARM message from %x, id=%d\n",
+		       src, message->id);
+		switch (message->id) {
+		case MSG_ALARM_PPM:
+			indicators[THEME_DATETIME].changed(0);			
+			break;
+		}	
 	}
 
 	return 0;
