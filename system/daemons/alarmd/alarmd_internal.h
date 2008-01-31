@@ -19,7 +19,6 @@
 extern struct SharedSystem *shdata;	/* shared memory segment */
 
 /* from ipc.c */
-int ipc_start(char *servername);
 int ipc_handle(int fd);
 
 #endif

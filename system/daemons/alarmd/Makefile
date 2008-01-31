@@ -1,6 +1,6 @@
 #alarmd/Makefile
 
-TARGET=alarmd
+TARGET=alarmserver
 INSTALL_BINDIR=$(INSTALL_DIR)/sbin
 
 SRC=${shell ls *.c} 

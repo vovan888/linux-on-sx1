@@ -25,9 +25,9 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "alarmdef.h"
+#include "alarmd_internal.h"
 
-#define DAEMON_NAME "alarmd"
+#define DAEMON_NAME "alarmserver"
 
 const char lockfile[] = "/tmp/" DAEMON_NAME ".lock";
 
@@ -161,7 +161,12 @@ static void alarmd_init(void)
 	}
 
 	/* IPC init */
-	ipc_fd = ipc_start("alarmd");
+	ipc_fd = ClRegisterServer(MSG_GROUP_ALARM);
+	/*TODO handle error from ClRegisterServer */
+
+	/* Subscribe to different groups */
+	/*TODO*/
+	/*      ClSubscribeToGroup(MSG_GROUP_PHONE); */
 
 	shdata = ShmMap(SHARED_SYSTEM);
 }

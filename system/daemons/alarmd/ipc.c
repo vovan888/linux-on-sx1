@@ -13,27 +13,10 @@
 #include <string.h>
 #include <sys/select.h>
 
-#include "alarmdef.h"
+#include "alarmd_internal.h"
 
 static int client_fd = 0;
 static int val = 0;
-
-/* Register with IPC server */
-int ipc_start(char *servername)
-{
-	int cl_flags;
-
-	client_fd = ClRegister(servername, &cl_flags);
-
-	if (client_fd <= 0)
-		fprintf(stderr, "%s: Unable to locate the IPC server.\n",
-			servername);
-
-	/* Subscribe to different groups */
-	 /*TODO*/
-	    /*      ClSubscribeToGroup(MSG_GROUP_PHONE); */
-	    return client_fd;
-}
 
 /* Handle IPC message
  * This message only tells indicator that its value is changed
@@ -45,7 +28,7 @@ int ipc_handle(int fd)
 	unsigned short src = 0;
 	unsigned char msg_buf[64];
 
-	DBGMSG("alarmd: ipc_handle\n");
+	DBGMSG("alarmserver: ipc_handle\n");
 
 	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
 		return ack;
