@@ -47,6 +47,7 @@
 #include <sys/time.h>
 #include <sys/un.h>
 #include <sys/poll.h>
+#include <time.h>
 
 #include <ipc/colosseum.h>
 
@@ -399,6 +400,9 @@ static int local_Register(char *name, int inflags, int *outflags)
 	/* Try to connect.  If the connection is refused, then we will */
 	/* assume that no server is available */
 	int tries = 0;
+	struct timespec req_time, elapsed_time;
+	req_time.tv_sec = 0;
+	req_time.tv_nsec = 100000000; /*0.1 seconds*/
 	do {
 		if (connect(g_socket, (struct sockaddr *)&saddr, sizeof(saddr))
 		    == -1) {
@@ -406,7 +410,7 @@ static int local_Register(char *name, int inflags, int *outflags)
 			g_socket = 0;
 			if ((errno != ECONNREFUSED) && (errno != ENOENT))
 				return (CL_CLIENT_SOCK_ERROR);
-			sleep(1);
+			nanosleep(&req_time, &elapsed_time);
 			DPRINT("Waiting for IPC server\n");
 		} else
 			break;
@@ -955,4 +959,53 @@ int ClUnSubscribeFromGroup(unsigned short group_id)
 	}
 
 	return ret;
+}
+
+/* do not forget to add server ID to the colosseum.h */
+static char *server_names[] = {
+	"nanowm",		/*0x7000*/
+	"powerserver",
+	"applistserver",
+	"calendarserver",
+	"contactserver",
+	"alarmserver",		/*0x7005*/
+	"cameraserver",
+	"mediaserver",
+	"eventserver",
+	"phoneserver",
+	"messageserver",	/*0x700A*/
+	"backupserver",
+	"BTserver",
+	"IRDAserver",
+	"starterserver",
+	""			/*0x700F*/
+};
+
+#define SERVER_NAMES_MAX	0x0F
+/* Returns IPC ID of the server, that handles group messages 
+ * this ID then is used send messages to this server
+ */
+DLLEXPORT int ClGetServerIdByGroup (unsigned short group_id)
+{
+	int	serverid = group_id & 0x00FF;
+	if (serverid > SERVER_NAMES_MAX) {
+		return CL_CLIENT_NOTFOUND;
+	}
+
+	return ClFindApp(server_names[serverid]);
+}
+
+/* Registers Server with the IPC by its group ID
+ * returns file descriptor of IPC server connection socket
+ */
+DLLEXPORT int ClRegisterServer (unsigned short group_id)
+{
+	int	flags;
+	int	serverid = group_id & 0x00FF;
+
+	if (serverid > SERVER_NAMES_MAX) {
+		return CL_CLIENT_NOTFOUND;
+	}
+
+	return ClRegister(server_names[serverid], &flags);
 }

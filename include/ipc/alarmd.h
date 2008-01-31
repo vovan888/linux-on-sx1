@@ -11,7 +11,7 @@
 #define _alarmd_h_
 
 /* message group ID */
-#define MSG_GROUP_ALARM      0x7005
+/* #define MSG_GROUP_ALARM      0x7005 */
 
 /* messages IDs */
 /* ----------------------------------------------------------------------------------*/

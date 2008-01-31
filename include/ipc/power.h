@@ -1,14 +1,14 @@
 /* power.h
 *
-*  Power daemon IPC messages
+*  Power management daemon IPC messages
 *
 * Copyright 2008 by Vladimir Ananiev (Vovan888 at gmail com )
 *
 * Licensed under GPLv2, see LICENSE
 */
 
-#ifndef _alarmd_h_
-#define _alarmd_h_
+#ifndef _powerd_h_
+#define _powerd_h_
 
 /* message group ID */
 #define CL_MSG_GROUP_POWER	0x7000

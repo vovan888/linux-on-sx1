@@ -59,15 +59,21 @@ extern "C"
 #define CL_APPEND_ARGS	  3
 
 /* System Group IDs (one group for every daemon) */
-#define CL_MSG_GROUP_POWER	0x7000
-#define CL_MSG_GROUP_WM		0x7001
-#define CL_MSG_GROUP_APPLIST	0x7002
-#define CL_MSG_GROUP_CALENDAR	0x7003
-#define CL_MSG_GROUP_CONTACTS	0x7004
-#define CL_MSG_GROUP_CAMERA	0x7006
-#define CL_MSG_GROUP_SOUND	0x7007
-#define CL_MSG_GROUP_EVENTLOG	0x7008
-#define CL_MSG_GROUP_MESSAGES	0x700A
+#define MSG_GROUP_WM		0x7000
+#define MSG_GROUP_POWER		0x7001
+#define MSG_GROUP_APPLIST	0x7002
+#define MSG_GROUP_CALENDAR	0x7003
+#define MSG_GROUP_CONTACTS	0x7004
+#define MSG_GROUP_ALARM		0x7005
+#define MSG_GROUP_CAMERA	0x7006
+#define MSG_GROUP_MEDIA		0x7007
+#define MSG_GROUP_EVENT		0x7008
+#define MSG_GROUP_PHONE		0x7009
+#define MSG_GROUP_MESSAGES	0x700A
+#define MSG_GROUP_BACKUP	0x700B
+#define MSG_GROUP_BT		0x700C
+#define MSG_GROUP_IRDA		0x700D
+#define MSG_GROUP_STARTER	0x700E
 
 /* This is the universal broadcast address */
 #define CL_MSG_BROADCAST_ID  0x7FFF
@@ -308,6 +314,16 @@ typedef union {
        returns file descriptor of server connection socket
        or <0 if error */
 DLLEXPORT int ClRegister (char *name, int *flags);
+
+/* Registers Server with the IPC by its group ID
+ * returns file descriptor of IPC server connection socket
+ */
+DLLEXPORT int ClRegisterServer (unsigned short group_id);
+
+/* Returns IPC ID of the server, that handles group messages 
+ * this ID then is used send messages to this server
+ */
+DLLEXPORT int ClGetServerIdByGroup (unsigned short group_id);
 
 /* Subscribe to the message group */
 DLLEXPORT int ClSubscribeToGroup (unsigned short group_id);

@@ -11,7 +11,7 @@
 #define _phoneserver_h_
 
 /* message group ID */
-#define MSG_GROUP_PHONE      0x7009
+/* #define MSG_GROUP_PHONE      0x7009 */
 
 /* messages IDs */
 /* ----------------------------------------------------------------------------------*/
