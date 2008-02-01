@@ -92,7 +92,8 @@ int ttheme_load_item(int menu_group_index, int item_index, MITEM *item ){
 	if (!menu_config_fd) {
 		/*Theme config is not loaded yet*/
 		/* Open config file */
-		char * filename = cfg_findfile ("etc/nanowm.cfg");
+		/* assumes that menu located under bin/ folder, so we should look for etc/ folder one level up :)*/
+		char * filename = cfg_findfile ("../etc/nanowm.cfg");
 		if (!filename) {
 			fprintf (stderr, "theme_get: nanowm.cfg file not found!\n");
 			return -1;
