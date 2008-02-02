@@ -1,6 +1,6 @@
 # Makefile to set up the X86 DEMO platform
 
-# The default run_pixil.sh script template
+# The default run_flphone.sh script template
 RUN_TEMPLATE=run_flphone.sh.in
 
 # A set of directories that we want to build
