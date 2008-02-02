@@ -2,7 +2,7 @@
 *
 * SX1 extension server
 *
-* by Vladimir Ananiev (Vovan888 at gmail com )
+* Copyright 2007,2008 by Vladimir Ananiev (Vovan888 at gmail com )
 *
 *  handles messages to modem
 *  channel 4 (AMUX::104)
@@ -30,8 +30,6 @@
 #include <sys/un.h>
 #include <sys/select.h>
 
-#include <arpa/inet.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -44,6 +42,8 @@
 #include <signal.h>
 //syslog
 #include <syslog.h>
+#include <linux/rtc.h>
+#include <sys/ioctl.h>
 
 #include <ipc/colosseum.h>
 #include <ipc/shareddata.h>
@@ -52,13 +52,10 @@
 
 /* timeout in seconds */
 #define IPC_TIMEOUT 3
-#define uint	unsigned int
 #define MODEMDEVICE "/dev/mux3"
 #define MAXMSG	64
 
-static int wait_for_daemon_status = 0;
 static volatile int terminate = 0;
-static pid_t the_pid;
 int _priority;
 
 /* file descriptor for /dev/mux3, should be opened blocking */
@@ -109,7 +106,7 @@ static int extension_init_serial(void)
 /*-----------------------------------------------------------------*/
 /*-----------------------------------------------------------------*/
 /* waits for reading length bytes from port. with timeout */
-static int Read(char *frame, int length, int readtimeout)
+static int Read(unsigned char *frame, int length, int readtimeout)
 {
 	fd_set all_set, read_set;
 	struct timeval timeoutz;
@@ -153,7 +150,7 @@ static int Read(char *frame, int length, int readtimeout)
 
 /*-----------------------------------------------------------------*/
 // write frame to serial port fd_mux
-static int Write(char *frame, int length)
+static int Write(unsigned char *frame, int length)
 {
 	int written = 0, retval;
 	if ((frame == NULL) || (length <= 0))
@@ -172,20 +169,20 @@ static int Write(char *frame, int length)
 // RDsyReqHandler::Request(TDesC8 const &, TDes8 &)
 // it is here - (maybe) sub_5069F4FC
 // check err here
-static int Request(char *request_frame, char *reply_frame)
+static int Request(unsigned char *request_frame, unsigned char *reply_frame)
 {
 	unsigned short length;
 	int len_write, len_read;
-	char err;
+	unsigned char err;
 
 	length = 6 + *(unsigned short *)(request_frame + 4);
 	len_write = Write(request_frame, length);
-	SYSLOG("written to serial : %d", len_write);
+	DBGLOG("written to serial : %d", len_write);
 	if (len_write != length)
 		return -1;
 
 	len_read = Read(reply_frame, 6, IPC_TIMEOUT);	// read header
-	SYSLOG("read from serial port : %d", len_read);
+	DBGLOG("read from serial port : %d", len_read);
 	if (len_read != 6)
 		return -1;	// Error
 
@@ -193,7 +190,7 @@ static int Request(char *request_frame, char *reply_frame)
 	if (length) {
 		/* read the rest of data (if there) */
 		len_read = Read(reply_frame + 6, length, IPC_TIMEOUT);
-		SYSLOG("=read from serial port : %d", len_read);
+		DBGLOG("=read from serial port : %d", len_read);
 		if (len_read != length)
 			return -1;	// Error
 	}
@@ -209,12 +206,13 @@ static int Request(char *request_frame, char *reply_frame)
 }
 
 /*-----------------------------------------------------------------*/
-void PutHeader(char *buf, char Group, unsigned char cmd, unsigned short length)
+void PutHeader(unsigned char *buf, unsigned char Group, unsigned char cmd,
+	       unsigned short length)
 {
-	buf[0] = IPC_DEST_MODEM;	/* Message destination */;
-	buf[1] = Group;			/* Message group */
-	buf[2] = cmd;			/* command */
-	buf[3] = 0xFF;			/* error */
+	buf[0] = IPC_DEST_MODEM; /* Message destination */ ;
+	buf[1] = Group;		/* Message group */
+	buf[2] = cmd;		/* command */
+	buf[3] = 0xFF;		/* error */
 	*(unsigned short *)(buf + 4) = length - 6;
 }
 
@@ -222,17 +220,17 @@ void PutHeader(char *buf, char Group, unsigned char cmd, unsigned short length)
 // CDsyFactory::PingIpcL(void)
 int PingIpcL(void)
 {
-	char req[6];
-	char reply[6];
+	unsigned char req[6];
+	unsigned char reply[6];
 	PutHeader(req, IPC_GROUP_POWERUP, PWRUP_PING_REQ, 6);
 	return Request(req, reply);
 }
 
 /*-----------------------------------------------------------------*/
 // for CCMon and DevMenu
-int UnpackString(char *buf, char *string)	// string will be in Unicode ?
+int UnpackString(unsigned char *buf, unsigned char *string)	// string will be in Unicode ?
 {
-	char err = buf[3];
+	unsigned char err = buf[3];
 	unsigned short length;
 	if ((err == 0x30) || (err == 0xFF)) {
 		length = (unsigned short)*(buf + 4);
@@ -246,10 +244,10 @@ int UnpackString(char *buf, char *string)	// string will be in Unicode ?
 // 1000 CDsyExtension::CCMonGetStringLength(RDosCCMonitorExt::TStringParam &)
 // returns string length, or -1 if error
 // we should replace all 0x0D with 0x0A, maybe not
-int CCMonGetString(int strnum, char *string)
+int CCMonGetString(int strnum, unsigned char *string)
 {
-	char buf[6];
-	char reply[0x1006];
+	unsigned char buf[6];
+	unsigned char reply[0x1006];
 
 	PutHeader(buf, IPC_GROUP_CCMON, strnum, 6);
 	if (Request(buf, reply))
@@ -262,8 +260,8 @@ int CCMonGetString(int strnum, char *string)
 // returns -1 error, 0 - disabled, 1 - enabled
 int DevMenuGetDevMenuEnabled(void)
 {
-	char buf[6];
-	char reply[7];
+	unsigned char buf[6];
+	unsigned char reply[7];
 
 	PutHeader(buf, IPC_GROUP_DEVMENU, DEVMENU_Enabled, 6);
 	if (Request(buf, reply))
@@ -274,14 +272,14 @@ int DevMenuGetDevMenuEnabled(void)
 /*-----------------------------------------------------------------*/
 // 2001 CDsyExtension::DevMenuGetStringLength(RDosDevMenuExt::TStringParam &)
 // strnum used: 1..10,12,20..27
-int DevMenuGetString(int strnum, char *string)
+int DevMenuGetString(int strnum, unsigned char *string)
 {
-	char buf[6];
-	char reply[0x1006];
+	unsigned char buf[6];
+	unsigned char reply[0x1006];
 
 	if (strnum > 27)
 		return -1;
-	PutHeader(buf, IPC_GROUP_CCMON, (char)strnum, 6);
+	PutHeader(buf, IPC_GROUP_CCMON, (unsigned char)strnum, 6);
 	if (Request(buf, reply))
 		return -1;
 	return UnpackString(reply, string);
@@ -291,8 +289,8 @@ int DevMenuGetString(int strnum, char *string)
 // 2003 CDsyExtension::DevMenuGetResetExits(int &)
 int DevMenuGetResetExits(void)
 {
-	char buf[6];
-	char reply[7];
+	unsigned char buf[6];
+	unsigned char reply[7];
 
 	PutHeader(buf, IPC_GROUP_CCMON, DEVMENU_ResetExits, 6);
 	if (Request(buf, reply))
@@ -304,8 +302,8 @@ int DevMenuGetResetExits(void)
 // 3000 CDsyExtension::SwitchPowerOff(void)
 int SwitchPowerOff(void)
 {
-	char buf[6];
-	char reply[6];
+	unsigned char buf[6];
+	unsigned char reply[6];
 
 	PutHeader(buf, IPC_GROUP_POWEROFF, PWROFF_SWITCHOFF, 6);
 	return Request(buf, reply);
@@ -315,8 +313,8 @@ int SwitchPowerOff(void)
 // 3001 CDsyExtension::PartialModeReq(unsigned char)
 int PartialModeReq(unsigned char mode)
 {
-	char buf[7];
-	char reply[6];
+	unsigned char buf[7];
+	unsigned char reply[6];
 
 	PutHeader(buf, IPC_GROUP_POWEROFF, PWROFF_OMAPPARTIALMODE, 7);
 	buf[6] = mode;
@@ -327,8 +325,8 @@ int PartialModeReq(unsigned char mode)
 // 4000 CDsyExtension::BTAudioGetBdDataFromEElite(unsigned char *)
 int BTAudioGetBdDataFromEElite(unsigned char *btdata)
 {
-	char buf[6];
-	char reply[66];
+	unsigned char buf[6];
+	unsigned char reply[66];
 
 	PutHeader(buf, IPC_GROUP_BTBD, BTBD_DataFromEElite, 6);
 	if (Request(buf, reply))
@@ -339,9 +337,9 @@ int BTAudioGetBdDataFromEElite(unsigned char *btdata)
 
 /*-----------------------------------------------------------------*/
 // 6000 CDsyExtension::SimGetActivePendingLockType(RDosSimExt::TGetActivePendingLockTypeParam &)
-int SimGetActivePendingLockType(char *c1, char *c2)
+int SimGetActivePendingLockType(unsigned char *c1, unsigned char *c2)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 
 	do {
 		PutHeader(buf, IPC_GROUP_SIM, SIM_ActivePendingLockType, 6);
@@ -367,9 +365,9 @@ int SimGetActivePendingLockType(char *c1, char *c2)
 /*-----------------------------------------------------------------*/
 // 6001 CDsyExtension::SimGetDomesticLanguage(unsigned char &)
 // returns -1 = error, or language
-int SimGetDomesticLanguage(char *cc)
+int SimGetDomesticLanguage(unsigned char *cc)
 {
-	char buf[6], reply[7];
+	unsigned char buf[6], reply[7];
 
 	PutHeader(buf, IPC_GROUP_SIM, SIM_GetDomesticLanguage, 6);
 	if (Request(buf, reply))
@@ -384,7 +382,7 @@ int SimGetDomesticLanguage(char *cc)
 // 6002 CDsyExtension::SimSetDomesticLanguage(unsigned char)
 int SimSetDomesticLanguage(unsigned char lang)
 {
-	char buf[7], reply[6];
+	unsigned char buf[7], reply[6];
 
 	PutHeader(buf, IPC_GROUP_SIM, SIM_SetDomesticLanguage, 7);
 	buf[6] = lang;
@@ -395,7 +393,7 @@ int SimSetDomesticLanguage(unsigned char lang)
 // 6004 CDsyExtension::SimGetSimlockStatus(unsigned short &)
 int SimGetSimlockStatus(unsigned short *c1)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 
 	PutHeader(buf, IPC_GROUP_SIM, SIM_GetSimlockStatus, 6);
 	if (Request(buf, reply))
@@ -407,7 +405,7 @@ int SimGetSimlockStatus(unsigned short *c1)
 /*-----------------------------------------------------------------*/
 int RtcCheck(void)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_RTC_CHECK, 6);
 	if (Request(buf, reply))
@@ -418,7 +416,7 @@ int RtcCheck(void)
 /*-----------------------------------------------------------------*/
 int RtcTransfer(struct tm *time)
 {
-	char buf[6], reply[22];
+	unsigned char buf[6], reply[22];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_RTC_TRANSFER, 6);
 	if (Request(buf, reply))
@@ -442,7 +440,7 @@ int RtcTransfer(struct tm *time)
 /*-----------------------------------------------------------------*/
 int StartupReason(void)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_STARTUP_REASON, 6);
 	if (Request(buf, reply))
@@ -453,7 +451,7 @@ int StartupReason(void)
 /*-----------------------------------------------------------------*/
 int SWStartupReason(void)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_GETSWSTARTUPREASON, 6);
 	if (Request(buf, reply))
@@ -464,7 +462,7 @@ int SWStartupReason(void)
 /*-----------------------------------------------------------------*/
 int SelfTest(unsigned short test)
 {
-	char buf[8], reply[6];
+	unsigned char buf[8], reply[6];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_SELFTEST, 8);
 	*(unsigned short *)(buf + 6) = test;
@@ -474,7 +472,7 @@ int SelfTest(unsigned short test)
 /*-----------------------------------------------------------------*/
 int PowerUpHiddenReset(void)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_HIDDENRESET, 6);
 	if (Request(buf, reply))
@@ -485,7 +483,7 @@ int PowerUpHiddenReset(void)
 /*-----------------------------------------------------------------*/
 int IndicationObserverOk(void)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_INDICATIONOBSERVEROK, 6);
 	return Request(buf, reply);
@@ -495,7 +493,7 @@ int IndicationObserverOk(void)
 // 7000 CDsyExtension::TimeSetModemTime(TTime)
 int TimeSetModemTime(struct tm *time)
 {
-	char buf[21], reply[6];
+	unsigned char buf[21], reply[6];
 
 	PutHeader(buf, IPC_GROUP_POWERUP, PWRUP_RTCSETUP, 21);
 	*(unsigned short *)(buf + 6) = time->tm_sec;
@@ -513,7 +511,7 @@ int TimeSetModemTime(struct tm *time)
 // 8000 CDsyExtension::LightsGetDisplayConstrast(signed char &, signed char &)
 int LightsGetDisplayConstrast(char *contr1, char *contr2)
 {
-	char buf[6], reply[8];
+	unsigned char buf[6], reply[8];
 	PutHeader(buf, IPC_GROUP_RAGBAG, RAG_GetDisplayConstrast, 6);
 	if (Request(buf, reply))
 		return -1;
@@ -526,7 +524,7 @@ int LightsGetDisplayConstrast(char *contr1, char *contr2)
 // 8001 CDsyExtension::LightsSetDisplayConstrast(signed char)
 int LightsSetDisplayConstrast(char contrast)
 {
-	char buf[7], reply[6];
+	unsigned char buf[7], reply[6];
 	PutHeader(buf, IPC_GROUP_RAGBAG, RAG_SetDisplayConstrast, 7);
 	buf[6] = contrast;
 	return Request(buf, reply);
@@ -536,7 +534,7 @@ int LightsSetDisplayConstrast(char contrast)
 // 9000 CDsyExtension::TransitionCoProMode(void)
 int TransitionCoProMode(void)
 {
-	char buf[6], reply[6];
+	unsigned char buf[6], reply[6];
 	PutHeader(buf, IPC_GROUP_POWEROFF, PWROFF_TRANSITIONCOPROMODE, 6);
 	return Request(buf, reply);
 }
@@ -545,16 +543,16 @@ int TransitionCoProMode(void)
 // 9001 CDsyExtension::TransitionToNormalMode(void)
 int TransitionToNormalMode(void)
 {
-	char buf[6], reply[6];
+	unsigned char buf[6], reply[6];
 	PutHeader(buf, IPC_GROUP_POWEROFF, PWROFF_TRANSITIONTONORMAL, 6);
 	return Request(buf, reply);
 }
 
 /*-----------------------------------------------------------------*/
 // A000 CDsyExtension::PanicTransfer(RPanicSupportExt::TPanicListType)
-int PanicTransfer(char *panic)
+int PanicTransfer(unsigned char *panic)
 {
-	char buf[22], reply[6];
+	unsigned char buf[22], reply[6];
 	PutHeader(buf, IPC_GROUP_RAGBAG, RAG_PanicTransfer, 22);
 	memcpy(buf + 6, panic, 16);
 	return Request(buf, reply);
@@ -563,18 +561,18 @@ int PanicTransfer(char *panic)
 /*-----------------------------------------------------------------*/
 
 // Send general message with no args and results
-int ipc_message(char group, char cmd)
+int ipc_message(unsigned char group, unsigned char cmd)
 {
-	char buf[6], reply[6];
+	unsigned char buf[6], reply[6];
 	PutHeader(buf, group, cmd, 6);
 	return Request(buf, reply);
 }
 
 /*-----------------------------------------------------------------*/
 // Send general message with 1 char arg and no results
-int ipc_message_char(char group, char cmd, char arg)
+int ipc_message_char(unsigned char group, unsigned char cmd, unsigned char arg)
 {
-	char buf[7], reply[6];
+	unsigned char buf[7], reply[6];
 	PutHeader(buf, group, cmd, 7);
 	buf[6] = arg;
 	return Request(buf, reply);
@@ -583,10 +581,10 @@ int ipc_message_char(char group, char cmd, char arg)
 /*-----------------------------------------------------------------*/
 // Handles RAGBAG messages
 // returns answer message size
-int handle_ragbag(char *msg, char *answer)
+int handle_ragbag(unsigned char *msg, unsigned char *answer)
 {
-	char cmd;
-	char *data;
+	unsigned char cmd;
+	unsigned char *data;
 	int ret = -1;
 	cmd = *(unsigned char *)(msg + 1);
 	data = msg + 2;
@@ -624,10 +622,10 @@ int handle_ragbag(char *msg, char *answer)
 /*-----------------------------------------------------------------*/
 // Handles SIM messages
 // returns answer message size
-int handle_sim(char *msg, char *answer)
+int handle_sim(unsigned char *msg, unsigned char *answer)
 {
-	char cmd;
-	char *data;
+	unsigned char cmd;
+	unsigned char *data;
 	int ret = -1;
 	cmd = *(unsigned char *)(msg + 1);
 	data = msg + 2;
@@ -655,10 +653,10 @@ int handle_sim(char *msg, char *answer)
 /*-----------------------------------------------------------------*/
 // Decodes message
 // Returns answer message length, or -1 if error
-int decode_message(char *msg, char *answer)
+int decode_message(unsigned char *msg, unsigned char *answer)
 {
-	char group, cmd;
-	char *data;
+	unsigned char group, cmd;
+	unsigned char *data;
 	struct tm *modem_time;
 	time_t loc_time;
 	int ret = 0;
@@ -666,7 +664,7 @@ int decode_message(char *msg, char *answer)
 	cmd = *(unsigned char *)(msg + 1);
 	data = msg + 2;
 
-	SYSLOG(" got message: %02X %02X", group, cmd);
+	DBGMSG(" got message: %02X %02X", group, cmd);
 
 	switch (group) {
 	case IPC_GROUP_CCMON:
@@ -675,11 +673,11 @@ int decode_message(char *msg, char *answer)
 	case IPC_GROUP_DEVMENU:
 		if (cmd == DEVMENU_Enabled) {
 			ret = DevMenuGetDevMenuEnabled();
-			*answer = (char)ret;
+			*answer = (unsigned char)ret;
 			ret = 1;
 		} else if (cmd == DEVMENU_ResetExits) {
 			ret = DevMenuGetResetExits();
-			*answer = (char)ret;
+			*answer = (unsigned char)ret;
 			ret = 1;
 		} else
 			ret = DevMenuGetString(cmd, answer);
@@ -717,38 +715,38 @@ int decode_message(char *msg, char *answer)
  */
 int process_client(const int fd)
 {
-	char buffer_in[MAXMSG];
-	char buffer_out[0x1006];
+	unsigned char buffer_in[MAXMSG];
+	unsigned char buffer_out[0x1006];
 	int nbytes;
 	int length;		/* message length */
 	int answer_length;
 
 	/* read message length */
 	if ((nbytes = read(fd, &length, sizeof(length))) == 0) {
-		SYSLOG(" socket closed");
+		DBGMSG(" socket closed");
 		return 0;	/* connection closed */
 	}
 	if (length > MAXMSG) {
-		SYSLOG("message too big");
+		DBGMSG("message too big");
 		return -1;
 	}
 	/* read the message body */
 	nbytes = read(fd, buffer_in, length);
 	if (nbytes <= 0) {
 		/* Read error. */
-		syslog(LOG_DEBUG, "message read error");
+		DBGMSG("message read error");
 		return -1;
 	} else {
 		/* Data read. */
 		if (nbytes >= 2)
 			answer_length = decode_message(buffer_in, buffer_out);
 		else {
-			syslog(LOG_DEBUG, " message size is < 2");
+			DBGMSG(" message size is < 2");
 			return -1;
 		}
 	}
 	if (answer_length < 0)
-		syslog(LOG_DEBUG, " error decoding message= %d", answer_length);
+		DBGMSG(" error decoding message= %d", answer_length);
 	else {
 		/* send response */
 		answer_length += 2;	// add header
@@ -771,13 +769,14 @@ static int extension_init(void)
 
 	extension_init_serial();
 
-	ipc_fd = ClRegister("ipc_ext", &cl_flags);
+	ipc_fd = ClRegister("sx1_ext", &cl_flags);
 
 	shdata = ShmMap(SHARED_SYSTEM);
 
 	/* Subscribe to different groups */
 	 /*TODO*/
 	    /* ClSubscribeToGroup(MSG_GROUP_PHONE); */
+	    return 0;
 }
 
 /*-----------------------------------------------------------------*/
@@ -798,7 +797,6 @@ static int extension_set_rtc(void)
 		rtc_ready = 0;
 	}
 
-
 	/* read RTC time from Egold and set local time */
 	startup.rtccheck = RtcCheck();	/* check RTC status */
 	if (!startup.rtccheck) {
@@ -808,14 +806,14 @@ static int extension_set_rtc(void)
 			if (loc_time == -1)
 				perror("mktime:");
 			else
-			/* set system time to localtime from modem */
+				/* set system time to localtime from modem */
 			if (stime(&loc_time) < 0)
 				perror("stime:");
 			syslog(LOG_DEBUG, "local time set = %s",
 			       asctime(&modem_time));
 		}
 	}
-	
+
 	/* set the RTC time */
 	if (rtc_ready) {
 		res = ioctl(rtc_fd, RTC_SET_TIME, modem_time);
@@ -825,12 +823,14 @@ static int extension_set_rtc(void)
 		close(rtc_fd);
 	}
 
+	return 0;
 }
 
 /*-----------------------------------------------------------------*/
 static int extension_powerup(void)
 {
-	char cc;
+	unsigned char cc;
+	int res;
 
 	/* Startup Init IPC */
 	shdata->powerup.egold_ping_ok = PingIpcL();	/* ping connection with EGold */
@@ -840,32 +840,33 @@ static int extension_powerup(void)
 	if (SimGetDomesticLanguage(&cc) >= 0) {
 		shdata->sim.domesticlang = cc;
 		SimSetDomesticLanguage(cc);
-		syslog(LOG_DEBUG, "SimSetDomesticLanguage = %d", cc);
+		DBGMSG("SimSetDomesticLanguage = %d", cc);
 	}
 
 	startup.hiddenreset = PowerUpHiddenReset();
-	syslog(LOG_DEBUG, "PowerUpHiddenReset = %d", startup.hiddenreset);
+	DBGMSG("PowerUpHiddenReset = %d", startup.hiddenreset);
 
 	shdata->powerup.swreason = SWStartupReason();	//PowerUpGetSwStartupReasonReq;
-	syslog(LOG_DEBUG, "SWStartupReason = %d", startup.sw_reason);
+	DBGMSG("SWStartupReason = %d", startup.sw_reason);
 
 	/* PowerUpIndicationObserverOkReq, enable indication observer */
 	IndicationObserverOk();
 
 	shdata->powerup.selftest = SelfTest(0x0B);	/* 0x0B = unknown constant */
-	syslog(LOG_DEBUG, "SelfTest = %d", startup.selftest);
+	DBGMSG("SelfTest = %d", startup.selftest);
 
-	/*TODO RagbagSetDosAlarmReq(00000);*/
+	/*TODO RagbagSetDosAlarmReq(00000); */
 
 	TransitionToNormalMode();	// PowerOffTransitionToNormalReq
-	syslog(LOG_DEBUG, "TransitionToNormalMode");
+	DBGMSG("TransitionToNormalMode");
 
-	/*TODO RagbagSetStateReq(3)*/
+	/*RagbagSetStateReq(3) */
 	/* 5069A8EC ; CDsyMtc::PowerOnL(void) */
 	res = ipc_message_char(IPC_GROUP_RAGBAG, RAG_SetState, 3);
 
 	return 0;
 }
+
 /*-----------------------------------------------------------------*/
 /* Handle IPC message
  * This message only tells indicator that its value is changed
@@ -888,61 +889,7 @@ int ipc_handle(int fd)
 
 	/*      if (IS_GROUP_MSG(src))
 	   ipc_group_message(src, msg_buf); */
-}
-/*-----------------------------------------------------------------*/
-/* shows how to use this program
- */
-void usage(char *_name)
-{
-	fprintf(stderr, "\nUsage: %s [options] \n", _name);
-	fprintf(stderr, "options:\n");
-	fprintf(stderr, " -d : Debug mode, don't fork\n");
-	fprintf(stderr, " -w : Wait for deamon startup success/failure\n");
-	fprintf(stderr, " -h : Show this help message\n");
-}
 
-/* Wait for child process to kill the parent.
- */
-void parent_signal_treatment(int param)
-{
-	fprintf(stderr, "ipc_extension started\n");
-	exit(0);
-}
-
-/*-----------------------------------------------------------------*/
-/*
- * Daemonize process, this process  create the daemon
- */
-int daemonize(void)
-{
-#ifndef DEBUG
-	signal(SIGHUP, parent_signal_treatment);
-	if ((the_pid = fork()) < 0) {
-		wait_for_daemon_status = 0;
-		return (-1);
-	} else if (the_pid != 0) {
-		if (wait_for_daemon_status) {
-			wait(NULL);
-			fprintf(stderr,
-				"ipc_extension startup failed. See syslog for details.\n");
-			exit(1);
-		}
-		exit(0);	//parent goes bye-bye
-	}
-	//child continues
-	setsid();		//become session leader
-	//signal(SIGHUP, SIG_IGN);
-	if (wait_for_daemon_status == 0 && (the_pid = fork()) != 0)
-		exit(0);
-	chdir("/tmp");		//change working directory
-	umask(0);		// clear our file mode creation mask
-
-// Close out the standard file descriptors
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-#endif
-	//daemonize process stop here
 	return 0;
 }
 
@@ -986,34 +933,12 @@ void signal_treatment(int param)
 /*-----------------------------------------------------------------*/
 int main(int argc, char *argv[])
 {
-	int res, i, opt;
 	fd_set active_fd_set, read_fd_set;
 	struct timeval timeout;
 	char *programName = argv[0];
-	pid_t parent_pid;
 
-	while ((opt = getopt(argc, argv, "h?")) > 0) {
-		switch (opt) {
-		case '?':
-		case 'h':
-			usage(programName);
-			exit(0);
-			break;
-		case 'w':
-			wait_for_daemon_status = 1;
-			break;
-		default:
-			break;
-		}
-	}
+	daemon(0, 0);
 
-	//DAEMONIZE
-	//SHOW TIME
-	parent_pid = getpid();
-	daemonize();
-	//The Hell is from now-one
-
-	/* SIGNALS treatment */
 	signal(SIGHUP, signal_treatment);
 	signal(SIGPIPE, signal_treatment);
 	signal(SIGKILL, signal_treatment);
@@ -1021,22 +946,13 @@ int main(int argc, char *argv[])
 	signal(SIGUSR1, signal_treatment);
 	signal(SIGTERM, signal_treatment);
 
-	programName = argv[0];
 #ifdef DEBUG
 	openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0);
 	_priority = LOG_DEBUG;
+	DBGMSG("You can quit the ipc_ext daemon with SIGKILL or SIGTERM");
 #else
 	openlog(programName, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
 	_priority = LOG_INFO;
-#endif
-
-#ifdef DEBUG
-	syslog(LOG_INFO,
-	       "You can quit the ipc_ext daemon with SIGKILL or SIGTERM");
-#else
-	if (wait_for_daemon_status) {
-		kill(parent_pid, SIGHUP);
-	}
 #endif
 
 /*-----------------------------------------------------------------*/
@@ -1058,17 +974,18 @@ int main(int argc, char *argv[])
 		/* Block until input arrives on one or more active sockets. */
 		read_fd_set = active_fd_set;
 		if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
-			syslog(LOG_DEBUG, "select error = %d", errno);
+			DBGMSG("select error = %d", errno);
 			exit(EXIT_FAILURE);
 		}
 
 		if (FD_ISSET(ipc_fd, &read_fd_set)) {
-			handle_ipc(ipc_fd);
+			ipc_handle(ipc_fd);
 		}
 	}
 
 	closelog();
 	close(fd_mux);
-	close(sock_loc);
+	ClClose();
+
 	return 0;
 }
