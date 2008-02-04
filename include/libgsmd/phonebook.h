@@ -49,34 +49,12 @@ struct lgsm_phonebook_find {
 	char findtext[LGSM_PB_TEXT_MAXLEN+1];
 };
 
-#if 0
-/* Get a bitmask of supported phonebook types */
-extern int lgsm_pb_get_types(struct lgsm_handle *lh, u_int32 *typemask);
-
-/* Get a range of supported indexes in given phonebook type, Chapter 8.12 */
-extern int lgsm_pb_get_range(struct lgsm_handle *lh,
-			     enum lgsm_pbook_type type,
-			     u_int32_t *from, u_int32_t *to,
-			     u_int32_t *nlength, *u_int32_t tlength);
-
-#define LGSM_PB_TEXT_MAXLEN	31
-#endif
-
 struct lgsm_pb_entry {
 	struct lgsm_pb_entry	*next;
 	enum lgsm_pbook_type 	type;
 	u_int32_t 		index;
 	char 			text[LGSM_PB_TEXT_MAXLEN+1];
 };
-
-/* Get a specific phonebook entry  and store it to 'pb'
- * pb' is caller-allocated */
-extern int lgsm_pb_get_entry(struct lgsm_handle *lh,
-			     struct lgsm_pb_entry *pb);
-
-/* Store a specific phonebook entry 'pb' into phone */
-extern int lgsm_pb_set_entry(struct lgsm_handle *lh,
-			     struct lgsm_pb_entry *pb);
 
 /* List of supported phonebook memory storage */
 extern int lgsm_pb_list_storage(struct lgsm_handle *lh);
@@ -105,11 +83,5 @@ extern int lgsm_pb_write_entry(struct lgsm_handle *lh,
 
 /* Get the location range/nlength/tlength supported */
 extern int lgsm_pb_get_support(struct lgsm_handle *lh);
-
-/* Retrieve the records of READRG request */
-extern int lgsm_pb_retrieve_readrg(struct lgsm_handle *lh, int num);
-
-/* Retrieve the records of FIND request */
-extern int lgsm_pb_retrieve_find(struct lgsm_handle *lh, int num);
 
 #endif
