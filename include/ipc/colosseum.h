@@ -307,6 +307,13 @@ typedef union {
     #define DLLLOCAL
 #endif
 
+/* Struct for all the flphone messages 
+ it can be the header of some special messages*/
+struct msg_generic {
+	unsigned short	group; /* message group */
+	unsigned char id;	/* message ID */
+	unsigned char data	/* message data */
+};
 
     /* Register application with IPC server
        name  - application name
@@ -352,6 +359,10 @@ DLLEXPORT int ClGetAppInfo (cl_app_info * info);
 
     /* Send message "message" with "len" length to the IPC id "id" */
 DLLEXPORT int ClSendMessage (int id, void *message, int len);
+
+    /* Send message with "message_id" to the "id" with optional "data" byte
+     id can be group id */
+DLLEXPORT int ClSendMessageGeneric (int id, unsigned char message_id, unsigned char data);
 
     /* Get message from server.
        msg - pointer to the  message buffer, where the message is copied;
