@@ -1,5 +1,5 @@
 //
-// "$Id: forms.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: forms.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Another forms demo for the Fast Light Tool Kit (FLTK).
 //
@@ -9,7 +9,7 @@
 // This demo show the different boxtypes. Note that some
 // boxtypes are not appropriate for some objects
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -26,7 +26,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/forms.H> // changed for fltk
@@ -34,7 +36,7 @@
 static int border = 1; // changed from FL_TRANSIENT for fltk
 // (this is so the close box and Esc work to close the window)
 
-typedef struct { int val; char *name; } VN_struct;
+typedef struct { int val; const char *name; } VN_struct;
 #define VN(a) {a,#a}
 
 // static VN_struct gmode[] =
@@ -61,11 +63,13 @@ static VN_struct btypes[]=
    {FL_ROUNDED3D_DOWNBOX,"rounded3d downbox"},
    {FL_OVAL3D_UPBOX,"oval3d upbox"},
    {FL_OVAL3D_DOWNBOX,"oval3d downbox"},
+   {FL_PLASTIC_UP_BOX,"plastic upbox"},
+   {FL_PLASTIC_DOWN_BOX,"plastic downbox"},
    /* sentinel */
    {-1}
 };
 
-#include "srs.xbm"
+#include "pixmaps/srs.xbm"
 
 /*************** Callback **********************/
 
@@ -165,7 +169,7 @@ create_the_forms (void)
 
 /*************** Main Routine ***********************/
 
-char *browserlines[] = {
+const char *browserlines[] = {
    " ", "@C1@c@l@bObjects Demo",   " ",
    "This demo shows you all",      "objects that currently",
    "exist in the Forms Library.",  " ",
@@ -184,7 +188,7 @@ int
 main (int argc, char *argv[])
 {
   FL_COLOR c = FL_BLACK;
-  char **p;
+  const char **p;
   VN_struct *vn;
 
   fl_initialize(&argc, argv, "FormDemo", 0, 0);
@@ -229,5 +233,5 @@ main (int argc, char *argv[])
 }
 
 //
-// End of "$Id: forms.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: forms.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

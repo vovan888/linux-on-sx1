@@ -1,9 +1,10 @@
 //
-// "$Id: Fl_x.cxx,v 1.1.1.1 2003/08/07 21:18:40 jasonk Exp $"
+// "$Id: Fl_nanox.cxx 5914 2007-06-18 13:08:57Z matt $"
 //
-// X specific code for the Fast Light Tool Kit (FLTK).
+// Nano-X specific code for the Fast Light Tool Kit (FLTK).
+// base on Fl_x.cxx
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2007 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -22,6 +23,8 @@
 //
 // Please report all bugs and problems to "fltk-bugs@easysw.com".
 //
+// Tanghao - original port of FLTK 1.0.7
+// Vladimir Ananiev (Vovan888 at gmail com) - update to FLTK 1.1.8
 
 #include <config.h>
 #include <FL/Fl.H>
@@ -38,7 +41,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
-//#include <iostream>
 
 #define CONSOLIDATE_MOTION 1
 /**** Define this if your keyboard lacks a backspace key... ****/
@@ -291,40 +293,33 @@ int fl_wait(double time_to_wait) {
   	msec = 0;
 
   GR_EVENT ev;
+  ev.general.type = GR_EVENT_TYPE_NONE;
+
+/*  fl_unlock_function(); TODO ?*/
 
   GrGetNextEventTimeout (&ev, msec);
 
-  fl_handle (ev);
+/*  fl_lock_function(); TODO ?*/
 
-#if CONSOLIDATE_MOTION
-  if (send_motion && send_motion == fl_xmousewin) {
-    send_motion = 0;
-    Fl::handle (FL_MOVE, fl_xmousewin);
+  if (ev.general.type > GR_EVENT_TYPE_NONE) {
+  /*there was an event*/
+     fl_handle (ev);
+     return 1;
+  } else {
+  /*timeout*/
   }
-#endif
-
   return 0;
 }
 
+// fl_ready() is just like fl_wait(0.0) except no callbacks are done:
 int fl_ready ()
 {
 
   GR_EVENT ev;
-  if (GrPeekEvent (&ev))
-    return 1;
+  ev.general.type = GR_EVENT_TYPE_NONE;
 
-#if HAVE_POLL
-  return::poll (fds, nfds, 0);
-#else
-  timeval t;
-  t.tv_sec = 0;
-  t.tv_usec = 0;
-  fd_set fdt[3];
-  fdt[0] = fdsets[0];
-  fdt[1] = fdsets[1];
-  fdt[2] = fdsets[2];
-  return::select (maxfd + 1, &fdt[0], &fdt[1], &fdt[2], &t);
-#endif
+  GrPeekWaitEvent(&ev);
+  return (ev.general.type > GR_EVENT_TYPE_NONE)? 1 : 0;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -365,8 +360,17 @@ void fl_open_display() {
 }
 
 void fl_close_display() {
-  Fl::remove_fd (fl_display);
+//  Fl::remove_fd (fl_display);
   GrClose ();
+}
+
+
+int Fl::x() {
+  return 0;
+}
+
+int Fl::y() {
+  return 0;
 }
 
 int Fl::h () {
@@ -620,7 +624,7 @@ int fl_handle(const GR_EVENT & xevent) {
 
 	  window->Fl_Widget::resize(xevent.update.x, xevent.update.y,
 				    info.width, info.height);
-	window->resize_notify(xevent.update.x, xevent.update.y, info.width, info.height);
+//	window->resize_notify(xevent.update.x, xevent.update.y, info.width, info.height);
 	break;
       case GR_UPDATE_SIZE:
 	GrGetWindowInfo(xid,&info);
@@ -631,7 +635,7 @@ int fl_handle(const GR_EVENT & xevent) {
 
 
 	  window->resize(xevent.update.x, xevent.update.y, info.width, info.height);
-	window->resize_notify(xevent.update.x, xevent.update.y, info.width, info.height);
+//	window->resize_notify(xevent.update.x, xevent.update.y, info.width, info.height);
 
 	//window->resize_notify(info.x, info.y, xevent.update.width, xevent.update.height);
 	break;
@@ -652,7 +656,7 @@ int fl_handle(const GR_EVENT & xevent) {
 
 	  window->Fl_Widget::resize(info.x, info.y,
 				    xevent.update.width, xevent.update.height);
-	window->resize_notify(info.x, info.y, xevent.update.width, xevent.update.height);
+//	window->resize_notify(info.x, info.y, xevent.update.width, xevent.update.height);
 
 	break;
       default:
@@ -709,12 +713,14 @@ int fl_handle(const GR_EVENT & xevent) {
     case GR_EVENT_TYPE_MOUSE_POSITION:	//tanghao
       fl_window = xevent.mouse.wid;
       set_event_xy ();
+      in_a_window = true;
 
 #if CONSOLIDATE_MOTION
       send_motion = fl_xmousewin = window;
       return 0;
 #else
       event = FL_MOVE;
+      fl_xmousewin = window;
       break;
 #endif
 
@@ -819,12 +825,16 @@ int fl_handle(const GR_EVENT & xevent) {
       set_event_xy ();
       //    Fl::e_state = xevent.xcrossing.state << 16;
       event = FL_ENTER;
+      fl_xmousewin = window;
+      in_a_window = true;
       break;
 
     case GR_EVENT_TYPE_MOUSE_EXIT:
       set_event_xy ();
       //    Fl::e_state = xevent.xcrossing.state << 16;
       event = FL_LEAVE;
+      fl_xmousewin = 0;
+      in_a_window = false; // make do_queued_events produce FL_LEAVE event
       break;
 
 
@@ -839,47 +849,35 @@ int fl_handle(const GR_EVENT & xevent) {
 void
 Fl_Window::resize (int X, int Y, int W, int H)
 {
-
-  int is_a_resize = (W != w () || H != h ());
+  int is_a_move = (X != x() || Y != y());
+  int is_a_resize = (W != w() || H != h());
   int resize_from_program = (this != resize_bug_fix);
+  if (!resize_from_program) resize_bug_fix = 0;
+  if (is_a_move && resize_from_program) set_flag(FL_FORCE_POSITION);
+  else if (!is_a_resize && !is_a_move) return;
+  if (is_a_resize) {
+    Fl_Group::resize(X,Y,W,H);
+    if (shown()) {redraw(); i->wait_for_expose = 1;}
+  } else {
+    x(X); y(Y);
+  }
 
-  if (!resize_from_program)
-    resize_bug_fix = 0;
+  if (resize_from_program && is_a_resize && !resizable()) {
+    size_range(w(), h(), w(), h());
+  }
 
-  if (X != x () || Y != y ())
-    set_flag (FL_FORCE_POSITION);
-  else if (!is_a_resize)
-    return;
-
-  if (is_a_resize)
-    {
-      Fl_Group::resize (X, Y, W, H);
-
-      if (shown ())
-	{
-	  //redraw ();
-	  i->wait_for_expose = 1;
-	}
-    }
-  else
-    {
-      x (X);
-      y (Y);
-    }
-
-  if (resize_from_program && shown ())
-    {
-      if (is_a_resize)
-	{
-	  GrMoveWindow (i->xid, X + abs (w () - W), Y);
-	  GrResizeWindow (i->xid, W > 0 ? W : 1, H > 0 ? H : 1);
-	}
-      else
-	{
-	  GrMoveWindow (i->xid, X, Y);
-	}
-    }
-
+  if (resize_from_program && shown()) {
+    if (is_a_resize) {
+      if (!resizable()) size_range(w(),h(),w(),h());
+      if (is_a_move) {
+	GrMoveWindow (i->xid, X, Y);
+	GrResizeWindow (i->xid, W > 0 ? W : 1, H > 0 ? H : 1);
+      } else {
+	GrResizeWindow(i->xid, W>0 ? W : 1, H>0 ? H : 1);
+      }
+    } else
+      GrMoveWindow(i->xid, X, Y);
+  }
 }
 
 ////////////////////////////////////////////////////////////////
@@ -919,59 +917,45 @@ int fl_disable_transient_for;	// secret method of removing TRANSIENT_FOR
 //tanghao static const int childEventMask = ExposureMask;
 
 static const int childEventMask = GR_EVENT_MASK_EXPOSURE;	//tanghao
-
-#if 0				//tanghao
-static const int XEventMask =
-  ExposureMask | StructureNotifyMask
-  | KeyPressMask | KeyReleaseMask | KeymapStateMask | FocusChangeMask
-  | ButtonPressMask | ButtonReleaseMask
-  | EnterWindowMask | LeaveWindowMask | PointerMotionMask;
-#endif
+/*				GR_EVENT_MASK_KEY_DOWN |
+                      GR_EVENT_MASK_KEY_UP | GR_EVENT_MASK_TIMEOUT |
+                      GR_EVENT_MASK_FOCUS_IN | GR_EVENT_MASK_FOCUS_OUT |
+                      GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_CLOSE_REQ |
+                      GR_EVENT_MASK_UPDATE | GR_EVENT_MASK_FDINPUT*/
 
 static const int XEventMask = GR_EVENT_MASK_ALL;	//tanghao
 
-void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap) {
+void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap)
+{
 
   Fl_Group::current (0);	// get rid of very common user bug: forgot end()
 
-  int X = w->x ();
-  int Y = w->y ();
-  int W = w->w ();
-  if (W <= 0)
-    W = 1;			// X don't like zero...
-  int H = w->h ();
-  if (H <= 0)
-    H = 1;			// X don't like zero...
+  int X = w->x();
+  int Y = w->y();
+  int W = w->w();
+  if (W <= 0) W = 1; // X don't like zero...
+  int H = w->h();
+  if (H <= 0) H = 1; // X don't like zero...
 
-  // root = either current window id or the MicroWindows root window id.
-  ulong root;
+//  if (!mw_parent && !Fl::grab ()) {
+  if (!w->parent() && !Fl::grab()) {
+    // center windows in case window manager does not do anything:
+#ifdef FL_CENTER_WINDOWS
+    if (!(w->flags() & Fl_Window::FL_FORCE_POSITION)) {
+      w->x(X = scr_x+(scr_w-W)/2);
+      w->y(Y = scr_y+(scr_h-H)/2);
+    }
+#endif // FL_CENTER_WINDOWS
 
 //  if ( !mw_parent && Fl::grab() )
 //  root = mw_parent_xid;
 //  else
 
-
-  root = w->parent ()? fl_xid (w->window ()) : GR_ROOT_WINDOW_ID;
-
-  GR_WM_PROPERTIES props;
-  props.flags = GR_WM_FLAGS_PROPS | GR_WM_FLAGS_TITLE;
-  GR_CHAR *title = (GR_CHAR *) w->label ();
-  props.title = title;
-
-  props.props = GR_WM_PROPS_APPWINDOW;
-
-  if (!mw_parent && !Fl::grab ()) {
-
-#ifdef FL_CENTER_WINDOWS
-    // center windows in case window manager does not do anything:
-    if (!(w->flags () & Fl_Window::FL_FORCE_POSITION)) {
-      w->x (X = (Fl::w () - W) / 2);
-      w->y (Y = (Fl::h () - H) / 2);
-    }
-#endif
-
     // force the window to be on-screen.  Usually the X window manager
     // does this, but a few don't, so we do it here for consistency:
+    int scr_x, scr_y, scr_w, scr_h;
+    Fl::screen_xywh(scr_x, scr_y, scr_w, scr_h, X, Y);
+
     if (w->border ()) {
       // ensure border is on screen:
       // (assumme extremely minimal dimensions for this border)
@@ -979,86 +963,143 @@ void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap) {
       const int left = 1;
       const int right = 1;
       const int bottom = 1;
-      if (X + W + right > Fl::w ())
-	X = Fl::w () - right - W;
-      if (X - left < 0)
-	X = left;
-      if (Y + H + bottom > Fl::h ())
-	Y = Fl::h () - bottom - H;
-      if (Y - top < 0)
-	Y = top;
+      if (X+W+right > scr_x+scr_w) X = scr_x+scr_w-right-W;
+      if (X-left < scr_x) X = scr_x+left;
+      if (Y+H+bottom > scr_y+scr_h) Y = scr_y+scr_h-bottom-H;
+      if (Y-top < scr_y) Y = scr_y+top;
     }
-
-    // now ensure contents are on-screen (more important than border):
-    if (X + W > Fl::w ())
-      X = Fl::w () - W;
-    if (X < 0)
-      X = 0;
-    if (Y + H > Fl::h ())
-      Y = Fl::h () - H;
-    if (Y < 0)
-      Y = 0;
-
+    // now insure contents are on-screen (more important than border):
+    if (X+W > scr_x+scr_w) X = scr_x+scr_w-W;
+    if (X < scr_x) X = scr_x;
+    if (Y+H > scr_y+scr_h) Y = scr_y+scr_h-H;
+    if (Y < scr_y) Y = scr_y;
   }
 
-  {
+  // if the window is a subwindow and our parent is not mapped yet, we
+  // mark this window visible, so that mapping the parent at a later
+  // point in time will call this function again to finally map the subwindow.
+  if (w->parent() && !Fl_X::i(w->window())) {
+    w->set_visible();
+    return;
+  }
+  // root = either current window id or the MicroWindows root window id.
+  ulong root = w->parent () ?
+    fl_xid (w->window ()) : GR_ROOT_WINDOW_ID;
+
+  GR_COLOR	bg = WHITE;
+  GR_COLOR	fg = BLACK;
+  GR_WM_PROPERTIES props; /* window manager properties */
+
+  // set the default flag to WM props
+  props.flags = GR_WM_FLAGS_PROPS | GR_WM_FLAGS_TITLE;
+  props.props = GR_WM_PROPS_APPWINDOW;
+
+  /* Set window title */
+  GR_CHAR *title = (GR_CHAR *) w->label ();
+  props.title = title;
+
+  int override_redirect = 0;
+
+  props.props = w->parent() ? GR_WM_PROPS_NODECORATE : GR_WM_PROPS_APPWINDOW; /* Set the default */
+
+/*  attr.colormap = colormap;	// nano-X dont need colormap
+  attr.border_pixel = 0;
+  attr.bit_gravity = 0; // StaticGravity;
+*/
+
+  if (w->override()) {
+    override_redirect = 1;
+/*    attr.save_under = 1;
+    // for InputOutput or InputOnly windows
+    mask |= CWOverrideRedirect | CWSaveUnder;*/
+    props.props = GR_WM_PROPS_NODECORATE;
+  } else override_redirect = 0;
+  if (Fl::grab()) {
+/*    attr.save_under = 1; mask |= CWSaveUnder;*/ /* for InputOutput windows */
+    if (!w->border()) {override_redirect = 1; props.props = GR_WM_PROPS_NODECORATE;}
+  }
+  if (fl_background_pixel >= 0) {
+    bg = fl_background_pixel;
+    fl_background_pixel = -1;
+  }
 
     GR_WINDOW_ID wid;
-    int showit = 1;
 
-    wid = GrNewWindow (root, X, Y, W, H, 0, MWNOCOLOR, BLACK);
-//    wid = GrNewWindow (root, X, Y, W, H, 0, WHITE, BLACK);
-
+    wid = GrNewWindow (root, X, Y, W, H, 0 /* borderwidth */, bg, fg);
     printf("%d = GrNewWindow(%ld)\n", wid, root);
 
-    if (mw_parent_top == 0) {
+    // Start up a MicrowWindow's select events as each window is created.
+    // This is related with the fl_wait() function above.
+    GrSelectEvents(wid, w->parent() ? childEventMask : XEventMask );
+
+    Fl_X *x = set_xid (w, wid);
+
+    if (mw_parent_top == 0) { /*TODO do we need this ?*/
       mw_parent_xid = wid;
       mw_parent_top = 1;
     }
 
-    if (!mw_parent && Fl::grab ()) {
+    int showit = 1;
+
+  if (!w->parent() && !override_redirect) {
+    // Communicate all kinds 'o junk to the X Window Manager:
+
+    w->label(w->label(), w->iconlabel());
+ 
+    // send size limits and border:
+    x->sendxjunk();
+
+    // set the class property, which controls the icon used:
+    if (w->xclass()) {
+    /*TODO ?*/
+    }
+    
+    if (w->non_modal() && x->next && !fl_disable_transient_for) {
+     /*TODO ?*/
+      // find some other window to be "transient for":
+      Fl_Window* wp = x->next->w;
+      while (wp->parent()) wp = wp->window();
+      /*Set by application programs to indicate to the window manager 
+         that a transient top-level window, such as a dialog box.*/
+      /*XSetTransientForHint(fl_display, xp->xid, fl_xid(wp));*/
+      if (!wp->visible()) showit = 0; // guess that wm will not show it
+    }
+    
+    // Make sure that borderless windows do not show in the task bar
+    if (!w->border()) { /*TODO ?*/
+/*      Atom net_wm_state = XInternAtom (fl_display, "_NET_WM_STATE", 0);
+      Atom net_wm_state_skip_taskbar = XInternAtom (fl_display, "_NET_WM_STATE_SKIP_TASKBAR", 0);
+      XChangeProperty (fl_display, xp->xid, net_wm_state, XA_ATOM, 32, 
+          PropModeAppend, (unsigned char*) &net_wm_state_skip_taskbar, 1);*/
+    }
+
+    // Make it receptive to DnD:
+    /*TODO*/
+  } 
+ 
+/*    if (!mw_parent && Fl::grab ()) {
       mw_parent = 1;
       props.props = GR_WM_PROPS_NODECORATE;
     } else {
       mw_parent = 1;
     }
-
-    if(!w->border ()) // ++vovan888 - make child windows (like Popup Menu) not redecoratable
-	props.props = GR_WM_PROPS_NODECORATE;
+*/
+//    if(!w->border ()) // ++vovan888 - make child windows (like Popup Menu) not redecoratable
+//	props.props = GR_WM_PROPS_NODECORATE;
 
     props.props |= w->wm_props;
 
+//  GR_WM_PROPS flags;            /**< Which properties valid in struct for set*/
+//  GR_WM_PROPS props;            /**< Window property bits*/
+//  GR_CHAR *title;               /**< Window title*/
+//  GR_COLOR background;          /**< Window background color*/
+//  GR_SIZE bordersize;           /**< Window border size*/
+//  GR_COLOR bordercolor;         /**< Window border color*/
+
     GrSetWMProperties (wid, &props);
 
-    Fl_X *x = set_xid (w, wid);
-
-    // Start up a MicrowWindow's select events as each window is created.
-    // This is related with the fl_wait() function above.
-
-    if(root == GR_ROOT_WINDOW_ID) {
-
-      GrSelectEvents (wid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP |
-		      GR_EVENT_MASK_MOUSE_POSITION| GR_EVENT_MASK_KEY_DOWN |
-		      GR_EVENT_MASK_KEY_UP | GR_EVENT_MASK_TIMEOUT |
-		      GR_EVENT_MASK_FOCUS_IN | GR_EVENT_MASK_FOCUS_OUT |
-		      GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_CLOSE_REQ |
-		      GR_EVENT_MASK_UPDATE | GR_EVENT_MASK_FDINPUT);
-    } else {
-      GrSelectEvents (wid, GR_EVENT_MASK_KEY_DOWN |
-		      GR_EVENT_MASK_KEY_UP | GR_EVENT_MASK_TIMEOUT |
-		      GR_EVENT_MASK_FOCUS_IN | GR_EVENT_MASK_FOCUS_OUT |
-		      GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_CLOSE_REQ |
-		      GR_EVENT_MASK_UPDATE | GR_EVENT_MASK_FDINPUT);
-
-    }
-/* -- vovan888
-    w->set_visible ();
-    w->handle (FL_SHOW);	// get child windows to appear
-    w->redraw ();
-*/
-
-    GrMapWindow (x->xid);
-//    fl_window = x->xid;		//tanghao
+    GrMapWindow (wid);
+//    fl_window = wid;		//tanghao
 
     if (showit) {
 	    w->set_visible();
@@ -1070,14 +1111,11 @@ void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap) {
 
 }
 
-}
-
 ////////////////////////////////////////////////////////////////
 // Send X window stuff that can be changed over time:
 
 void Fl_X::sendxjunk () {
-  if (w->parent ())
-    return;			// it's not a window manager window!
+  if (w->parent() || w->override()) return; // it's not a window manager window!
 
   if (!w->size_range_set) {	// default size_range based on resizable():
     if (w->resizable ()) {
@@ -1119,8 +1157,9 @@ void Fl_Window::label (const char *name, const char *iname) {
   Fl_Widget::label (name);
   iconlabel_ = iname;
   if (shown () && !parent ()) {
-    if (!name)
-      name = "";
+    if (!name) name = "";
+    /* Set window title */
+    GrSetWindowTitle(i->xid, name);
 
 //tanghao    XChangeProperty(fl_display, i->xid, XA_WM_NAME,
 //tanghao                   XA_STRING, 8, 0, (uchar*)name, strlen(name));
@@ -1138,7 +1177,7 @@ void Fl_Window::label (const char *name, const char *iname) {
 // If the box is a filled rectangle, we can make the redisplay *look*
 // faster by using X's background pixel erasing.  We can make it
 // actually *be* faster by drawing the frame only, this is done by
-// setting fl_boxcheat, which is seen by code in fl_drawbox.C:
+// setting fl_boxcheat, which is seen by code in fl_drawbox.cxx:
 //
 // On XFree86 (and prehaps all X's) this has a problem if the window
 // is resized while a save-behind window is atop it.  The previous
@@ -1150,17 +1189,27 @@ static inline int can_boxcheat (uchar b) {
 }
 
 void Fl_Window::show () {
+  image(Fl::scheme_bg_);
+  if (Fl::scheme_bg_) {
+    labeltype(FL_NORMAL_LABEL);
+    align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+  } else {
+    labeltype(FL_NO_LABEL);
+  }
+  Fl_Tooltip::exit(this);
   if (!shown ()) {
     fl_open_display ();
-    if (can_boxcheat (box ()))
-      fl_background_pixel = int (fl_xpixel (color ()));
-    Fl_X::make_xid (this);
-  } else {
-    //tanghao   XMapRaised(fl_display, i->xid);
-    GrRaiseWindow (i->xid);
+    // Don't set background pixel for double-buffered windows...
+//    if (type() == FL_WINDOW && can_boxcheat(box())) {
+    if (can_boxcheat(box())) {
+	fl_background_pixel = int (fl_xpixel (color ()));
+	Fl_X::make_xid (this);
+    } else {
+     //tanghao   XMapRaised(fl_display, i->xid);
+     GrRaiseWindow (i->xid);
+    }
   }
 }
-
 Window fl_window;
 //Gr_Window
 Fl_Window *  Fl_Window::current_;
@@ -1178,3 +1227,5 @@ void Fl_Window::make_current () {
   current_ = this;
   fl_clip_region (0);
 }
+
+

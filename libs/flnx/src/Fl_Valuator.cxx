@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Valuator.cxx 4723 2005-12-30 10:13:17Z matt $"
+// "$Id: Fl_Valuator.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Valuator widget for the Fast Light Tool Kit (FLTK).
 //
@@ -145,5 +145,5 @@ int Fl_Valuator::format(char* buffer) {
 }
 
 //
-// End of "$Id: Fl_Valuator.cxx 4723 2005-12-30 10:13:17Z matt $".
+// End of "$Id: Fl_Valuator.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

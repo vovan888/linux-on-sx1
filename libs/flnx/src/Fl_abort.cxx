@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_abort.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_abort.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Warning/error message code for the Fast Light Tool Kit (FLTK).
 //
@@ -46,7 +46,7 @@ static void error(const char *format, ...) {
   va_list args;
   char buf[1024];
   va_start(args, format);
-  fl_vsnprintf(buf, 1024, format, args);
+  vsnprintf(buf, 1024, format, args);
   va_end(args);
   MessageBox(0,buf,"Error",MB_ICONEXCLAMATION|MB_SYSTEMMODAL);
 }
@@ -55,7 +55,7 @@ static void fatal(const char *format, ...) {
   va_list args;
   char buf[1024];
   va_start(args, format);
-  fl_vsnprintf(buf, 1024, format, args);
+  vsnprintf(buf, 1024, format, args);
   va_end(args);
   MessageBox(0,buf,"Error",MB_ICONSTOP|MB_SYSTEMMODAL);
   ::exit(1);
@@ -98,5 +98,5 @@ void (*Fl::error)(const char* format, ...) = ::error;
 void (*Fl::fatal)(const char* format, ...) = ::fatal;
 
 //
-// End of "$Id: Fl_abort.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_abort.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

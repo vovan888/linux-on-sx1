@@ -1,5 +1,5 @@
 //
-// "$Id: fl_font.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_font.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Font selection code for the Fast Light Tool Kit (FLTK).
 //
@@ -58,5 +58,5 @@ void fl_draw(const char* str, int x, int y) {
 }
 
 //
-// End of "$Id: fl_font.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_font.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

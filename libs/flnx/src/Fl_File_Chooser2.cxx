@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Chooser2.cxx 4660 2005-11-27 14:45:48Z mike $"
+// "$Id: Fl_File_Chooser2.cxx 5703 2007-02-21 20:08:07Z matt $"
 //
 // More Fl_File_Chooser routines.
 //
@@ -243,6 +243,7 @@ Fl_File_Chooser::favoritesButtonCB()
     sprintf(menuname, "favorite%02d", v);
 
     prefs_.set(menuname, directory_);
+    prefs_.flush();
 
     quote_pathname(menuname, directory_, sizeof(menuname));
     favoritesButton->add(menuname);
@@ -379,6 +380,7 @@ Fl_File_Chooser::favoritesCB(Fl_Widget *w)
     }
 
     update_favorites();
+    prefs_.flush();
 
     favWindow->hide();
   }
@@ -412,9 +414,9 @@ Fl_File_Chooser::fileListCB()
   if (Fl::event_clicks()) {
 #if (defined(WIN32) && ! defined(__CYGWIN__)) || defined(__EMX__)
     if ((strlen(pathname) == 2 && pathname[1] == ':') ||
-        fl_filename_isdir(pathname))
+        _fl_filename_isdir_quick(pathname))
 #else
-    if (fl_filename_isdir(pathname))
+    if (_fl_filename_isdir_quick(pathname))
 #endif /* WIN32 || __EMX__ */
     {
       // Change directories...
@@ -477,7 +479,7 @@ Fl_File_Chooser::fileListCB()
     if (callback_) (*callback_)(this, data_);
 
     // Activate the OK button as needed...
-    if (!fl_filename_isdir(pathname) || (type_ & DIRECTORY))
+    if (!_fl_filename_isdir_quick(pathname) || (type_ & DIRECTORY))
       okButton->activate();
     else
       okButton->deactivate();
@@ -544,15 +546,15 @@ Fl_File_Chooser::fileNameCB()
     // Enter pressed - select or change directory...
 #if (defined(WIN32) && ! defined(__CYGWIN__)) || defined(__EMX__)
     if ((isalpha(pathname[0] & 255) && pathname[1] == ':' && !pathname[2]) ||
-        fl_filename_isdir(pathname) &&
+        _fl_filename_isdir_quick(pathname) &&
 	compare_dirnames(pathname, directory_)) {
 #else
-    if (fl_filename_isdir(pathname) &&
+    if (_fl_filename_isdir_quick(pathname) &&
 	compare_dirnames(pathname, directory_)) {
 #endif /* WIN32 || __EMX__ */
       directory(pathname);
     } else if ((type_ & CREATE) || access(pathname, 0) == 0) {
-      if (!fl_filename_isdir(pathname) || (type_ & DIRECTORY)) {
+      if (!_fl_filename_isdir_quick(pathname) || (type_ & DIRECTORY)) {
 	// Update the preview box...
 	update_preview();
 
@@ -791,6 +793,7 @@ Fl_File_Chooser::preview(int e)// I - 1 = enable preview, 0 = disable preview
 {
   previewButton->value(e);
   prefs_.set("preview", e);
+  prefs_.flush();
 
   Fl_Group *p = previewBox->parent();
   if (e) {
@@ -854,6 +857,57 @@ Fl_File_Chooser::rescan()
   update_preview();
 }
 
+//
+// 'Fl_File_Chooser::rescan_keep_filename()' - Rescan the current directory
+// without clearing the filename, then select the file if it is in the list
+//
+
+void
+Fl_File_Chooser::rescan_keep_filename()
+{
+  // if no filename was set, this is likely a diretory browser
+  const char *fn = fileName->value();
+  if (!fn || !*fn || fn[strlen(fn) - 1]=='/') {
+    rescan();
+    return;
+  }
+
+  int   i;
+  char	pathname[1024];		// New pathname for filename field
+  strlcpy(pathname, fn, sizeof(pathname));
+
+  // Build the file list...
+  fileList->load(directory_, sort);
+
+  // Update the preview box...
+  update_preview();
+
+  // and select the chosen file
+  char found = 0;
+  char *slash = strrchr(pathname, '/');
+  if (slash) 
+    slash++;
+  else
+    slash = pathname;
+  for (i = 1; i <= fileList->size(); i ++)
+#if defined(WIN32) || defined(__EMX__)
+    if (strcasecmp(fileList->text(i), slash) == 0) {
+#else
+    if (strcmp(fileList->text(i), slash) == 0) {
+#endif // WIN32 || __EMX__
+      fileList->topline(i);
+      fileList->select(i);
+      found = 1;
+      break;
+    }
+
+  // update OK button activity
+  if (found || type_ & CREATE)
+    okButton->activate();
+  else
+    okButton->deactivate();
+}
+
 
 //
 // 'Fl_File_Chooser::showChoiceCB()' - Handle show selections.
@@ -889,7 +943,7 @@ Fl_File_Chooser::showChoiceCB()
 
   if (shown()) {
     // Rescan the directory...
-    rescan();
+    rescan_keep_filename();
   }
 }
 
@@ -1247,5 +1301,5 @@ unquote_pathname(char       *dst,	// O - Destination string
 
 
 //
-// End of "$Id: Fl_File_Chooser2.cxx 4660 2005-11-27 14:45:48Z mike $".
+// End of "$Id: Fl_File_Chooser2.cxx 5703 2007-02-21 20:08:07Z matt $".
 //

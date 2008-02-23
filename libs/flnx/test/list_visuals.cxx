@@ -1,17 +1,17 @@
 //
-// "$Id: list_visuals.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: list_visuals.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Visual list utility for the Fast Light Tool Kit (FLTK).
 //
 // List all the visuals on the screen, and dumps anything interesting
 // about them to stdout.
 //
-// Does not use fltk.
+// Does not use FLTK.
 //
 // This file may be #included in another program to make a function to
 // call to list the visuals.  Fl.H must be included first to indicate this.
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -28,20 +28,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#ifdef WIN32
-#include <FL/Fl.H>
-#include <FL/fl_message.H>
-
-int main(int, char**) {
-  fl_alert("Currently, this program works only under X.");
-  return 1;
-}
-
-#else
-#ifdef NANO_X
+#if defined(WIN32) || defined(__APPLE__)
 #include <FL/Fl.H>
 #include <FL/fl_message.H>
 
@@ -52,16 +44,13 @@ int main(int, char**) {
 
 #else
 
-#include <config.h>
+#include "config.h"
 
 #ifndef Fl_H
 
-#ifndef NANO_X
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -69,18 +58,12 @@ Display *fl_display;
 int fl_screen;
 const char *dname;
 void fl_open_display() {
-#ifdef NANO_X
-  fl_display = GrOpen();
-#else
   fl_display = XOpenDisplay(dname);
-#endif
   if (!fl_display) {
     fprintf(stderr,"Can't open display: %s\n",XDisplayName(dname));
     exit(1);
   }
-#ifndef NANO_X
   fl_screen = DefaultScreen(fl_display);
-#endif
 }
 
 #endif
@@ -251,8 +234,8 @@ int main(int argc, char **argv) {
   list_visuals();
   return 0;
 }
-#endif //tanghao
 #endif
+
 //
-// End of "$Id: list_visuals.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: list_visuals.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

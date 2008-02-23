@@ -1,12 +1,12 @@
 //
-// "$Id: glpuzzle.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: glpuzzle.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
 // OpenGL puzzle demo for the Fast Light Tool Kit (FLTK).
 //
 // This is a GLUT demo program to demonstrate fltk's GLUT emulation.
 // Search for "fltk" to find all the changes
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -23,16 +23,18 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 // this block added for fltk's distribtion so it will compile w/o OpenGL:
-#include <config.h>
-#if !HAVE_GL
+#include "config.h"
+#if !HAVE_GL || !HAVE_GL_GLU_H
 #include <FL/Fl.H>
 #include <FL/fl_message.H>
 int main(int, char**) {
-  fl_alert("This demo does not work without GL");
+  fl_alert("This demo does not work without GL and GLU");
   return 1;
 }
 #else
@@ -45,6 +47,7 @@ int main(int, char**) {
 #include <time.h>
 #include <math.h>
 #include <FL/glut.H>	// changed for fltk
+#include <FL/glu.h>     // added for fltk
 #include "trackball.c"	// changed from trackball.h for fltk
 
 #define WIDTH 4
@@ -149,7 +152,7 @@ hash(Config config)
   value = 0;
   for (i = 0; i < HEIGHT; i++) {
     for (j = 0; j < WIDTH; j++) {
-      value = value + convert[config[i][j]];
+      value = value + convert[(int)config[i][j]];
       value *= 6;
     }
   }
@@ -516,8 +519,8 @@ addConfig(Config config, struct puzzle *back)
 
       for (i = 0; i < WIDTH; i++) {
         for (j = 0; j < HEIGHT; j++) {
-          if (convert[config[j][i]] !=
-            convert[newpiece->pieces[j][i]])
+          if (convert[(int)config[j][i]] !=
+            convert[(int)newpiece->pieces[j][i]])
             goto nomatch;
         }
       }
@@ -718,7 +721,7 @@ continueSolving(void)
       }
     }
   }
-  glutSetWindowTitle("What!  No change?");
+  glutSetWindowTitle((char *)"What!  No change?");
   freeSolutions();
   return 0;
 
@@ -752,7 +755,7 @@ solvePuzzle(void)
   int i;
 
   if (solution(thePuzzle)) {
-    glutSetWindowTitle("Puzzle already solved!");
+    glutSetWindowTitle((char *)"Puzzle already solved!");
     return 0;
   }
   addConfig(thePuzzle, NULL);
@@ -1144,12 +1147,12 @@ toggleSolve(void)
     if (solving) {
       freeSolutions();
       solving = 0;
-      glutChangeToMenuEntry(1, "Solving", 1);
-      glutSetWindowTitle("glpuzzle");
+      glutChangeToMenuEntry(1, (char *)"Solving", 1);
+      glutSetWindowTitle((char *)"glpuzzle");
       movingPiece = 0;
     } else {
-      glutChangeToMenuEntry(1, "Stop solving", 1);
-      glutSetWindowTitle("Solving...");
+      glutChangeToMenuEntry(1, (char *)"Stop solving", 1);
+      glutSetWindowTitle((char *)"Solving...");
       if (solvePuzzle()) {
         solving = 1;
       }
@@ -1163,8 +1166,8 @@ void reset(void)
     if (solving) {
       freeSolutions();
       solving = 0;
-      glutChangeToMenuEntry(1, "Solving", 1);
-      glutSetWindowTitle("glpuzzle");
+      glutChangeToMenuEntry(1, (char *)"Solving", 1);
+      glutSetWindowTitle((char *)"glpuzzle");
       movingPiece = 0;
       changeState();
     }
@@ -1186,8 +1189,8 @@ keyboard(unsigned char c, int x, int y)
     if (solving) {
       freeSolutions();
       solving = 0;
-      glutChangeToMenuEntry(1, "Solving", 1);
-      glutSetWindowTitle("glpuzzle");
+      glutChangeToMenuEntry(1, (char *)"Solving", 1);
+      glutSetWindowTitle((char *)"glpuzzle");
       movingPiece = 0;
       changeState();
     }
@@ -1261,8 +1264,8 @@ mouse(int b, int s, int x, int y)
       if (solving) {
         freeSolutions();
         solving = 0;
-      glutChangeToMenuEntry(1, "Solving", 1);
-        glutSetWindowTitle("glpuzzle");
+      glutChangeToMenuEntry(1, (char *)"Solving", 1);
+        glutSetWindowTitle((char *)"glpuzzle");
         movingPiece = 0;
       }
       left_mouse = GL_TRUE;
@@ -1303,11 +1306,11 @@ animate(void)
   if (solving) {
     if (!continueSolving()) {
       solving = 0;
-      glutChangeToMenuEntry(1, "Solving", 1);
-      glutSetWindowTitle("glpuzzle");
+      glutChangeToMenuEntry(1, (char *)"Solving", 1);
+      glutSetWindowTitle((char *)"glpuzzle");
     }
   }
-  if (!solving && !spinning && !visible) {
+  if ((!solving && !spinning) || !visible) {
     glutIdleFunc(NULL);
   }
 }
@@ -1385,8 +1388,8 @@ init(void)
 static void
 Usage(void)
 {
-  printf("Usage: puzzle [-s]\n");
-  printf("   -s:  Run in single buffered mode\n");
+  puts("Usage: puzzle [-s]");
+  puts("   -s:  Run in single buffered mode");
   exit(-1);
 }
 
@@ -1451,15 +1454,15 @@ main(int argc, char **argv)
 
   glGetIntegerv(GL_VIEWPORT, viewport);
 
-  printf("\n");
-  printf("r   Reset puzzle\n");
-  printf("s   Solve puzzle (may take a few seconds to compute)\n");
-  printf("d   Destroy a piece - makes the puzzle easier\n");
-  printf("b   Toggles the depth buffer on and off\n");
-  printf("\n");
-  printf("Left mouse moves pieces\n");
-  printf("Middle mouse spins the puzzle\n");
-  printf("Right mouse has menu\n");
+  puts("");
+  puts("r   Reset puzzle");
+  puts("s   Solve puzzle (may take a few seconds to compute)");
+  puts("d   Destroy a piece - makes the puzzle easier");
+  puts("b   Toggles the depth buffer on and off");
+  puts("");
+  puts("Left mouse moves pieces");
+  puts("Middle mouse spins the puzzle");
+  puts("Right mouse has menu");
 
   glutReshapeFunc(Reshape);
   glutDisplayFunc(redraw);
@@ -1468,9 +1471,9 @@ main(int argc, char **argv)
   glutMouseFunc(mouse);
   glutVisibilityFunc(visibility);
   glutCreateMenu(menu);
-  glutAddMenuEntry("Solve", 1);
-  glutAddMenuEntry("Reset", 2);
-  glutAddMenuEntry("Quit", 3);
+  glutAddMenuEntry((char *)"Solve", 1);
+  glutAddMenuEntry((char *)"Reset", 2);
+  glutAddMenuEntry((char *)"Quit", 3);
   glutAttachMenu(GLUT_RIGHT_BUTTON);
   glutMainLoop();
   return 0;             /* ANSI C requires main to return int. */
@@ -1479,5 +1482,5 @@ main(int argc, char **argv)
 #endif // added for fltk's distribution
 
 //
-// End of "$Id: glpuzzle.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: glpuzzle.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

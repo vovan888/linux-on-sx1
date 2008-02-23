@@ -1,5 +1,5 @@
 //
-// "$Id: fl_dnd_mac.cxx 4052 2005-02-24 21:55:12Z mike $"
+// "$Id: fl_dnd_mac.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Drag & Drop code for the Fast Light Tool Kit (FLTK).
 //
@@ -86,5 +86,5 @@ int Fl::dnd()
   
 
 //
-// End of "$Id: fl_dnd_mac.cxx 4052 2005-02-24 21:55:12Z mike $".
+// End of "$Id: fl_dnd_mac.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

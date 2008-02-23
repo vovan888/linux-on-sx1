@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Value_Slider.cxx 4609 2005-10-30 17:42:21Z mike $"
+// "$Id: Fl_Value_Slider.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Value slider widget for the Fast Light Tool Kit (FLTK).
 //
@@ -78,5 +78,5 @@ int Fl_Value_Slider::handle(int event) {
 }
 
 //
-// End of "$Id: Fl_Value_Slider.cxx 4609 2005-10-30 17:42:21Z mike $".
+// End of "$Id: Fl_Value_Slider.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

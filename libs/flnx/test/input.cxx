@@ -1,9 +1,9 @@
 //
-// "$Id: input.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: input.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Input field test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <stdio.h>
@@ -59,31 +61,41 @@ void button_cb(Fl_Widget *,void *) {
 
 void color_cb(Fl_Widget* button, void* v) {
   Fl_Color c;
-  switch ((int)v) {
-  case 0: c = FL_WHITE; break;
+  switch ((long)v) {
+  case 0: c = FL_BACKGROUND2_COLOR; break;
   case 1: c = FL_SELECTION_COLOR; break;
-  default: c = FL_BLACK; break;
+  default: c = FL_FOREGROUND_COLOR; break;
   }
   uchar r,g,b; Fl::get_color(c, r,g,b);
   if (fl_color_chooser(0,r,g,b)) {
     Fl::set_color(c,r,g,b); Fl::redraw();
-    button->labelcolor(contrast(FL_BLACK,c));
+    button->labelcolor(fl_contrast(FL_BLACK,c));
     button->redraw();
   }
 }
 
 int main(int argc, char **argv) {
+  // the following two lines set the correct color scheme, so that 
+  // calling fl_contrast below will return good results
+  Fl::args(argc, argv);
+  Fl::get_system_colors();
   Fl_Window *window = new Fl_Window(400,400);
 
   int y = 10;
   input[0] = new Fl_Input(70,y,300,30,"Normal:"); y += 35;
+  input[0]->tooltip("Normal input field");
   // input[0]->cursor_color(FL_SELECTION_COLOR);
-  //  input[0]->maximum_size(20);
+  // input[0]->maximum_size(20);
   // input[0]->static_value("this is a testgarbage");
   input[1] = new Fl_Float_Input(70,y,300,30,"Float:"); y += 35;
+  input[1]->tooltip("Input field for floating-point number");
   input[2] = new Fl_Int_Input(70,y,300,30,"Int:"); y += 35;
+  input[2]->tooltip("Input field for integer number");
   input[3] = new Fl_Secret_Input(70,y,300,30,"Secret:"); y += 35;
+  input[3]->tooltip("Input field for password");
   input[4] = new Fl_Multiline_Input(70,y,300,100,"Multiline:"); y += 105;
+  input[4]->tooltip("Input field for short text with newlines");
+  input[4]->wrap(1);
 
   for (int i = 0; i < 4; i++) {
     input[i]->when(0); input[i]->callback(cb);
@@ -91,25 +103,34 @@ int main(int argc, char **argv) {
   int y1 = y;
 
   Fl_Button *b;
-  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_&CHANGED");
+  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_CHANGED");
   b->callback(toggle_cb, FL_WHEN_CHANGED); y += 25;
-  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_&RELEASE");
+  b->tooltip("Do callback each time the text changes");
+  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_RELEASE");
   b->callback(toggle_cb, FL_WHEN_RELEASE); y += 25;
-  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_&ENTER_KEY");
+  b->tooltip("Do callback when widget loses focus");
+  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_ENTER_KEY");
   b->callback(toggle_cb, FL_WHEN_ENTER_KEY); y += 25;
-  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_&NOT_CHANGED");
+  b->tooltip("Do callback when user hits Enter key");
+  b = new Fl_Toggle_Button(10,y,200,25,"FL_WHEN_NOT_CHANGED");
   b->callback(toggle_cb, FL_WHEN_NOT_CHANGED); y += 25;
+  b->tooltip("Do callback even if the text is not changed");
   y += 5;
   b = new Fl_Button(10,y,200,25,"&print changed()");
   b->callback(button_cb);
+  b->tooltip("Print widgets that have changed() flag set");
 
   b = new Fl_Button(220,y1,100,25,"color"); y1 += 25;
   b->color(input[0]->color()); b->callback(color_cb, (void*)0);
+  b->tooltip("Color behind the text");
   b = new Fl_Button(220,y1,100,25,"selection_color"); y1 += 25;
   b->color(input[0]->selection_color()); b->callback(color_cb, (void*)1);
+  b->labelcolor(fl_contrast(FL_BLACK,b->color()));
+  b->tooltip("Color behind selected text");
   b = new Fl_Button(220,y1,100,25,"textcolor"); y1 += 25;
   b->color(input[0]->textcolor()); b->callback(color_cb, (void*)2);
-  b->labelcolor(contrast(FL_BLACK,b->color()));
+  b->labelcolor(fl_contrast(FL_BLACK,b->color()));
+  b->tooltip("Color of the text");
 
   window->end();
   window->show(argc,argv);
@@ -117,5 +138,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: input.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: input.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

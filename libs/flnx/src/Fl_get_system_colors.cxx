@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_get_system_colors.cxx 4705 2005-12-14 01:58:03Z mike $"
+// "$Id: Fl_get_system_colors.cxx 5699 2007-02-20 17:02:41Z matt $"
 //
 // System color support for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2005 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -40,7 +40,7 @@
 extern "C" int putenv(const char*);
 #endif // __APPLE__ && __MWERKS__
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) && !defined(__CYGWIN__) && !defined(__WATCOMC__)
 // Visual C++ 2005 incorrectly displays a warning about the use of POSIX APIs
 // on Windows, which is supposed to be POSIX compliant...
 #  define putenv _putenv
@@ -168,6 +168,35 @@ void Fl::get_system_colors()
   if (!fl_bg2_set) background2(0xff, 0xff, 0xff);
   if (!fl_fg_set) foreground(0, 0, 0);
   if (!fl_bg_set) background(0xd8, 0xd8, 0xd8);
+  
+#if 0 
+  // this would be the correct code, but it does not run on all versions
+  // of OS X. Also, setting a bright selection color would require 
+  // some updates in Fl_Adjuster and Fl_Help_Browser
+  OSStatus err;
+  RGBColor c;
+  err = GetThemeBrushAsColor(kThemeBrushPrimaryHighlightColor, 24, true, &c);
+  if (err)
+    set_selection_color(0x00, 0x00, 0x80);
+  else
+    set_selection_color(c.red, c.green, c.blue);
+#else
+  set_selection_color(0x00, 0x00, 0x80);
+#endif
+}
+#elif defined(NANO_X)
+void Fl::get_system_colors()
+{
+  fl_open_display();
+  const char* key1 = 0;
+  if (Fl::first_window()) key1 = Fl::first_window()->xclass();
+  if (!key1) key1 = "fltk";
+  GR_COLOR  col;
+  col = GrGetSysColor(GR_COLOR_APPWINDOW);
+  /*TODO*/
+  if (!fl_bg2_set) background2(0xff, 0xff, 0xff);
+  if (!fl_fg_set) foreground(0, 0, 0);
+  if (!fl_bg_set) background(0xd8, 0xd8, 0xd8);
   set_selection_color(0x00, 0x00, 0x80);
 }
 #else
@@ -184,7 +213,6 @@ void Fl::get_system_colors()
 static void
 getsyscolor(const char *key1, const char* key2, const char *arg, const char *defarg, void (*func)(uchar,uchar,uchar))
 {
-#ifndef NANO_X //tanghao
   if (!arg) {
     arg = XGetDefault(fl_display, key1, key2);
     if (!arg) arg = defarg;
@@ -194,12 +222,10 @@ getsyscolor(const char *key1, const char* key2, const char *arg, const char *def
     Fl::error("Unknown color: %s", arg);
   else
     func(x.red>>8, x.green>>8, x.blue>>8);
-#endif
 }
 
 void Fl::get_system_colors()
 {
-#if 1
   fl_open_display();
   const char* key1 = 0;
   if (Fl::first_window()) key1 = Fl::first_window()->xclass();
@@ -207,14 +233,7 @@ void Fl::get_system_colors()
   if (!fl_bg2_set) getsyscolor("Text","background",	fl_bg2,	"#ffffff", Fl::background2);
   if (!fl_fg_set) getsyscolor(key1,  "foreground",	fl_fg,	"#000000", Fl::foreground);
   if (!fl_bg_set) getsyscolor(key1,  "background",	fl_bg,	"#c0c0c0", Fl::background);
-  getsyscolor(key1,  "selectBackground",0,	"#000080", set_selection_color);
-#else
-// taken from APPLE
-  if (!fl_bg2_set) background2(0xff, 0xff, 0xff);
-  if (!fl_fg_set) foreground(0, 0, 0);
-  if (!fl_bg_set) background(0xd8, 0xd8, 0xd8);
-  set_selection_color(0x00, 0x00, 0x80);
-#endif
+  getsyscolor("Text", "selectBackground", 0, "#000080", set_selection_color);
 }
 
 #endif
@@ -318,6 +337,30 @@ int Fl::reload_scheme() {
     set_boxtype(FL_THIN_DOWN_BOX,   FL_PLASTIC_THIN_DOWN_BOX);
     set_boxtype(_FL_ROUND_UP_BOX,   FL_PLASTIC_ROUND_UP_BOX);
     set_boxtype(_FL_ROUND_DOWN_BOX, FL_PLASTIC_ROUND_DOWN_BOX);
+
+    // Use standard size scrollbars...
+    Fl::scrollbar_size(16);
+  } else if (scheme_ && !strcasecmp(scheme_, "gtk+")) {
+    // Use a GTK+ inspired look-n-feel...
+    if (scheme_bg_) {
+      delete scheme_bg_;
+      scheme_bg_ = (Fl_Image *)0;
+    }
+
+    set_boxtype(FL_UP_FRAME,        FL_GTK_UP_FRAME);
+    set_boxtype(FL_DOWN_FRAME,      FL_GTK_DOWN_FRAME);
+    set_boxtype(FL_THIN_UP_FRAME,   FL_GTK_THIN_UP_FRAME);
+    set_boxtype(FL_THIN_DOWN_FRAME, FL_GTK_THIN_DOWN_FRAME);
+
+    set_boxtype(FL_UP_BOX,          FL_GTK_UP_BOX);
+    set_boxtype(FL_DOWN_BOX,        FL_GTK_DOWN_BOX);
+    set_boxtype(FL_THIN_UP_BOX,     FL_GTK_THIN_UP_BOX);
+    set_boxtype(FL_THIN_DOWN_BOX,   FL_GTK_THIN_DOWN_BOX);
+    set_boxtype(_FL_ROUND_UP_BOX,   FL_GTK_ROUND_UP_BOX);
+    set_boxtype(_FL_ROUND_DOWN_BOX, FL_GTK_ROUND_DOWN_BOX);
+
+    // Use slightly thinner scrollbars...
+    Fl::scrollbar_size(15);
   } else {
     // Use the standard FLTK look-n-feel...
     if (scheme_bg_) {
@@ -336,6 +379,9 @@ int Fl::reload_scheme() {
     set_boxtype(FL_THIN_DOWN_BOX,   fl_thin_down_box, 1, 1, 2, 2);
     set_boxtype(_FL_ROUND_UP_BOX,   fl_round_up_box, 3, 3, 6, 6);
     set_boxtype(_FL_ROUND_DOWN_BOX, fl_round_down_box, 3, 3, 6, 6);
+
+    // Use standard size scrollbars...
+    Fl::scrollbar_size(16);
   }
 
   // Set (or clear) the background tile for all windows...
@@ -351,5 +397,5 @@ int Fl::reload_scheme() {
 
 
 //
-// End of "$Id: Fl_get_system_colors.cxx 4705 2005-12-14 01:58:03Z mike $".
+// End of "$Id: Fl_get_system_colors.cxx 5699 2007-02-20 17:02:41Z matt $".
 //

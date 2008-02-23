@@ -1,9 +1,9 @@
 //
-// "$Id: gl_overlay.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: gl_overlay.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
 // OpenGL overlay test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,10 +20,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#include <config.h>
+#include "config.h"
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Hor_Slider.H>
@@ -70,9 +72,9 @@ void shape_window::draw() {
   glClear(GL_COLOR_BUFFER_BIT);
   //  for (int j=1; j<=1000; j++) {
     glBegin(GL_POLYGON);
-    for (int i=0; i<sides; i++) {
-      double ang = i*2*M_PI/sides;
-      glColor3f(float(i)/sides,float(i)/sides,float(i)/sides);
+    for (int j=0; j<sides; j++) {
+      double ang = j*2*M_PI/sides;
+      glColor3f(float(j)/sides,float(j)/sides,float(j)/sides);
       glVertex3f(cos(ang),sin(ang),0);
     }
     glEnd();
@@ -90,8 +92,8 @@ void shape_window::draw_overlay() {
 // draw an amazing graphic:
   gl_color(FL_RED);
   glBegin(GL_LINE_LOOP);
-  for (int i=0; i<overlay_sides; i++) {
-    double ang = i*2*M_PI/overlay_sides;
+  for (int j=0; j<overlay_sides; j++) {
+    double ang = j*2*M_PI/overlay_sides;
     glVertex3f(cos(ang),sin(ang),0);
   }
   glEnd();
@@ -151,5 +153,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: gl_overlay.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: gl_overlay.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

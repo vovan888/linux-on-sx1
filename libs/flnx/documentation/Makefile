@@ -1,9 +1,9 @@
 #
-# "$Id: Makefile 4756 2006-01-15 18:36:16Z mike $"
+# "$Id: Makefile 5663 2007-02-06 19:35:28Z mike $"
 #
 # Documentation makefile for the Fast Light Tool Kit (FLTK).
 #
-# Copyright 1998-2005 by Bill Spitzak and others.
+# Copyright 1998-2007 by Bill Spitzak and others.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -54,6 +54,7 @@ HTMLFILES	= \
 		subclassing.html \
 		opengl.html \
 		fluid.html \
+		advanced.html \
 		widgets.html \
 		Fl.html \
 		Fl_Adjuster.html \
@@ -68,6 +69,7 @@ HTMLFILES	= \
 		Fl_Check_Button.html \
 		Fl_Choice.html \
 		Fl_Clock.html \
+		Fl_Clock_Output.html \
 		Fl_Color_Chooser.html \
 		Fl_Counter.html \
 		Fl_Dial.html \
@@ -129,6 +131,7 @@ HTMLFILES	= \
 		Fl_Tile.html \
 		Fl_Tiled_Image.html \
 		Fl_Timer.html \
+		Fl_Toggle_Button.html \
 		Fl_Tooltip.html \
 		Fl_Valuator.html \
 		Fl_Value_Input.html \
@@ -145,7 +148,8 @@ HTMLFILES	= \
 		forms.html \
 		osissues.html \
 		migration.html \
-		license.html
+		license.html \
+		examples.html
 
 IMAGEFILES	= \
 		adjuster1.gif \
@@ -212,7 +216,7 @@ IMAGEFILES	= \
 
 
 MANPAGES =	fltk.$(CAT3EXT) fltk-config.$(CAT1EXT) fluid.$(CAT1EXT) \
-		checkers.$(CAT6EXT) sudoku.$(CAT6EXT)
+		blocks.$(CAT6EXT) checkers.$(CAT6EXT) sudoku.$(CAT6EXT)
 
 all:	$(MANPAGES)
 
@@ -228,38 +232,31 @@ depend:
 
 install: $(MANPAGES)
 	echo "Installing documentation files in $(DESTDIR)$(docdir)..."
-	-$(MKDIR) $(DESTDIR)$(docdir)
-	$(CP) $(HTMLFILES) $(IMAGEFILES) index.html $(DESTDIR)$(docdir)
-	$(CHMOD) 644 $(DESTDIR)$(docdir)/*.*
+	-$(INSTALL_DIR) $(DESTDIR)$(docdir)
+	for file in $(HTMLFILES) $(IMAGEFILES) index.html; do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(docdir); \
+	done
 	echo "Installing man pages in $(DESTDIR)$(mandir)..."
-	-$(MKDIR) $(DESTDIR)$(mandir)/cat1
-	$(CP) fluid.$(CAT1EXT) $(DESTDIR)$(mandir)/cat1
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/cat1/fluid.$(CAT1EXT)
-	$(CP) fltk-config.$(CAT1EXT) $(DESTDIR)$(mandir)/cat1
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/cat1/fltk-config.$(CAT1EXT)
-	-$(MKDIR) $(DESTDIR)$(mandir)/cat3
-	$(CP) fltk.$(CAT3EXT) $(DESTDIR)$(mandir)/cat3
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/cat3/fltk.$(CAT3EXT)
-	-$(MKDIR) $(DESTDIR)$(mandir)/man1
-	$(CP) fluid.man $(DESTDIR)$(mandir)/man1/fluid.1
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/man1/fluid.1
-	$(CP) fltk-config.man $(DESTDIR)$(mandir)/man1/fltk-config.1
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/man1/fltk-config.1
-	-$(MKDIR) $(DESTDIR)$(mandir)/man3
-	$(CP) fltk.man $(DESTDIR)$(mandir)/man3/fltk.3
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/man3/fltk.3
+	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/cat1
+	$(INSTALL_MAN) fluid.$(CAT1EXT) $(DESTDIR)$(mandir)/cat1
+	$(INSTALL_MAN) fltk-config.$(CAT1EXT) $(DESTDIR)$(mandir)/cat1
+	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/cat3
+	$(INSTALL_MAN) fltk.$(CAT3EXT) $(DESTDIR)$(mandir)/cat3
+	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/man1
+	$(INSTALL_MAN) fluid.man $(DESTDIR)$(mandir)/man1/fluid.1
+	$(INSTALL_MAN) fltk-config.man $(DESTDIR)$(mandir)/man1/fltk-config.1
+	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/man3
+	$(INSTALL_MAN) fltk.man $(DESTDIR)$(mandir)/man3/fltk.3
 
 install-linux install-osx:
-	-$(MKDIR) $(DESTDIR)$(mandir)/cat6
-	$(CP) checkers.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/cat6/checkers.$(CAT6EXT)
-	$(CP) sudoku.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/cat6/sudoku.$(CAT6EXT)
-	-$(MKDIR) $(DESTDIR)$(mandir)/man6
-	$(CP) checkers.man $(DESTDIR)$(mandir)/man6/checkers.6
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/man6/checkers.6
-	$(CP) sudoku.man $(DESTDIR)$(mandir)/man6/sudoku.6
-	$(CHMOD) 644 $(DESTDIR)$(mandir)/man6/sudoku.6
+	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/cat6
+	$(INSTALL_MAN) blocks.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
+	$(INSTALL_MAN) checkers.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
+	$(INSTALL_MAN) sudoku.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
+	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/man6
+	$(INSTALL_MAN) blocks.man $(DESTDIR)$(mandir)/man6/blocks.6
+	$(INSTALL_MAN) checkers.man $(DESTDIR)$(mandir)/man6/checkers.6
+	$(INSTALL_MAN) sudoku.man $(DESTDIR)$(mandir)/man6/sudoku.6
 
 
 uninstall:
@@ -272,8 +269,10 @@ uninstall:
 	$(RM) $(DESTDIR)$(mandir)/man3/fltk.3
 
 uninstall-linux uninstall-osx:
+	$(RM) $(DESTDIR)$(mandir)/cat6/blocks.$(CAT6EXT)
 	$(RM) $(DESTDIR)$(mandir)/cat6/checkers.$(CAT6EXT)
 	$(RM) $(DESTDIR)$(mandir)/cat6/sudoku.$(CAT6EXT)
+	$(RM) $(DESTDIR)$(mandir)/man6/blocks.6
 	$(RM) $(DESTDIR)$(mandir)/man6/checkers.6
 	$(RM) $(DESTDIR)$(mandir)/man6/sudoku.6
 
@@ -282,7 +281,7 @@ uninstall-linux uninstall-osx:
 fltk.d/index.html: $(HTMLFILES) $(IMAGEFILES)
 	echo "Generating HTML documentation..."
 	-$(RMDIR) fltk.d
-	-$(MKDIR) fltk.d
+	-$(INSTALL_DIR) fltk.d
 	-$(HTMLDOC) --verbose --batch fltk.book -d fltk.d -t html
 
 fltk.ps: $(HTMLFILES) $(IMAGEFILES)
@@ -296,5 +295,5 @@ fltk.pdf: $(HTMLFILES) $(IMAGEFILES)
 	-$(HTMLDOC) --verbose --batch fltk.book $(MEDIA) -f fltk.pdf
 
 #
-# End of "$Id: Makefile 4756 2006-01-15 18:36:16Z mike $".
+# End of "$Id: Makefile 5663 2007-02-06 19:35:28Z mike $".
 #

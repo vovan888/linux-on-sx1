@@ -1,5 +1,5 @@
 //
-// "$Id: pack.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: pack.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Fl_Pack test program for the Fast Light Tool Kit (FLTK).
 //
@@ -7,7 +7,7 @@
 // Changing the type() of an Fl_Pack after it is displayed is not supported
 // so I have to do a lot of resizing of things before that.
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -24,7 +24,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -56,10 +58,10 @@ void spacing_cb(Fl_Value_Slider*o, long) {
 
 int main(int argc, char **argv) {
  Fl_Window *w;
- {Fl_Window* o = new Fl_Window(365, 525);
+ {Fl_Window* o = new Fl_Window(360, 370);
   w = o;
-  scroll = new Fl_Scroll(10,10,345,285);
- {Fl_Pack* o = new Fl_Pack(10, 10, 345, 285);
+  scroll = new Fl_Scroll(10,10,340,285);
+ {Fl_Pack* o = new Fl_Pack(10, 10, 340, 285);
   pack = o;
   o->box(FL_DOWN_FRAME);
   //o->box(FL_ENGRAVED_FRAME);
@@ -91,16 +93,16 @@ int main(int argc, char **argv) {
   w->resizable(o);
  }
  scroll->end();
- {Fl_Light_Button* o = new Fl_Light_Button(10, 325, 175, 25, "HORIZONTAL");
+ {Fl_Light_Button* o = new Fl_Light_Button(10, 305, 165, 25, "HORIZONTAL");
  o->type(FL_RADIO_BUTTON);
   o->callback((Fl_Callback*)type_cb, (void*)(Fl_Pack::HORIZONTAL));
  }
- {Fl_Light_Button* o = new Fl_Light_Button(10, 350, 175, 25, "VERTICAL");
+ {Fl_Light_Button* o = new Fl_Light_Button(185, 305, 165, 25, "VERTICAL");
  o->type(FL_RADIO_BUTTON);
  o->value(1);
   o->callback((Fl_Callback*)type_cb, (void*)(Fl_Pack::VERTICAL));
  }
- {Fl_Value_Slider* o = new Fl_Value_Slider(50,375, 295,25,"spacing:");
+ {Fl_Value_Slider* o = new Fl_Value_Slider(100, 335, 250, 25, "Spacing: ");
  o->align(FL_ALIGN_LEFT);
  o->type(FL_HORIZONTAL);
  o->range(0,30);
@@ -114,5 +116,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: pack.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: pack.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

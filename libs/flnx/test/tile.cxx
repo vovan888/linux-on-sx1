@@ -1,9 +1,9 @@
 //
-// "$Id: tile.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: tile.cxx 5912 2007-06-18 09:35:42Z matt $"
 //
 // Tile test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -40,7 +42,7 @@ int main(int argc, char** argv) {
   box0.align(FL_ALIGN_CLIP);
   Fl_Window w1(150,0,150,150,"1");
   w1.box(FL_NO_BOX);
-  Fl_Box box1(0,0,150,150,"1\nThis is a\nchild\nX window");
+  Fl_Box box1(0,0,150,150,"1\nThis is a\nchild\nwindow");
   box1.box(FL_DOWN_BOX);
   box1.color(19);
   box1.labelsize(18);
@@ -80,11 +82,11 @@ int main(int argc, char** argv) {
 
   tile.end();
   window.end();
-  window.show(argc,argv);
   w1.show();
+  window.show(argc,argv);
   return Fl::run();
 }
 
 //
-// End of "$Id: tile.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: tile.cxx 5912 2007-06-18 09:35:42Z matt $".
 //

@@ -1,5 +1,5 @@
 //
-// "$Id: fl_draw_image_mac.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_draw_image_mac.cxx 5614 2007-01-18 15:25:09Z matt $"
 //
 // MacOS image drawing code for the Fast Light Tool Kit (FLTK).
 //
@@ -175,17 +175,21 @@ static void innards(const uchar *buf, int X, int Y, int W, int H,
       cb(userdata, 0, i, W, tmpBuf+i*W*delta);
     }
     array = (void*)tmpBuf;
-    linedelta = W;
+    linedelta = W*delta;
   }
   // create an image context
-  CGColorSpaceRef   lut = CGColorSpaceCreateDeviceRGB();
-  CGDataProviderRef src = CGDataProviderCreateWithData( 0L, array, linedelta*H*delta, 0L);
-  CGImageRef        img = CGImageCreate( W, H, 8, 8*delta, linedelta*delta,
+  CGColorSpaceRef   lut = 0;
+  if (delta<=2) 
+    lut = CGColorSpaceCreateDeviceGray();
+  else
+    lut = CGColorSpaceCreateDeviceRGB();
+  CGDataProviderRef src = CGDataProviderCreateWithData( 0L, array, linedelta*H, 0L);
+  CGImageRef        img = CGImageCreate( W, H, 8, 8*delta, linedelta,
                             lut, delta&1?kCGImageAlphaNone:kCGImageAlphaNoneSkipLast,
                             src, 0L, false, kCGRenderingIntentDefault);
   // draw the image into the destination context
   if (img) {
-    CGRect rect = { X, Y, W, H };
+    CGRect rect = { { X, Y }, { W, H } };
     Fl_X::q_begin_image(rect, 0, 0, W, H);
     CGContextDrawImage(fl_gc, rect, img);
     Fl_X::q_end_image();
@@ -266,5 +270,5 @@ void fl_rectf(int x, int y, int w, int h, uchar r, uchar g, uchar b) {
 }
 
 //
-// End of "$Id: fl_draw_image_mac.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_draw_image_mac.cxx 5614 2007-01-18 15:25:09Z matt $".
 //

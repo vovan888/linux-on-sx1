@@ -1,5 +1,5 @@
 //
-// "$Id: keyboard.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: keyboard.cxx 5702 2007-02-21 15:49:38Z matt $"
 //
 // Keyboard/event test program for the Fast Light Tool Kit (FLTK).
 //
@@ -17,7 +17,7 @@
 //
 // On IRIX the backslash key does not work.  A bug in XKeysymToKeycode?
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -34,22 +34,38 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#include "keyboard_ui.cxx"
-#include <stdio.h>
+
+#include "keyboard_ui.h"
+
+#include <string.h>
+
 
 // these are used to identify which buttons are which:
 void key_cb(Fl_Button*, void*) {}
 void shift_cb(Fl_Button*, void*) {}
+void wheel_cb(Fl_Dial*, void*) {}
 
 // this is used to stop Esc from exiting the program:
 int handle(int e) {
   return (e == FL_SHORTCUT); // eat all keystrokes
 }
 
-struct {int n; const char* text;} table[] = {
+int MyWindow::handle(int msg) {
+  if (msg==FL_MOUSEWHEEL)
+  {
+    roller_x->value( roller_x->value() + Fl::e_dx * roller_x->step() );
+    roller_y->value( roller_y->value() + Fl::e_dy * roller_y->step() );
+    return 1;
+  }
+  return 0;
+}
+
+struct keycode_table{int n; const char* text;} table[] = {
   {FL_Escape, "FL_Escape"},
   {FL_BackSpace, "FL_BackSpace"},
   {FL_Tab, "FL_Tab"},
@@ -77,6 +93,7 @@ struct {int n; const char* text;} table[] = {
   {FL_Meta_L, "FL_Meta_L"},
   {FL_Meta_R, "FL_Meta_R"},
   {FL_Menu, "FL_Menu"},
+  {FL_Help, "FL_Help"},
   {FL_Num_Lock, "FL_Num_Lock"},
   {FL_KP_Enter, "FL_KP_Enter"}
 };
@@ -86,17 +103,24 @@ int main(int argc, char** argv) {
   Fl_Window *window = make_window();
   window->show(argc,argv);
   while (Fl::wait()) {
+    const char *str;
     
     // update all the buttons with the current key and shift state:
     for (int i = 0; i < window->children(); i++) {
       Fl_Widget* b = window->child(i);
       if (b->callback() == (Fl_Callback*)key_cb) {
-	int i = int(b->user_data());
+	int i = (long)b->user_data();
 	if (!i) i = b->label()[0];
-	((Fl_Button*)b)->value(Fl::event_key(i));
+        Fl_Button *btn = ((Fl_Button*)b);
+        int state = Fl::event_key(i);
+        if (btn->value()!=state)
+	  btn->value(state);
       } else if (b->callback() == (Fl_Callback*)shift_cb) {
-	int i = int(b->user_data());
-	((Fl_Button*)b)->value(Fl::event_state(i));
+	int i = (long)b->user_data();
+        Fl_Button *btn = ((Fl_Button*)b);
+        int state = Fl::event_state(i);
+        if (btn->value()!=state)
+	  btn->value(state);
       }
     }
 
@@ -108,7 +132,7 @@ int main(int argc, char** argv) {
       keyname = "0";
     else if (k < 256) {
       sprintf(buffer, "'%c'", k);
-    } else if (k >= FL_F && k <= FL_F_Last) {
+    } else if (k > FL_F && k <= FL_F_Last) {
       sprintf(buffer, "FL_F+%d", k - FL_F);
     } else if (k >= FL_KP && k <= FL_KP_Last) {
       sprintf(buffer, "FL_KP+'%c'", k-FL_KP);
@@ -119,13 +143,16 @@ int main(int argc, char** argv) {
       for (int i = 0; i < int(sizeof(table)/sizeof(*table)); i++)
 	if (table[i].n == k) {keyname = table[i].text; break;}
     }
-    key_output->value(keyname);
+    if (strcmp(key_output->value(), keyname))
+      key_output->value(keyname);
 
-    text_output->value(Fl::event_text());
+    str = Fl::event_text();
+    if (strcmp(text_output->value(), str))
+      text_output->value(str);
   }
   return 0;
 }
 
 //
-// End of "$Id: keyboard.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: keyboard.cxx 5702 2007-02-21 15:49:38Z matt $".
 //

@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_JPEG_Image.cxx 4544 2005-08-29 19:39:02Z matt $"
+// "$Id: Fl_JPEG_Image.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
 // Fl_JPEG_Image routines.
 //
@@ -79,12 +79,10 @@ extern "C" {
   static void
   fl_jpeg_error_handler(j_common_ptr dinfo) {	// I - Decompressor info
     longjmp(((fl_jpeg_error_mgr *)(dinfo->err))->errhand_, 1);
-    return;
   }
 
   static void
-  fl_jpeg_output_handler(j_common_ptr dinfo) {	// I - Decompressor info
-    return;
+  fl_jpeg_output_handler(j_common_ptr) {	// I - Decompressor info (not used)
   }
 }
 #endif // HAVE_LIBJPEG
@@ -191,5 +189,5 @@ Fl_JPEG_Image::Fl_JPEG_Image(const char *jpeg)	// I - File to load
 }
 
 //
-// End of "$Id: Fl_JPEG_Image.cxx 4544 2005-08-29 19:39:02Z matt $".
+// End of "$Id: Fl_JPEG_Image.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

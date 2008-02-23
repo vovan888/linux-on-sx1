@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Gl_Choice.cxx 4563 2005-09-12 23:03:34Z matt $"
+// "$Id: Fl_Gl_Choice.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // OpenGL visual selection code for the Fast Light Tool Kit (FLTK).
 //
@@ -446,5 +446,5 @@ void fl_delete_gl_context(GLContext context) {
 
 
 //
-// End of "$Id: Fl_Gl_Choice.cxx 4563 2005-09-12 23:03:34Z matt $".
+// End of "$Id: Fl_Gl_Choice.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

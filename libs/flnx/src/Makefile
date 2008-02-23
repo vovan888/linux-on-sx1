@@ -1,9 +1,9 @@
 #
-# "$Id: Makefile 4474 2005-08-08 00:54:30Z mike $"
+# "$Id: Makefile 5689 2007-02-10 14:31:12Z mike $"
 #
 # Library makefile for the Fast Light Tool Kit (FLTK).
 #
-# Copyright 1998-2005 by Bill Spitzak and others.
+# Copyright 1998-2007 by Bill Spitzak and others.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -128,11 +128,15 @@ CPPFILES = \
 	fl_draw.cxx \
 	fl_draw_image.cxx \
 	fl_draw_pixmap.cxx \
+	fl_encoding_latin1.cxx \
+	fl_encoding_mac_roman.cxx \
 	fl_engraved_label.cxx \
 	fl_file_dir.cxx \
 	fl_font.cxx \
+	fl_gtk.cxx \
 	fl_labeltype.cxx \
 	fl_line_style.cxx \
+	fl_open_uri.cxx \
 	fl_oval_box.cxx \
 	fl_overlay.cxx \
 	fl_overlay_visual.cxx \
@@ -163,6 +167,10 @@ GLCPPFILES = \
 	Fl_Gl_Choice.cxx \
 	Fl_Gl_Overlay.cxx \
 	Fl_Gl_Window.cxx \
+	freeglut_geometry.cxx \
+	freeglut_stroke_mono_roman.cxx \
+	freeglut_stroke_roman.cxx \
+	freeglut_teapot.cxx \
 	gl_draw.cxx \
 	gl_start.cxx \
 	glut_compatability.cxx \
@@ -205,12 +213,6 @@ libfltk.so.1.1: $(OBJECTS)
 	$(DSOCOMMAND) $@ $(OBJECTS)
 	$(RM) libfltk.so
 	$(LN) libfltk.so.1.1 libfltk.so
-	@(if [ -f $(DSONAME) ]; then \
-		cd ../lib; \
-		ln -sf ../src/$(DSONAME) $(DSONAME); \
-		BASELIB=`echo $(DSONAME) | cut -f1 -d'.'`; \
-		ln -sf ../src/$(DSONAME) $$BASELIB.so; \
-	fi)
 
 libfltk.sl.1.1: $(OBJECTS)
 	echo $(DSOCOMMAND) $@ ...
@@ -332,7 +334,7 @@ libfltk_images.1.1.dylib: $(IMGOBJECTS) libfltk.1.1.dylib
 		-install_name $(libdir)/$@ \
 		-current_version 1.1.4 \
 		-compatibility_version 1.1.0 \
-		$(IMGOBJECTS)  -L.$(LDLIBS) $(IMAGELIBS) -lfltk
+		$(IMGOBJECTS)  -L. $(LDLIBS) $(IMAGELIBS) -lfltk
 	$(RM) libfltk_images.dylib
 	$(LN) libfltk_images.1.1.dylib libfltk_images.dylib
 
@@ -344,54 +346,68 @@ libfltk_images_s.a: $(IMGOBJECTS)
 	$(LIBCOMMAND) libfltk_images_s.a libfltk_images_s.o
 	$(CHMOD) +x libfltk_images_s.a
 
-cygfltknox-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk.a ...
-	$(DSOCOMMAND) ../lib/libfltk.a -Wl,--no-whole-archive \
+#-----------------------------------------------------------------
+# - the import libraries libfltk*.dll.a and the .dll files
+#   are created from the libfltk*.a files. They are built
+#   into the src dir.
+# - The _images, _gl, _forms and dlls must be linked
+#   against the import libraries in the src dir.
+#-----------------------------------------------------------------
+
+cygfltknox-1.1.dll: $(LIBNAME)
+	echo $(DSOCOMMAND) $(LIBNAME) ...
+	$(DSOCOMMAND) $(LIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk.dll.a $(LDLIBS)
 
-cygfltknox_forms-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk_forms.a ...
-	$(DSOCOMMAND) ../lib/libfltk_forms.a -Wl,--no-whole-archive \
+cygfltknox_forms-1.1.dll: $(FLLIBNAME) cygfltknox-1.1.dll
+	echo $(DSOCOMMAND) $(FLLIBNAME) ...
+	$(DSOCOMMAND) $(FLLIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk_forms.dll.a \
-		-L../lib -lfltk $(LDLIBS)
+		-L. -lfltk $(LDLIBS)
 
-cygfltknox_gl-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk_gl.a ...
-	$(DSOCOMMAND) ../lib/libfltk_gl.a -Wl,--no-whole-archive \
+cygfltknox_gl-1.1.dll: $(GLLIBNAME) cygfltknox-1.1.dll
+	echo $(DSOCOMMAND) $(GLLIBNAME) ...
+	$(DSOCOMMAND) $(GLLIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk_gl.dll.a \
-		-L../lib -lfltk $(GLDLIBS)
+		-L. -lfltk $(GLDLIBS)
 
-cygfltknox_images-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk_images ...
-	$(DSOCOMMAND) ../lib/libfltk_images.a -Wl,--no-whole-archive \
+cygfltknox_images-1.1.dll: $(IMGLIBNAME) cygfltknox-1.1.dll
+	echo $(DSOCOMMAND) $(IMGLIBNAME) ...
+	$(DSOCOMMAND) $(IMGLIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk_images.dll.a \
-		-L../lib -lfltk -ljpeg -lpng -lz $(LDLIBS)
+		-L. -lfltk -Wl,--exclude-libs -Wl,libfltk_png.a \
+			$(IMAGELIBS) $(LDLIBS)
 
-mgwfltknox-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk.a ...
-	$(DSOCOMMAND) ../lib/libfltk.a -Wl,--no-whole-archive \
+mgwfltknox-1.1.dll: $(LIBNAME)
+	echo $(DSOCOMMAND) $(LIBNAME) ...
+	$(DSOCOMMAND) $(LIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk.dll.a $(LDLIBS)
 
-mgwfltknox_forms-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk_forms.a ...
-	$(DSOCOMMAND) ../lib/libfltk_forms.a -Wl,--no-whole-archive \
+mgwfltknox_forms-1.1.dll: $(FLLIBNAME) mgwfltknox-1.1.dll
+	echo $(DSOCOMMAND) $(FLLIBNAME) ...
+	$(DSOCOMMAND) $(FLLIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk_forms.dll.a \
-		-L../lib -lfltk $(LDLIBS)
+		-L. -lfltk $(LDLIBS)
 
-mgwfltknox_gl-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk_gl.a ...
-	$(DSOCOMMAND) ../lib/libfltk_gl.a -Wl,--no-whole-archive \
+mgwfltknox_gl-1.1.dll: $(GLLIBNAME) mgwfltknox-1.1.dll
+	echo $(DSOCOMMAND) $(GLLIBNAME) ...
+	$(DSOCOMMAND) $(GLLIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk_gl.dll.a \
-		-L../lib -lfltk $(GLDLIBS)
+		-L. -lfltk $(GLDLIBS)
 
-mgwfltknox_images-1.1.dll:
-	echo $(DSOCOMMAND) ../lib/libfltk_images ...
-	$(DSOCOMMAND) ../lib/libfltk_images.a -Wl,--no-whole-archive \
+#-----------------------------------------------------
+# See STR #1585 for --exclude-libs
+#-----------------------------------------------------
+
+mgwfltknox_images-1.1.dll: $(IMGLIBNAME) mgwfltknox-1.1.dll
+	echo $(DSOCOMMAND) $(IMGLIBNAME) ...
+	$(DSOCOMMAND) $(IMGLIBNAME) -Wl,--no-whole-archive \
 		-Wl,--out-implib=libfltk_images.dll.a \
-		-L../lib -lfltk -ljpeg -lpng -lz $(LDLIBS)
+		-L. -lfltk -Wl,--exclude-libs -Wl,libfltk_png.a \
+			$(IMAGELIBS) $(LDLIBS)
 
 clean:
-	-$(RM) *.o core.* *~ *.bck *.bck
+	-$(RM) *.o *.dll.a core.* *~ *.bck *.bck
 	-$(RM) $(DSONAME) $(FLDSONAME) $(GLDSONAME) $(IMGDSONAME) \
 		../lib/$(LIBNAME) ../lib/$(FLLIBNAME) ../lib/$(GLLIBNAME) \
 		../lib/$(IMGLIBNAME) \
@@ -411,7 +427,7 @@ include makedepend
 # These dependencies aren't part of the makedepend file since
 # they are part of the WIN32 and MacOS code base...
 Fl_get_key.o:	Fl_get_key_mac.cxx Fl_get_key_win32.cxx
-Fl_x.o:		Fl_mac.cxx Fl_win32.cxx Fl_nanox.cxx
+Fl.o:		Fl_mac.cxx Fl_win32.cxx Fl_nanox.cxx
 fl_color.o:	fl_color_mac.cxx fl_color_win32.cxx
 fl_dnd.o:	fl_dnd_mac.cxx fl_dnd_win32.cxx fl_dnd_x.cxx fl_dnd_nanox.cxx
 fl_draw_image.o: fl_draw_image_mac.cxx fl_draw_image_win32.cxx
@@ -427,12 +443,14 @@ Fl_Bitmap.o:	../FL/mac.H ../FL/win32.H
 fl_color.o:	../FL/mac.H ../FL/win32.H
 fl_cursor.o:	../FL/mac.H ../FL/win32.H
 fl_dnd.o:	../FL/mac.H ../FL/win32.H
-Fl.o:	../FL/mac.H ../FL/win32.H
+Fl.o:	../FL/mac.H ../FL/win32.H Fl_win32.cxx Fl_mac.cxx
 Fl_Double_Window.o:	../FL/mac.H ../FL/win32.H
 fl_draw_image.o:	../FL/mac.H ../FL/win32.H
 fl_draw_image_mac.o:	../FL/mac.H ../FL/win32.H
 fl_draw_image_win32.o:	../FL/mac.H ../FL/win32.H
 fl_draw_pixmap.o:	../FL/mac.H ../FL/win32.H
+fl_encoding_latin1.o:	../FL/mac.H ../FL/win32.H
+fl_encoding_mac_roman.o:   ../FL/mac.H ../FL/win32.H
 Fl_File_Chooser2.o:	../FL/mac.H ../FL/win32.H
 fl_font.o:	../FL/mac.H ../FL/win32.H
 Fl_get_key.o:	../FL/mac.H ../FL/win32.H
@@ -473,171 +491,142 @@ install: $(LIBNAME) $(DSONAME) \
 	$(GLLIBNAME) $(GLDSONAME) \
 	$(IMGLIBNAME) $(IMGDSONAME)
 	echo "Installing libraries in $(DESTDIR)$(libdir)..."
-	-$(MKDIR) $(DESTDIR)$(libdir)
-	-$(MKDIR) $(DESTDIR)$(bindir)
+	-$(INSTALL_DIR) $(DESTDIR)$(libdir)
+	-$(INSTALL_DIR) $(DESTDIR)$(bindir)
 	$(RM) $(DESTDIR)$(libdir)/$(LIBNAME)
-	-$(CP) $(LIBNAME) $(FLLIBNAME) $(GLLIBNAME) $(IMGLIBNAME) $(DESTDIR)$(libdir)
+	$(INSTALL_LIB) $(LIBNAME) $(DESTDIR)$(libdir)
+	$(INSTALL_LIB) $(FLLIBNAME) $(DESTDIR)$(libdir)
+	$(INSTALL_LIB) $(IMGLIBNAME) $(DESTDIR)$(libdir)
 	$(RANLIB) $(DESTDIR)$(libdir)/$(LIBNAME)
 	$(RANLIB) $(DESTDIR)$(libdir)/$(FLLIBNAME)
 	if test x$(GLLIBNAME) != x; then \
+		$(INSTALL_LIB) $(GLLIBNAME) $(DESTDIR)$(libdir); \
 		$(RANLIB) $(DESTDIR)$(libdir)/$(GLLIBNAME); \
 	fi
 	$(RANLIB) $(DESTDIR)$(libdir)/$(IMGLIBNAME)
 	if test x$(DSONAME) = xlibfltk.so.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk.so*;\
-		$(CP) libfltk.so.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk.so.1.1; \
+		$(INSTALL_LIB) libfltk.so.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk.so.1.1 $(DESTDIR)$(libdir)/libfltk.so;\
 	fi
 	if test x$(DSONAME) = xlibfltk.sl.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk.sl*;\
-		$(CP) libfltk.sl.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk.sl.1.1; \
+		$(INSTALL_LIB) libfltk.sl.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk.sl.1.1 $(DESTDIR)$(libdir)/libfltk.sl;\
 	fi
 	if test x$(DSONAME) = xlibfltk.1.1.dylib; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk.*dylib;\
-		$(CP) libfltk.1.1.dylib $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk.1.1.dylib; \
+		$(INSTALL_LIB) libfltk.1.1.dylib $(DESTDIR)$(libdir); \
 		$(LN) libfltk.1.1.dylib $(DESTDIR)$(libdir)/libfltk.dylib;\
 	fi
 	if test x$(DSONAME) = xlibfltk_s.a; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_s.a;\
-		$(CP) libfltk_s.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_s.a; \
+		$(INSTALL_LIB) libfltk_s.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(DSONAME) = xcygfltknox-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(DSONAME);\
-		$(CP) $(DSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(DSONAME); \
+		$(INSTALL_LIB) $(DSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk.dll.a;\
-		$(CP) libfltk.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk.dll.a; \
+		$(INSTALL_LIB) libfltk.dll.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(DSONAME) = xmgwfltknox-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(DSONAME);\
-		$(CP) $(DSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(DSONAME); \
+		$(INSTALL_LIB) $(DSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk.dll.a;\
-		$(CP) libfltk.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk.dll.a; \
+		$(INSTALL_LIB) libfltk.dll.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(FLDSONAME) = xlibfltk_forms.so.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_forms.so*;\
-		$(CP) libfltk_forms.so.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_forms.so.1.1; \
+		$(INSTALL_LIB) libfltk_forms.so.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk_forms.so.1.1 $(DESTDIR)$(libdir)/libfltk_forms.so;\
 	fi
 	if test x$(FLDSONAME) = xlibfltk_forms.sl.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_forms.sl*;\
-		$(CP) libfltk_forms.sl.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_forms.sl.1.1; \
+		$(INSTALL_LIB) libfltk_forms.sl.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk_forms.sl.1.1 $(DESTDIR)$(libdir)/libfltk_forms.sl;\
 	fi
 	if test x$(FLDSONAME) = xlibfltk_forms.1.1.dylib; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_forms.*dylib;\
-		$(CP) libfltk_forms.1.1.dylib $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_forms.1.1.dylib; \
+		$(INSTALL_LIB) libfltk_forms.1.1.dylib $(DESTDIR)$(libdir); \
 		$(LN) libfltk_forms.1.1.dylib $(DESTDIR)$(libdir)/libfltk_forms.dylib;\
 	fi
 	if test x$(FLDSONAME) = xlibfltk_forms_s.a; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_forms_s.a;\
-		$(CP) libfltk_forms_s.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_forms.a; \
+		$(INSTALL_LIB) libfltk_forms_s.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(FLDSONAME) = xcygfltknox_forms-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(FLDSONAME);\
-		$(CP) $(FLDSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(FLDSONAME); \
+		$(INSTALL_LIB) $(FLDSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk_forms.dll.a;\
-		$(CP) libfltk_forms.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_forms.dll.a; \
+		$(INSTALL_LIB) libfltk_forms.dll.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(FLDSONAME) = xmgwfltknox_forms-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(FLDSONAME);\
-		$(CP) $(FLDSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(FLDSONAME); \
+		$(INSTALL_LIB) $(FLDSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk_forms.dll.a;\
-		$(CP) libfltk_forms.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_forms.dll.a; \
+		$(INSTALL_LIB) libfltk_forms.dll.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(GLDSONAME) = xlibfltk_gl.so.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_gl.so*;\
-		$(CP) libfltk_gl.so.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_gl.so.1.1; \
+		$(INSTALL_LIB) libfltk_gl.so.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk_gl.so.1.1 $(DESTDIR)$(libdir)/libfltk_gl.so;\
 	fi
 	if test x$(GLDSONAME) = xlibfltk_gl.sl.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_gl.sl*;\
-		$(CP) libfltk_gl.sl.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_gl.sl.1.1; \
+		$(INSTALL_LIB) libfltk_gl.sl.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk_gl.sl.1.1 $(DESTDIR)$(libdir)/libfltk_gl.sl;\
 	fi
 	if test x$(GLDSONAME) = xlibfltk_gl.1.1.dylib; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_gl.*dylib;\
-		$(CP) libfltk_gl.1.1.dylib $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_gl.1.1.dylib; \
+		$(INSTALL_LIB) libfltk_gl.1.1.dylib $(DESTDIR)$(libdir); \
 		$(LN) libfltk_gl.1.1.dylib $(DESTDIR)$(libdir)/libfltk_gl.dylib;\
 	fi
 	if test x$(GLDSONAME) = xlibfltk_gl_s.a; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_gl_s.a;\
-		$(CP) libfltk_gl_s.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_gl.a; \
+		$(INSTALL_LIB) libfltk_gl_s.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(GLDSONAME) = xcygfltknox_gl-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(GLDSONAME);\
-		$(CP) $(GLDSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(GLDSONAME); \
+		$(INSTALL_LIB) $(GLDSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk_gl.dll.a;\
-		$(CP) libfltk_gl.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_gl.dll.a; \
+		$(INSTALL_LIB) libfltk_gl.dll.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(GLDSONAME) = xmgwfltknox_gl-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(GLDSONAME);\
-		$(CP) $(GLDSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(GLDSONAME); \
+		$(INSTALL_LIB) $(GLDSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk_gl.dll.a;\
-		$(CP) libfltk_gl.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_gl.dll.a; \
+		$(INSTALL_LIB) libfltk_gl.dll.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(IMGDSONAME) = xlibfltk_images.so.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_images.so*;\
-		$(CP) libfltk_images.so.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_images.so.1.1; \
+		$(INSTALL_LIB) libfltk_images.so.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk_images.so.1.1 $(DESTDIR)$(libdir)/libfltk_images.so;\
 	fi
 	if test x$(IMGDSONAME) = xlibfltk_images.sl.1.1; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_images.sl*;\
-		$(CP) libfltk_images.sl.1.1 $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_images.sl.1.1; \
+		$(INSTALL_LIB) libfltk_images.sl.1.1 $(DESTDIR)$(libdir); \
 		$(LN) libfltk_images.sl.1.1 $(DESTDIR)$(libdir)/libfltk_images.sl;\
 	fi
 	if test x$(IMGDSONAME) = xlibfltk_images.1.1.dylib; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_images.*dylib;\
-		$(CP) libfltk_images.1.1.dylib $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_images.1.1.dylib; \
+		$(INSTALL_LIB) libfltk_images.1.1.dylib $(DESTDIR)$(libdir); \
 		$(LN) libfltk_images.1.1.dylib $(DESTDIR)$(libdir)/libfltk_images.dylib;\
 	fi
 	if test x$(IMGDSONAME) = xlibfltk_images_s.a; then\
 		$(RM) $(DESTDIR)$(libdir)/libfltk_images_s.a;\
-		$(CP) libfltk_images_s.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_images.a; \
+		$(INSTALL_LIB) libfltk_images_s.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(IMGDSONAME) = xcygfltknox_images-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(IMGDSONAME); \
-		$(CP) $(IMGDSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(IMGDSONAME); \
+		$(INSTALL_LIB) $(IMGDSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk_images.dll.a;\
-		$(CP) libfltk_images.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_images.dll.a; \
+		$(INSTALL_LIB) libfltk_images.dll.a $(DESTDIR)$(libdir); \
 	fi
 	if test x$(IMGDSONAME) = xmgwfltknox_images-1.1.dll; then\
 		$(RM) $(DESTDIR)$(bindir)/$(IMGDSONAME); \
-		$(CP) $(IMGDSONAME) $(DESTDIR)$(bindir); \
-		$(CHMOD) 755 $(DESTDIR)$(bindir)/$(IMGDSONAME); \
+		$(INSTALL_LIB) $(IMGDSONAME) $(DESTDIR)$(bindir); \
 		$(RM) $(DESTDIR)$(libdir)/libfltk_images.dll.a;\
-		$(CP) libfltk_images.dll.a $(DESTDIR)$(libdir); \
-		$(CHMOD) 755 $(DESTDIR)$(libdir)/libfltk_images.dll.a; \
+		$(INSTALL_LIB) libfltk_images.dll.a $(DESTDIR)$(libdir); \
 	fi
 
 uninstall:
@@ -733,5 +722,5 @@ uninstall:
 
 
 #
-# End of "$Id: Makefile 4474 2005-08-08 00:54:30Z mike $".
+# End of "$Id: Makefile 5689 2007-02-10 14:31:12Z mike $".
 #

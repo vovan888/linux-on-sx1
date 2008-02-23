@@ -1,5 +1,5 @@
 //
-// "$Id: fl_rect.cxx 4711 2005-12-14 13:51:51Z matt $"
+// "$Id: fl_rect.cxx 5692 2007-02-12 16:41:41Z matt $"
 //
 // Rectangle drawing routines for the Fast Light Tool Kit (FLTK).
 //
@@ -542,7 +542,7 @@ void fl_restore_clip() {
   }
 # endif
 #elif defined(__APPLE_QUARTZ__)
-  if ( fl_window )
+  if ( fl_window ) // clipping for a true window
   {
     GrafPtr port = GetWindowPort( fl_window );
     if ( port ) { 
@@ -556,6 +556,16 @@ void fl_restore_clip() {
       Fl_X::q_fill_context();
       DisposeRgn( portClip );
     }
+  } else if (fl_gc) { // clipping for an offscreen drawing world (CGBitmap)
+    Rect portRect;
+    portRect.top = 0;
+    portRect.left = 0;
+    portRect.bottom = CGBitmapContextGetHeight(fl_gc);
+    portRect.right = CGBitmapContextGetWidth(fl_gc);
+    Fl_X::q_clear_clipping();
+    if (r)
+      ClipCGContextToRegion(fl_gc, &portRect, r);
+    Fl_X::q_fill_context();
   }
 #elif defined(NANO_X)
   GrSetGCRegion(fl_gc, r); // if r is 0, clip is cleared
@@ -753,5 +763,5 @@ int fl_clip_box(int x, int y, int w, int h, int& X, int& Y, int& W, int& H){
 }
 
 //
-// End of "$Id: fl_rect.cxx 4711 2005-12-14 13:51:51Z matt $".
+// End of "$Id: fl_rect.cxx 5692 2007-02-12 16:41:41Z matt $".
 //

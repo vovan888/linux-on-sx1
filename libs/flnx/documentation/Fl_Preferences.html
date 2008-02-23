@@ -1,16 +1,19 @@
 <html>
+<HEAD>
+	<TITLE>Fl_Preferences</TITLE>
+</HEAD>
 <body>
 
 <!-- NEW PAGE -->
 
-<h2>class Fl_Preferences</h2>
+<h2><a name="Fl_Preferences">class Fl_Preferences</a></h2>
 
 <hr>   
 
 <h3>Class Hierarchy</h3>
 
 <ul><pre>
-<b>Fl_Preferences</b></a></H4>&nbsp;
+<b>Fl_Preferences</b>
 </pre></ul>
 
 <h3>Include Files</h3>
@@ -69,9 +72,11 @@ method.
 
 </ul>
 
-<H4><a name="Fl_Preferences.Fl_Preferences">Fl_Preferences(enum Root root,
-const char *vendor, const char *application)<BR>
-Fl_Preferences(Fl_Preferences &amp;p, const char *groupname)</a></H4>
+<H4><a name="Fl_Preferences.Fl_Preferences">
+Fl_Preferences(enum Root root, const char *vendor, const char *application)<BR>
+Fl_Preferences(const char *path, const char *vendor, const char *application)<BR>
+Fl_Preferences(Fl_Preferences &amp;p, const char *groupname)<BR>
+</a></H4>
 
 <P>The constructor creates a group that manages name/value pairs and
 child groups. Groups are ready for reading and writing at any time.
@@ -89,9 +94,15 @@ name of your application. Both <tt>vendor</tt> and
 <tt>application</tt> must be valid relative UNIX pathnames and
 may contain '/'s to create deeper file structures.
 
-<P>The <tt>groupname</tt> argument identifies a group of
-entries. It can contain '/'s to get quick access to individual
-elements inside the hierarchy.
+<P>The second format is used to create a preferences file at an
+arbitrary position in the file system. The file name is generated
+as <tt><i>path</i>/<i>application</i>.prefs</tt>. If <i>application</i>
+is 0, <i>path</i> must contain the full file name.
+
+<P>The third format generates a new group of preference entries
+inside the group or file <i>p</i>. The <tt>groupname</tt> argument 
+identifies a group of entries. It can contain '/'s to get quick 
+access to individual elements inside the hierarchy.
 
 <H4><a name="Fl_Preferences.~Fl_Preferences">~Fl_Preferences()</a></H4>
 
@@ -173,7 +184,9 @@ group.
 <H4><a name="Fl_Preferences.set">int set(const char *entry, int value)<BR>
 int set(const char *entry, int value)<BR>
 int set(const char *entry, float value)<BR>
+int set(const char *entry, float value, int precision)<BR>
 int set(const char *entry, double value)<BR>
+int set(const char *entry, double value, int precision)<BR>
 int set(const char *entry, const char *text)<BR>
 int set(const char *entry, const void *data, int size)</a></H4>
 

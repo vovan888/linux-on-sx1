@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_BMP_Image.cxx 4427 2005-07-16 08:38:52Z matt $"
+// "$Id: Fl_BMP_Image.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Fl_BMP_Image routines.
 //
@@ -489,5 +489,5 @@ read_long(FILE *fp) {		// I - File to read from
 
 
 //
-// End of "$Id: Fl_BMP_Image.cxx 4427 2005-07-16 08:38:52Z matt $".
+// End of "$Id: Fl_BMP_Image.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

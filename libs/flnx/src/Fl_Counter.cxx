@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Counter.cxx 4662 2005-11-27 15:11:33Z mike $"
+// "$Id: Fl_Counter.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Counter widget for the Fast Light Tool Kit (FLTK).
 //
@@ -193,5 +193,5 @@ Fl_Counter::Fl_Counter(int X, int Y, int W, int H, const char* l)
 }
 
 //
-// End of "$Id: Fl_Counter.cxx 4662 2005-11-27 15:11:33Z mike $".
+// End of "$Id: Fl_Counter.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

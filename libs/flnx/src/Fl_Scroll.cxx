@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Scroll.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Scroll.cxx 5547 2006-11-16 23:17:13Z mike $"
 //
 // Scroll widget for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2005 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -273,12 +273,12 @@ void Fl_Scroll::scrollbar_cb(Fl_Widget* o, void*) {
   s->position(s->xposition(), int(((Fl_Scrollbar*)o)->value()));
 }
 
-#define SLIDER_WIDTH 16
-
 Fl_Scroll::Fl_Scroll(int X,int Y,int W,int H,const char* L)
   : Fl_Group(X,Y,W,H,L), 
-    scrollbar(X+W-SLIDER_WIDTH,Y,SLIDER_WIDTH,H-SLIDER_WIDTH),
-    hscrollbar(X,Y+H-SLIDER_WIDTH,W-SLIDER_WIDTH,SLIDER_WIDTH) {
+    scrollbar(X+W-Fl::scrollbar_size(),Y,
+              Fl::scrollbar_size(),H-Fl::scrollbar_size()),
+    hscrollbar(X,Y+H-Fl::scrollbar_size(),
+               W-Fl::scrollbar_size(),Fl::scrollbar_size()) {
   type(BOTH);
   xposition_ = 0;
   yposition_ = 0;
@@ -293,5 +293,5 @@ int Fl_Scroll::handle(int event) {
 }
 
 //
-// End of "$Id: Fl_Scroll.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Scroll.cxx 5547 2006-11-16 23:17:13Z mike $".
 //

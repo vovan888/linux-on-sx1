@@ -1,5 +1,5 @@
 //
-// "$Id: fl_draw_image.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_draw_image.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Image drawing routines for the Fast Light Tool Kit (FLTK).
 //
@@ -139,7 +139,7 @@ static void mono8_converter(const uchar *from, uchar *to, int w, int delta) {
   ri = r; gi = g; bi = b;
 }
 
-#endif
+#  endif
 
 ////////////////////////////////////////////////////////////////
 // 16 bit TrueColor converters with error diffusion
@@ -666,7 +666,7 @@ void fl_draw_image_mono(Fl_Draw_Image_Cb cb, void* data,
 
 void fl_rectf(int x, int y, int w, int h, uchar r, uchar g, uchar b) {
 #ifndef NANO_X //tanghao
-if (fl_visual->depth > 16) {
+  if (fl_visual->depth > 16) {
     fl_color(r,g,b);
     fl_rectf(x,y,w,h);
   } else {
@@ -685,5 +685,5 @@ if (fl_visual->depth > 16) {
 #endif
 
 //
-// End of "$Id: fl_draw_image.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_draw_image.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

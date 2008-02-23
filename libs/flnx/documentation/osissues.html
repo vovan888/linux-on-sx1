@@ -1,4 +1,7 @@
 <HTML>
+<HEAD>
+	<TITLE>F - Operating System Issues</TITLE>
+</HEAD>
 <BODY>
 
 <H1 ALIGN="RIGHT"><A NAME="osissues">F - Operating System Issues</A></H1>
@@ -133,13 +136,29 @@ unsigned long fl_xpixel(uchar r, uchar g, uchar b)</A></H4>
 index or RGB color. This is the X pixel that <A
 href="drawing.html#fl_color"><TT>fl_color()</TT></A> would use.
 
+<H4><A name="fl_parse_color">int fl_parse_color(const char* p, uchar&amp; r, uchar&amp; g, uchar&amp; b)</A></H4>
+
+<P>Convert a name into the red, green, and blue values of a color
+by parsing the X11 color names. On other systems, <tt>fl_parse_color</tt>
+can only convert names in hexadecimal encoding, for example <tt>#ff8083</tt>.
+ 
 <H4><A name="fl_xfont">extern XFontStruct *fl_xfont</A></H4>
 
 <P>Points to the font selected by the most recent <A
 href="drawing.html#fl_font"><TT>fl_font()</TT></A>. This is not
 necessarily the current font of <TT>fl_gc</TT>, which is not set
 until <A href="drawing.html#text"><TT>fl_draw()</TT></A> is
-called.
+called. If FLTK was compiled with Xft support, <TT>fl_xfont</TT>
+will usually be 0 and <TT>fl_xftfont</TT> will contain a pointer 
+to the XftFont structure instead.
+
+<H4><A name="fl_xftfont">extern void *fl_xftfont</A></H4>
+
+<P>If FLTK was compiled with Xft support enabled, <tt>fl_xftfont</tt>
+Points to the xft font selected by the most recent <A
+href="drawing.html#fl_font"><TT>fl_font()</TT></A>. Otherwise 
+it will be 0. <tt>fl_xftfont</tt> should be cast to 
+<tt>XftFont*</tt>.
 
 <H3>Changing the Display, Screen, or X Visual</H3>
 
@@ -361,7 +380,7 @@ should be used as follows:
 #include &lt;X11/xpm.h&gt;
 #include &quot;icon.xpm&quot;
 
-fl_opendisplay();                // needed if display has not been previously opened
+fl_open_display();                // needed if display has not been previously opened
 
 Pixmap p, mask;
 
@@ -483,7 +502,7 @@ window handle, or <TT>NULL</TT> if not found. This function uses
 a cache so it is slightly faster than iterating through the
 windows yourself.
 
-<H3>Drawing Things Using the WIN32 GDI</H3>
+<H3><A name="WIN32.gdi">Drawing Things Using the WIN32 GDI</A></H3>
 
 <P>When the virtual function <A
 HREF="subclassing.html#draw"><TT>Fl_Widget::draw()</TT></A> is
@@ -600,6 +619,12 @@ version of FLTK:
 	doesn't work, and the main window title bar turns gray
 	while menus are popped up.</LI>
 
+	<LI>Compilation with <TT>gcc 3.4.4</TT> and <TT>-Os</TT> exposes an
+	optimisation bug in gcc. The symptom is that when drawing
+	filled circles only the perimeter is drawn. This can for instance
+	be seen in the symbols demo. Other optimisation options such
+	as -O2 and -O3 seem to work OK. More details can be found
+	in STR#1656 </LI>
 </UL>
 
 <H2>The MacOS Interface</h2>
@@ -630,12 +655,42 @@ window handle, or <TT>NULL</TT> if not found. FLTK windows that
 are children of top-level windows share the WindowRef of the
 top-level window.
 
+<h3>Apple "Quit" Event</h3>
+
+<P>When the user press Cmd-Q or requests a termination of the
+application, OS X will send a "Quit" Apple Event. FLTK handles
+this event by sending an <tt>FL_CLOSE</tt> event to all open
+windows. If all windows close, the application will terminate.
+
+<h3>Apple "Open" Event</h3>
+
+Whenever the user drops a file onto an application icon, OS X
+generates an Apple Event of the type "Open". You can have FLTK
+notify you of an Open event by setting the <tt>fl_open_callback</tt>.
+
+<h4><a name=fl_open_callback>void fl_open_callback(void (*cb)(const char *))</a></h4>
+
+<tt>cb</tt> will be called with a single iUnix-style file name and path.
+If multiple files were dropped, <tt>fl_open_callback</tt> will be called
+multiple times.
+
 <h3>Drawing Things Using QuickDraw</h3>
 
 <P>When the virtual function <tt>Fl_Widget::draw()</tt> is
 called, FLTK has prepared the Window and CGrafPort for drawing.
 Clipping and offsets are prepared to allow correct subwindow
 drawing.
+
+<h3>Drawing Things Using Quartz</h3>
+
+<P>If the FLTK library was compiled using the configuration
+flag <tt>--enable-quartz</tt>, all code inside <tt>Fl_Widget::draw()</tt>
+is expected to call Quartz drawing functions instead of 
+QuickDraw. The Quartz coordinate system is flipped to match
+FLTK's coordinate system. The origin for all drawing is in the top
+left corner of the enclosing <tt>Fl_Window</tt>.
+
+<h3>Fl_Double_Window</h3>
 
 <P>OS X double-buffers all windows automatically. On OS X,
 <tt>Fl_Window</tt> and <tt>Fl_Double_Window</tt> are handled
@@ -656,7 +711,7 @@ applications
 will NOT copy any resource forks! For copying and moving use
 CpMac and MvMac respectively. For creating a tar archive, all
 executables need to be stripped from their Resource Fork before
-packing, e.g. "DeRez fluid >fluid.r". After unpacking the
+packing, e.g. "DeRez fluid &gt; fluid.r". After unpacking the
 Resource Fork needs to be reattached, e.g. "Rez fluid.r -o
 fluid".
 </TD></TR></TABLE></CENTER>

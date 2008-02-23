@@ -1,5 +1,5 @@
 //
-// "$Id: cmap.cxx 4052 2005-02-24 21:55:12Z mike $"
+// "$Id: cmap.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Colormap generation program for the Fast Light Tool Kit (FLTK).
 //
@@ -175,5 +175,5 @@ int main() {
 }
 
 //
-// End of "$Id: cmap.cxx 4052 2005-02-24 21:55:12Z mike $".
+// End of "$Id: cmap.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

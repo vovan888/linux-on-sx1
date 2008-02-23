@@ -1,9 +1,9 @@
 //
-// "$Id: buttons.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: buttons.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Another button test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <stdlib.h>
@@ -33,10 +35,11 @@
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Light_Button.H>
 #include <FL/Fl_Round_Button.H>
+#include <FL/Fl_Tooltip.H>
 
 int main(int argc, char ** argv) {
   Fl_Window *window = new Fl_Window(320,130);
-  new Fl_Button(10, 10, 130, 30, "Fl_Button");
+  (new Fl_Button(10, 10, 130, 30, "Fl_Button"))->tooltip("This is a Tooltip.");
   new Fl_Return_Button(150, 10, 160, 30, "Fl_Return_Button");
   new Fl_Repeat_Button(10,50,130,30,"Fl_Repeat_Button");
   new Fl_Light_Button(10,90,130,30,"Fl_Light_Button");
@@ -48,5 +51,5 @@ int main(int argc, char ** argv) {
 }
 
 //
-// End of "$Id: buttons.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: buttons.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

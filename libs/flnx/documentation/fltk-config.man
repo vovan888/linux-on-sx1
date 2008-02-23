@@ -1,4 +1,4 @@
-.TH fltk-config 1 "Fast Light Tool Kit" "8 August 2005"
+.TH fltk-config 1 "Fast Light Tool Kit" "6 February 2007"
 .SH NAME
 fltk-config \- script to get information about the installed version of fltk.
 .sp
@@ -10,10 +10,8 @@ fltk-config [ --prefix
 ] [ --version ] [ --api-version ] [ --use-gl ] [ --use-images ] [ --use-glut ]
 [ --cc ] [ --cxx ]
 [ --cflags ] [ --cxxflags ] [ --ldflags ] [ --ldstaticflags ] [ --libs ]
-[ -g ] [ --compile
+[ -D\fIname[=value]\fR ] [ -g ] [ --compile
 .I program.cxx
-] [ --post
-.I program
 ]
 .SH DESCRIPTION
 \fIfltk-config\fR is a utility script that can be used to get information
@@ -64,11 +62,6 @@ application to the static FLTK libraries.
 .br
 Displays the full path to the FLTK library files, to be used for
 dependency checking.
-.TP 5
---post \fIprogram\fR
-.br
-Binds the default FLTK resource fork to a program under MacOS.
-Does nothing on other operating systems.
 .TP 5
 --use-gl
 .br

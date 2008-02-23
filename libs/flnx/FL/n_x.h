@@ -4,6 +4,7 @@
 // Nano-X header file for the Fast Light Tool Kit (FLTK).
 //
 // Copyright 2000-2000 by Tang Hao.
+// Copyright 2006-2008 by Vladimir Ananiev (vovan888 at gmail com).
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +21,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 // Do not directly include this file, instead use <FL/x.H>.  It will
@@ -30,26 +33,27 @@
 #define MWINCLUDECOLORS
 #include <nano-X.h>
 
-//#if defined(_ABIN32) || defined(_ABI64) // fix for broken SGI Irix X .h files
-//#pragma set woff 3322
-//#endif
-//#include <X11/Xlib.h>
-//#include <X11/Xutil.h>
-//#if defined(_ABIN32) || defined(_ABI64)
-//#pragma reset woff 3322
-//#endif
-//#include <X11/Xatom.h>
 #include "Fl_Window.H"
 
 
+typedef GR_CURSOR_ID		Cursor;
+typedef GR_DRAW_ID		Drawable;
+typedef GR_FONT_ID		Font;
+typedef GR_GC_ID		GC;
+typedef GR_WINDOW_ID		Pixmap;
+typedef GR_REGION_ID		Region;
+typedef unsigned long		Time;		/* change to GR_TIME*/
+typedef GR_WINDOW_ID		Window;
+typedef GR_EVENT		XEvent;
+typedef GR_FONT_INFO		XFontStruct;
+typedef GR_POINT		XPoint;
+typedef GR_RECT			XRectangle;
+
 //tanghao
-#define Window GR_WINDOW_ID 
-#define GC GR_GC_ID
 #define XVisualInfo int
 #define Colormap int
-#define Region int
 // Mirror X definition of Region to Fl_Region, for portability...
-#define Fl_Region int
+typedef Region Fl_Region;
 // vovan888 - X to NanoX conversion macros
 #define XDestroyWindow(a,b) GrDestroyWindow(b)
 #define XFlush(a) GrFlush()
@@ -66,37 +70,26 @@
 #define XDrawLine(s,a,b,c,d,e,f) GrLine(a,b,c,d,e,f)
 #define XDrawPoint(s,a,b,c,d) GrPoint(a,b,c,d)
 
-/*typedef struct
-{
-int x;
-int y;
-}Cursor;
-*/
-#define Cursor int
 //tanghao
 #define None 0
 FL_EXPORT void fl_open_display();
 FL_EXPORT void fl_close_display();
 
 // constant info about the X server connection:
-//extern FL_EXPORT Display *fl_display;
 extern FL_EXPORT int fl_display;
+extern FL_EXPORT Window fl_message_window;
 extern FL_EXPORT int fl_screen;
 extern FL_EXPORT XVisualInfo *fl_visual;
 extern FL_EXPORT Colormap fl_colormap;
 
 // drawing functions:
-//extern FL_EXPORT GC fl_gc;
-extern FL_EXPORT GR_GC_ID fl_gc;
-//extern FL_EXPORT Window fl_window;
-extern FL_EXPORT GR_WINDOW_ID fl_window;
-//extern FL_EXPORT XFontStruct* fl_xfont;
+extern FL_EXPORT GC fl_gc;
+extern FL_EXPORT Window fl_window;
 extern FL_EXPORT GR_FONT_ID fl_xfont;
-
+extern FL_EXPORT void *fl_xftfont;
 FL_EXPORT ulong fl_xpixel(Fl_Color i);
 FL_EXPORT ulong fl_xpixel(uchar r, uchar g, uchar b);
 FL_EXPORT void fl_clip_region(Fl_Region);
-FL_EXPORT void fl_clip_region(Region);
 FL_EXPORT Fl_Region fl_clip_region();
 FL_EXPORT Fl_Region XRectangleRegion(int x, int y, int w, int h); // in fl_rect.cxx
 
@@ -142,9 +135,7 @@ extern FL_EXPORT void fl_delete_bitmask(Fl_Bitmask bm);
 // this object contains all X-specific stuff about a window:
 // Warning: this object is highly subject to change!  It's definition
 // is only here so that fl_xid can be declared inline:
-
-class Fl_X {
-
+class FL_EXPORT Fl_X {
 public:
   static int mw_parent;
   static int mw_parent_xid;
@@ -153,20 +144,20 @@ public:
   Window xid;
   Window other_xid;
   Fl_Window *w;
-  Region region;
+  Fl_Region region;
   Fl_X *next;
   char wait_for_expose;
   char backbuffer_bad; // used for XDBE
-  static FL_EXPORT Fl_X* first;
-  static FL_EXPORT Fl_X* i(const Fl_Window* w) {return w->i;}
-  FL_EXPORT void setwindow(Fl_Window* wi) {w=wi; wi->i=this;}
-  FL_EXPORT void sendxjunk();
-  static FL_EXPORT void make_xid(Fl_Window*,XVisualInfo* =fl_visual, Colormap=fl_colormap);
-  static FL_EXPORT Fl_X* set_xid(Fl_Window*, Window);
+  static Fl_X* first;
+  static Fl_X* i(const Fl_Window* wi) {return wi->i;}
+  void setwindow(Fl_Window* wi) {w=wi; wi->i=this;}
+  void sendxjunk();
+  static void make_xid(Fl_Window*,XVisualInfo* =fl_visual, Colormap=fl_colormap);
+  static Fl_X* set_xid(Fl_Window*, Window);
   // kludges to get around protection:
-  FL_EXPORT void flush() {w->flush();}
-  static FL_EXPORT void x(Fl_Window* w, int X) {w->x(X);}
-  static FL_EXPORT void y(Fl_Window* w, int Y) {w->y(Y);}
+  void flush() {w->flush();}
+  static void x(Fl_Window* wi, int X) {wi->x(X);}
+  static void y(Fl_Window* wi, int Y) {wi->y(Y);}
 };
 
 // convert xid <-> Fl_Window:
@@ -175,6 +166,9 @@ FL_EXPORT Fl_Window* fl_find(Window xid);
 
 extern FL_EXPORT char fl_override_redirect; // hack into Fl_X::make_xid()
 extern FL_EXPORT int fl_background_pixel;  // hack into Fl_X::make_xid()
+
+// Dummy function to register a function for opening files via the window manager...
+inline void fl_open_callback(void (*)(const char *)) {}
 
 extern FL_EXPORT int fl_parse_color(const char* p, uchar& r, uchar& g, uchar& b);
 

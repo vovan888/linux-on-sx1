@@ -1,11 +1,11 @@
 //
-// "$Id: cube.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: cube.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Another forms test program for the Fast Light Tool Kit (FLTK).
 //
 // Modified to have 2 cubes to test multiple OpenGL contexts
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -22,10 +22,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#include <config.h>
+#include "config.h"
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
@@ -52,6 +54,7 @@ public:
 
 class cube_box : public Fl_Gl_Window {
   void draw();
+  int handle(int);
 public:
   double lasttime;
   int wire;
@@ -104,6 +107,7 @@ void cube_box::draw() {
     glEnable(GL_DEPTH_TEST);
     glFrustum(-1,1,-1,1,2,10000);
     glTranslatef(0,0,-10);
+    gl_font(FL_HELVETICA_BOLD, 16 );
   }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
@@ -114,6 +118,18 @@ void cube_box::draw() {
   glScalef(float(size),float(size),float(size));
   drawcube(wire);
   glPopMatrix();
+  gl_color(FL_GRAY);
+  glDisable(GL_DEPTH_TEST);
+  gl_draw(wire ? "Cube: wire" : "Cube: flat", -4.5f, -4.5f );
+  glEnable(GL_DEPTH_TEST);
+}
+
+int cube_box::handle(int e) {
+  switch (e) {
+  case FL_ENTER: cursor(FL_CURSOR_CROSS); break;
+  case FL_LEAVE: cursor(FL_CURSOR_DEFAULT); break;
+  }
+  return Fl_Gl_Window::handle(e);
 }
 
 #endif
@@ -141,7 +157,7 @@ void makeform(const char *name) {
   form->end();
 }
 
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
   makeform(argv[0]);
   speed->bounds(4,0);
   speed->value(cube->speed = cube2->speed = 1.0);
@@ -152,6 +168,16 @@ main(int argc, char **argv) {
   form->show(argc,argv);
   cube->show();
   cube2->show();
+#if 0
+  // This demonstrates how to manipulate OpenGL contexts.
+  // In this case the same context is used by multiple windows (I'm not
+  // sure if this is allowed on Win32, can somebody check?).
+  // This fixes a bug on the XFree86 3.0 OpenGL where only one context
+  // per program seems to work, but there are probably better uses for
+  // this!
+  cube->make_current(); // causes context to be created
+  cube2->context(cube->context()); // share the contexts
+#endif
   for (;;) {
     if (form->visible() && speed->value())
       {if (!Fl::check()) break;}	// returns immediately
@@ -169,5 +195,5 @@ main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: cube.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: cube.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

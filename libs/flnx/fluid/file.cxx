@@ -1,5 +1,5 @@
 //
-// "$Id: file.cxx,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $"
+// "$Id: file.cxx 5808 2007-05-10 12:06:31Z matt $"
 //
 // Fluid file routines for the Fast Light Tool Kit (FLTK).
 //
@@ -8,7 +8,7 @@
 // They are somewhat similar to tcl, using matching { and }
 // to quote strings.
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -25,13 +25,14 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include "../src/flstring.h"
 #include <stdarg.h>
 #include "alignment_panel.h"
 
@@ -100,7 +101,7 @@ void write_string(const char *format, ...) {
   if (needspace) fputc(' ',fout);
   vfprintf(fout, format, args);
   va_end(args);
-  needspace = !isspace(format[strlen(format)-1]);
+  needspace = !isspace(format[strlen(format)-1] & 255);
 }
 
 // start a new line and indent it for a given nesting level:
@@ -157,7 +158,7 @@ void read_error(const char *format, ...) {
   va_start(args, format);
   if (!fin) {
     char buffer[1024];
-    vsprintf(buffer, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
     fl_message(buffer);
   } else {
     fprintf(stderr, "%s:%d: ", fname, lineno);
@@ -237,7 +238,7 @@ const char *read_word(int wantbrace) {
   // skip all the whitespace before it:
   for (;;) {
     x = getc(fin);
-    if (x < 0) {	// eof
+    if (x < 0 && feof(fin)) {	// eof
       return 0;
     } else if (x == '#') {	// comment
       do x = getc(fin); while (x >= 0 && x != '\n');
@@ -245,7 +246,7 @@ const char *read_word(int wantbrace) {
       continue;
     } else if (x == '\n') {
       lineno++;
-    } else if (!isspace(x)) {
+    } else if (!isspace(x & 255)) {
       break;
     }
   }
@@ -286,7 +287,7 @@ const char *read_word(int wantbrace) {
     int length = 0;
     for (;;) {
       if (x == '\\') {x = read_quoted(); if (x<0) continue;}
-      else if (x<0 || isspace(x) || x=='{' || x=='}' || x=='#') break;
+      else if (x<0 || isspace(x & 255) || x=='{' || x=='}' || x=='#') break;
       buffer[length++] = x;
       expand_buffer(length);
       x = getc(fin);
@@ -304,12 +305,11 @@ const char *read_word(int wantbrace) {
 #include "Fl_Widget_Type.h"
 
 // global int variables:
-extern int gridx, gridy, snap;
-static struct {const char* name; int* value;} inttable[] = {
-  {"gridx", &gridx},
-  {"gridy", &gridy},
-  {"snap", &snap}
-};
+extern int i18n_type;
+extern const char* i18n_include;
+extern const char* i18n_function;
+extern const char* i18n_file;
+extern const char* i18n_set;
 
 
 extern int header_file_set;
@@ -320,14 +320,27 @@ extern const char* code_file_name;
 int write_file(const char *filename, int selected_only) {
   if (!open_write(filename)) return 0;
   write_string("# data file for the Fltk User Interface Designer (fluid)\n"
-	       "version %.2f",FL_VERSION);
+	       "version %.4f",FL_VERSION);
   if(!include_H_from_C)
     write_string("\ndo_not_include_H_from_C");
+  if(use_FL_COMMAND)
+    write_string("\nuse_FL_COMMAND");
+  if (i18n_type) {
+    write_string("\ni18n_type %d", i18n_type);
+    write_string("\ni18n_include %s", i18n_include);
+    switch (i18n_type) {
+    case 1 : /* GNU gettext */
+	write_string("\ni18n_function %s", i18n_function);
+        break;
+    case 2 : /* POSIX catgets */
+        if (i18n_file[0]) write_string("\ni18n_file %s", i18n_file);
+	write_string("\ni18n_set %s", i18n_set);
+        break;
+    }
+  }
   if (!selected_only) {
     write_string("\nheader_name"); write_word(header_file_name);
     write_string("\ncode_name"); write_word(code_file_name);
-    for (unsigned int i=0; i<sizeof(inttable)/sizeof(*inttable); i++)
-      write_string("\n%s %d",inttable[i].name, *inttable[i].value);
   }
   for (Fl_Type *p = Fl_Type::first; p;) {
     if (!selected_only || p->selected) {
@@ -354,7 +367,6 @@ extern Fl_Type *Fl_Type_make(const char *tn);
 static void read_children(Fl_Type *p, int paste) {
   Fl_Type::current = p;
   for (;;) {
-    unsigned int i;
     const char *c = read_word();
   REUSE_C:
     if (!c) {
@@ -390,9 +402,42 @@ static void read_children(Fl_Type *p, int paste) {
       continue;
     }
 
-    if (!strcmp(c,"do_not_include_H_from_C"))
-    {
+    if (!strcmp(c,"do_not_include_H_from_C")) {
       include_H_from_C=0;
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"use_FL_COMMAND")) {
+      use_FL_COMMAND=1;
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"i18n_type")) {
+      i18n_type = atoi(read_word());
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"i18n_function")) {
+      i18n_function = strdup(read_word());
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"i18n_file")) {
+      i18n_file = strdup(read_word());
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"i18n_set")) {
+      i18n_set = strdup(read_word());
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"i18n_include")) {
+      i18n_include = strdup(read_word());
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"i18n_type"))
+    {
+      i18n_type = atoi(read_word());
+      goto CONTINUE;
+    }
+    if (!strcmp(c,"i18n_type"))
+    {
+      i18n_type = atoi(read_word());
       goto CONTINUE;
     }
     if (!strcmp(c,"header_name")) {
@@ -407,12 +452,10 @@ static void read_children(Fl_Type *p, int paste) {
       goto CONTINUE;
     }
 
-    for (i=0; i<sizeof(inttable)/sizeof(*inttable); i++) {
-      if (!strcmp(c,inttable[i].name)) {
-	c = read_word();
-	*inttable[i].value = atoi(c);
-	goto CONTINUE;
-      }
+    if (!strcmp(c, "snap") || !strcmp(c, "gridx") || !strcmp(c, "gridy")) {
+      // grid settings are now global
+      read_word();
+      goto CONTINUE;
     }
 
     {Fl_Type *t = Fl_Type_make(c);
@@ -423,6 +466,12 @@ static void read_children(Fl_Type *p, int paste) {
     t->name(read_word());
 
     c = read_word(1);
+    if (strcmp(c,"{") && t->is_class()) {   // <prefix> <name>
+      ((Fl_Class_Type*)t)->prefix(t->name());
+      t->name(c);
+      c = read_word(1);
+    }
+
     if (strcmp(c,"{")) {
       read_error("Missing property list for %s\n",t->title());
       goto REUSE_C;
@@ -430,9 +479,9 @@ static void read_children(Fl_Type *p, int paste) {
 
     t->open_ = 0;
     for (;;) {
-      const char *c = read_word();
-      if (!c || !strcmp(c,"}")) break;
-      t->read_property(c);
+      const char *cc = read_word();
+      if (!cc || !strcmp(cc,"}")) break;
+      t->read_property(cc);
     }
 
     if (!t->is_parent()) continue;
@@ -450,13 +499,18 @@ static void read_children(Fl_Type *p, int paste) {
 extern void deselect();
 
 int read_file(const char *filename, int merge) {
+  Fl_Type *o;
   read_version = 0.0;
   if (!open_read(filename)) return 0;
   if (merge) deselect(); else    delete_all();
   read_children(Fl_Type::current, merge);
   Fl_Type::current = 0;
-  for (Fl_Type *o = Fl_Type::first; o; o = o->next)
+  // Force menu items to be rebuilt...
+  for (o = Fl_Type::first; o; o = o->next)
+    if (o->is_menu_button()) o->add_child(0,0);
+  for (o = Fl_Type::first; o; o = o->next)
     if (o->selected) {Fl_Type::current = o; break;}
+  selection_changed(Fl_Type::current);
   return close_read();
 }
 
@@ -470,9 +524,9 @@ int read_fdesign_line(const char*& name, const char*& value) {
   // find a colon:
   for (;;) {
     x = getc(fin);
-    if (x < 0) return 0;
+    if (x < 0 && feof(fin)) return 0;
     if (x == '\n') {length = 0; continue;} // no colon this line...
-    if (!isspace(x)) {
+    if (!isspace(x & 255)) {
       buffer[length++] = x;
       expand_buffer(length);
     }
@@ -484,7 +538,7 @@ int read_fdesign_line(const char*& name, const char*& value) {
   // skip to start of value:
   for (;;) {
     x = getc(fin);
-    if (x < 0 || x == '\n' || !isspace(x)) break;
+    if ((x < 0 && feof(fin)) || x == '\n' || !isspace(x & 255)) break;
   }
 
   // read the value:
@@ -592,5 +646,5 @@ void read_fdesign() {
 }
 
 //
-// End of "$Id: file.cxx,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $".
+// End of "$Id: file.cxx 5808 2007-05-10 12:06:31Z matt $".
 //

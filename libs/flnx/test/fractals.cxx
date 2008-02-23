@@ -1,13 +1,13 @@
 //
-// "$Id: fractals.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: fractals.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
 // Fractal drawing demo for the Fast Light Tool Kit (FLTK).
 //
 // This is a GLUT demo program, with modifications to
-// demonstrate how to add fltk controls to a glut program.   The glut
-// code is unchanged except for the end (search for fltk to find changes).
+// demonstrate how to add FLTK controls to a GLUT program.   The GLUT
+// code is unchanged except for the end (search for FLTK to find changes).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -24,15 +24,17 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#include <config.h>
-#if !HAVE_GL
+#include "config.h"
+#if !HAVE_GL || !HAVE_GL_GLU_H
 #include <FL/Fl.H>
 #include <FL/fl_message.H>
 int main(int, char**) {
-  fl_alert("This demo does not work without GL");
+  fl_alert("This demo does not work without GL and GLU (%d)");
   return 1;
 }
 #else
@@ -62,6 +64,7 @@ int main(int, char**) {
  */
 
 #include <FL/glut.H>
+#include <FL/glu.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,11 +74,14 @@ int main(int, char**) {
 
 #include <time.h>  /* for random seed */
 
-#include "fracviewer.c" // changed from .h for fltk
+#include "fracviewer.h"
 
 #if defined(WIN32) || defined(__EMX__)
-#define drand48() (((float) rand())/((float) RAND_MAX))
-#define srand48(x) (srand((x)))
+#  define drand48() (((float) rand())/((float) RAND_MAX))
+#  define srand48(x) (srand((x)))
+#elif defined __APPLE__
+#  define drand48() (((float) rand())/((float) RAND_MAX))
+#  define srand48(x) (srand((x)))
 #endif
 
 typedef enum { NOTALLOWED, MOUNTAIN, TREE, ISLAND, BIGMTN, STEM, LEAF, 
@@ -85,7 +91,7 @@ typedef enum { NOTALLOWED, MOUNTAIN, TREE, ISLAND, BIGMTN, STEM, LEAF,
 #define MAXLEVEL 8
 
 int Rebuild = 1,        /* Rebuild display list in next display? */
-    Fract   = TREE,     /* What fractal are we building */
+    fractal = TREE,     /* What fractal are we building */
     Level   = 4;        /* levels of recursion for fractals */     
 
 int DrawAxes = 0;       
@@ -602,43 +608,70 @@ void myGLInit(void)
 /************************ GLUT STUFF ***************************/
 /***************************************************************/
 
+int winwidth = 1;
+int winheight = 1;
+
 void reshape(int w, int h)
 {
   glViewport(0,0,w,h);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(60.0, (GLdouble)w/h, 0.01, 100);
-  glPushMatrix();
-  glMatrixMode(GL_MODELVIEW);
-  glFlush();
+
+  winwidth  = w;
+  winheight = h;
 }
 
 void display(void)
-{ 
+{
+  time_t curtime;
+  char buf[255];
+  static time_t fpstime = 0;
+  static int fpscount = 0;
+  static int fps = 0;
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glFlush();
 
   glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glPushMatrix();  /* clear of last viewing xform, leaving perspective */
-
+  glLoadIdentity();
+  gluPerspective(60.0, (GLdouble)winwidth/winheight, 0.01, 100);
   agvViewTransform();
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   if (Rebuild) {
-    Create(Fract);
+    Create(fractal);
     Rebuild = 0;
   }
 
-  glCallList(Fract);
+  glCallList(fractal);
 
   if (DrawAxes)
     glCallList(AXES);
 
-  glutSwapBuffers();
-  glFlush();
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(0.0, winwidth, 0.0, winheight);
+
+  sprintf(buf, "FPS=%d", fps);
+  glColor3f(1.0f, 1.0f, 1.0f);
+  gl_font(FL_HELVETICA, 12);
+  gl_draw(buf, 10, 10);
+
+  //
+  // Use glFinish() instead of glFlush() to avoid getting many frames
+  // ahead of the display (problem with some Linux OpenGL implementations...)
+  //
+
+  glFinish();
+
+  // Update frames-per-second
+  fpscount ++;
+  curtime = time(NULL);
+  if ((curtime - fpstime) >= 2)
+  {
+    fps      = (fps + fpscount / (curtime - fpstime)) / 2;
+    fpstime  = curtime;
+    fpscount = 0;
+  }
 }
 
 void visible(int v)
@@ -676,7 +709,7 @@ void setlevel(int value)
 
 void choosefract(int value)
 {
-  Fract = value;
+  fractal = value;
   Rebuild = 1;
   glutPostRedisplay();
 }
@@ -704,28 +737,28 @@ void MenuInit(void)
   int submenu3, submenu2, submenu1;
 
   submenu1 = glutCreateMenu(setlevel);
-  glutAddMenuEntry("0", 0);  glutAddMenuEntry("1", 1);
-  glutAddMenuEntry("2", 2);  glutAddMenuEntry("3", 3);
-  glutAddMenuEntry("4", 4);  glutAddMenuEntry("5", 5);
-  glutAddMenuEntry("6", 6);  glutAddMenuEntry("7", 7);
-  glutAddMenuEntry("8", 8);
+  glutAddMenuEntry((char *)"0", 0);  glutAddMenuEntry((char *)"1", 1);
+  glutAddMenuEntry((char *)"2", 2);  glutAddMenuEntry((char *)"3", 3);
+  glutAddMenuEntry((char *)"4", 4);  glutAddMenuEntry((char *)"5", 5);
+  glutAddMenuEntry((char *)"6", 6);  glutAddMenuEntry((char *)"7", 7);
+  glutAddMenuEntry((char *)"8", 8);
 
   submenu2 = glutCreateMenu(choosefract);
-  glutAddMenuEntry("Moutain", MOUNTAIN);
-  glutAddMenuEntry("Tree", TREE);
-  glutAddMenuEntry("Island", ISLAND);
+  glutAddMenuEntry((char *)"Moutain", MOUNTAIN);
+  glutAddMenuEntry((char *)"Tree", TREE);
+  glutAddMenuEntry((char *)"Island", ISLAND);
 
   submenu3 = glutCreateMenu(agvSwitchMoveMode);
-  glutAddMenuEntry("Flying", FLYING);
-  glutAddMenuEntry("Polar", POLAR);
+  glutAddMenuEntry((char *)"Flying", FLYING);
+  glutAddMenuEntry((char *)"Polar", POLAR);
 
   glutCreateMenu(handlemenu);
-  glutAddSubMenu("Level", submenu1);
-  glutAddSubMenu("Fractal", submenu2);
-  glutAddSubMenu("Movement", submenu3);
-  glutAddMenuEntry("New Fractal",      MENU_RAND);
-  glutAddMenuEntry("Toggle Axes", MENU_AXES);
-  glutAddMenuEntry("Quit",             MENU_QUIT);
+  glutAddSubMenu((char *)"Level", submenu1);
+  glutAddSubMenu((char *)"Fractal", submenu2);
+  glutAddSubMenu((char *)"Movement", submenu3);
+  glutAddMenuEntry((char *)"New Fractal",      MENU_RAND);
+  glutAddMenuEntry((char *)"Toggle Axes", MENU_AXES);
+  glutAddMenuEntry((char *)"Quit",             MENU_QUIT);
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -734,7 +767,7 @@ void MenuInit(void)
 /**************************** MAIN *****************************/
 /***************************************************************/
 
-// fltk-style callbacks to Glut menu callback translators:
+// FLTK-style callbacks to Glut menu callback translators:
 void setlevel(Fl_Widget*, void *value) {setlevel(long(value));}
 
 void choosefract(Fl_Widget*, void *value) {choosefract(long(value));}
@@ -747,9 +780,9 @@ void handlemenu(Fl_Widget*, void *value) {handlemenu(long(value));}
 
 int main(int argc, char** argv)
 {
-//  glutInit(&argc, argv); // this line removed for fltk
+//  glutInit(&argc, argv); // this line removed for FLTK
 
-  // create fltk window:
+  // create FLTK window:
   Fl_Window window(512+20, 512+100);
   window.resizable(window);
 
@@ -805,5 +838,5 @@ int main(int argc, char** argv)
 #endif
 
 //
-// End of "$Id: fractals.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: fractals.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

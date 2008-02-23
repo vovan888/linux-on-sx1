@@ -1,5 +1,5 @@
 //
-// "$Id: filename_absolute.cxx 4660 2005-11-27 14:45:48Z mike $"
+// "$Id: filename_absolute.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Filename expansion routines for the Fast Light Tool Kit (FLTK).
 //
@@ -193,5 +193,5 @@ fl_filename_relative(char       *to,	// O - Relative filename
 
 
 //
-// End of "$Id: filename_absolute.cxx 4660 2005-11-27 14:45:48Z mike $".
+// End of "$Id: filename_absolute.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

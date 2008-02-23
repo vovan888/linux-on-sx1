@@ -1,9 +1,9 @@
 //
-// "$Id: demo.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: demo.cxx 5712 2007-02-23 19:27:43Z matt $"
 //
 // Main demo program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2007 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,14 +20,22 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if defined(WIN32) && !defined(CYGNUS)
+#if defined(WIN32) && !defined(__CYGWIN__)
 #  include <direct.h>
+#  ifndef __WATCOMC__
+// Visual C++ 2005 incorrectly displays a warning about the use of POSIX APIs
+// on Windows, which is supposed to be POSIX compliant...
+#    define chdir _chdir
+#    define putenv _putenv
+#  endif // !__WATCOMC__
 #else
 #  include <unistd.h>
 #endif
@@ -35,6 +43,7 @@
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Choice.H>
 #include <FL/filename.H>
 #include <FL/x.H>
 
@@ -43,33 +52,46 @@
 void doexit(Fl_Widget *, void *);
 void doback(Fl_Widget *, void *);
 void dobut(Fl_Widget *, long);
+void doscheme(Fl_Choice *c, void *) {
+  Fl::scheme(c->text(c->value()));
+}
 
 Fl_Window *form;
 Fl_Button *but[9];
 
 void create_the_forms() {
   Fl_Widget *obj;
-  form = new Fl_Window(370, 450);
-  obj = new Fl_Box(FL_FRAME_BOX,20,390,330,40,"FLTK Demonstration");
+  form = new Fl_Window(350, 440);
+  obj = new Fl_Box(FL_FRAME_BOX,10,385,330,40,"FLTK Demonstration");
   obj->color(FL_GRAY-4);
   obj->labelsize(24);
   obj->labelfont(FL_BOLD);
   obj->labeltype(FL_ENGRAVED_LABEL);
-  obj = new Fl_Box(FL_FRAME_BOX,20,50,330,330,0);
+  obj = new Fl_Box(FL_FRAME_BOX,10,45,330,330,0);
   obj->color(FL_GRAY-8);
-  obj = new Fl_Button(130,10,110,30,"Exit");
+  obj = new Fl_Button(280,10,60,25,"Exit");
   obj->callback(doexit);
-  obj = new Fl_Button(20,50,330,380); obj->type(FL_HIDDEN_BUTTON);
+  Fl_Choice *choice = new Fl_Choice(75, 10, 100, 25, "Scheme:");
+  choice->labelfont(FL_HELVETICA_BOLD);
+  choice->add("none");
+  choice->add("gtk+");
+  choice->add("plastic");
+  choice->callback((Fl_Callback *)doscheme);
+  Fl::scheme(NULL);
+  if (!Fl::scheme()) choice->value(0);
+  else if (!strcmp(Fl::scheme(), "gtk+")) choice->value(1);
+  else choice->value(2);
+  obj = new Fl_Button(10,45,330,380); obj->type(FL_HIDDEN_BUTTON);
   obj->callback(doback);
-  obj = but[0] = new Fl_Button(40,270,90,90);
-  obj = but[1] = new Fl_Button(140,270,90,90);
-  obj = but[2] = new Fl_Button(240,270,90,90);
-  obj = but[5] = new Fl_Button(240,170,90,90);
-  obj = but[4] = new Fl_Button(140,170,90,90);
-  obj = but[3] = new Fl_Button(40,170,90,90);
-  obj = but[6] = new Fl_Button(40,70,90,90);
-  obj = but[7] = new Fl_Button(140,70,90,90);
-  obj = but[8] = new Fl_Button(240,70,90,90);
+  obj = but[0] = new Fl_Button(30,265,90,90);
+  obj = but[1] = new Fl_Button(130,265,90,90);
+  obj = but[2] = new Fl_Button(230,265,90,90);
+  obj = but[5] = new Fl_Button(230,165,90,90);
+  obj = but[4] = new Fl_Button(130,165,90,90);
+  obj = but[3] = new Fl_Button(30,165,90,90);
+  obj = but[6] = new Fl_Button(30,65,90,90);
+  obj = but[7] = new Fl_Button(130,65,90,90);
+  obj = but[8] = new Fl_Button(230,65,90,90);
   for (int i=0; i<9; i++) {
     but[i]->align(FL_ALIGN_WRAP);
     but[i]->callback(dobut, i);
@@ -91,7 +113,7 @@ typedef struct {
 MENU menus[MAXMENU];
 int mennumb = 0;
 
-int find_menu(char nnn[])
+int find_menu(const char* nnn)
 /* Returns the number of a given menu name. */
 {
   int i;
@@ -100,7 +122,7 @@ int find_menu(char nnn[])
   return -1;
 }
 
-void create_menu(char nnn[])
+void create_menu(const char* nnn)
 /* Creates a new menu with name nnn */
 {
   if (mennumb == MAXMENU -1) return;
@@ -109,7 +131,7 @@ void create_menu(char nnn[])
   mennumb++;
 }
 
-void addto_menu(char men[], char item[], char comm[])
+void addto_menu(const char* men, const char* item, const char* comm)
 /* Adds an item to a menu */
 {
   int n = find_menu(men);
@@ -158,9 +180,9 @@ int numb2but(int inumb, int maxnumb)
 /* Pushing and Popping menus */
 
 char stack[64][32];
-char stsize = 0;
+int stsize = 0;
 
-void push_menu(char nnn[])
+void push_menu(const char* nnn)
 /* Pushes a menu to be visible */
 {
   int n,i,bn;
@@ -173,8 +195,11 @@ void push_menu(char nnn[])
     bn = numb2but(i,n-1);
     but[bn]->show();
     but[bn]->label(menus[men].iname[i]);
+    if (menus[men].icommand[i][0] != '@') but[bn]->tooltip(menus[men].icommand[i]);
+    else but[bn]->tooltip(0);
   }
-  strcpy(stack[stsize],nnn);
+  if (stack[stsize]!=nnn)
+    strcpy(stack[stsize],nnn);
   stsize++;
 }
 
@@ -247,8 +272,8 @@ void dobut(Fl_Widget *, long arg)
     CreateProcess(NULL, command, NULL, NULL, FALSE,
                   NORMAL_PRIORITY_CLASS, NULL, NULL, &suInfo, &prInfo);
 	
-    delete command;
-    delete copy_of_icommand;
+    delete[] command;
+    delete[] copy_of_icommand;
 	
 #else // NON WIN32 systems.
 
@@ -258,7 +283,7 @@ void dobut(Fl_Widget *, long arg)
     sprintf(command, "./%s &", menus[men].icommand[bn]);
     system(command);
 
-    delete command;
+    delete[] command;
 #endif // WIN32
   }
 }
@@ -267,7 +292,7 @@ void doback(Fl_Widget *, void *) {pop_menu();}
 
 void doexit(Fl_Widget *, void *) {exit(0);}
 
-int load_the_menu(const char fname[])
+int load_the_menu(const char* fname)
 /* Loads the menu file. Returns whether successful. */
 {
   FILE *fin;
@@ -281,6 +306,14 @@ int load_the_menu(const char fname[])
   }
   for (;;) {
     if (fgets(line,256,fin) == NULL) break;
+    // remove all carriage returns that Cygwin may have inserted
+    char *s = line, *d = line;
+    for (;;++d) {
+      while (*s=='\r') s++;
+      *d = *s++;
+      if (!*d) break;
+    }
+    // interprete the line
     j = 0; i = 0;
     while (line[i] == ' ' || line[i] == '\t') i++;
     if (line[i] == '\n') continue;
@@ -311,18 +344,27 @@ int load_the_menu(const char fname[])
 }
 
 int main(int argc, char **argv) {
-  create_the_forms();
+  putenv((char *)"FLTK_DOCDIR=../documentation");
   char buf[256];
   strcpy(buf, argv[0]);
-  filename_setext(buf,".menu");
+#if ( defined _MSC_VER || defined __MWERKS__ ) && defined _DEBUG
+  // MS_VisualC appends a 'd' to debugging executables. remove it.
+  fl_filename_setext( buf, "" );
+  buf[ strlen(buf)-1 ] = 0;
+#endif
+  fl_filename_setext(buf,".menu");
   const char *fname = buf;
   int i = 0;
   if (!Fl::args(argc,argv,i) || i < argc-1)
-    Fl::fatal("Usage: %s <switches> <menufile>\n%s",Fl::help);
+    Fl::fatal("Usage: %s <switches> <menufile>\n%s",argv[0],Fl::help);
   if (i < argc) fname = argv[i];
+
+  create_the_forms();
+
   if (!load_the_menu(fname)) Fl::fatal("Can't open %s",fname);
-  strcpy(buf,fname);
-  const char *c = filename_name(buf);
+  if (buf!=fname)
+    strcpy(buf,fname);
+  const char *c = fl_filename_name(buf);
   if (c > buf) {buf[c-buf] = 0; chdir(buf);}
   push_menu("@main");
   form->show(argc,argv);
@@ -331,6 +373,6 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: demo.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: demo.cxx 5712 2007-02-23 19:27:43Z matt $".
 //
 

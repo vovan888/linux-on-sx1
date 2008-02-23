@@ -32,21 +32,23 @@
 	@w:resize:resize
 
 @main:Drawing\nTests:@d
-	@d:Fl_Bitmap:bitmap
-	@d:Fl_Pixmap:pixmap
-	@d:Fl_Image:image
-	@d:pixmap\nbrowser:pixmap_browser
+	@d:Images:@di
+		@di:Fl_Bitmap:bitmap
+		@di:Fl_Pixmap:pixmap
+		@di:Fl_RGB\n_Image:image
+		@di:Fl_Shared\n_Image:pixmap_browser
+		@di:Fl_Tiled\n_Image:tiled_image
 	@d:cursor:cursor
 	@d:labels:label
 	@d:fl_arc:arc
 	@d:fl_curve:curve
-	@d:fonts:fonts
+	@d:fl_line_style:line_style
 
 @main:Events:@u
 	@u:navigation:navigation
 	@u:minimum update:minimum
 	@u:keyboard:keyboard
-	@u:fast & slow widgets:fast_slow
+	@u:fast && slow widgets:fast_slow
 	@u:inactive:inactive
 
 @main:Fluid\n(UI design tool):../fluid/fluid valuators.fl
@@ -56,12 +58,18 @@
 	@e:Mandelbrot:mandelbrot
 	@e:Fractals:fractals
 	@e:Puzzle:glpuzzle
-	@e:shiny\nOpenGL\nbuttons:shiny
+	@e:Block\nAttack!:blocks
 	@e:Checkers:checkers
+	@e:Sudoku:sudoku
 
 @main:Other\nTests:@o
-	@o:color choosers:color_chooser r
-	@o:file chooser:file_chooser
+	@o:Color Choosers:color_chooser r
+	@o:File Chooser:file_chooser
+	@o:Fonts:fonts
+	@o:HelpDialog:help
+	@o:Input Choice:input_choice
+	@o:Preferences:preferences
+	@o:Threading:threads
 	@o:XForms Emulation:forms
 
 @main:Tutorial\nfrom\nManual:@j

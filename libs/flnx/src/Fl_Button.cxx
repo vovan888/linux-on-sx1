@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Button.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Button.cxx 5489 2006-09-25 16:36:52Z mike $"
 //
 // Button widget for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2005 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -40,7 +40,8 @@ int Fl_Button::value(int v) {
   clear_changed();
   if (value_ != v) {
     value_ = v;
-    redraw();
+    if (box()) redraw();
+    else redraw_label();
     return 1;
   } else {
     return 0;
@@ -60,9 +61,13 @@ void Fl_Button::setonly() { // set this radio button on, turn others off
 void Fl_Button::draw() {
   if (type() == FL_HIDDEN_BUTTON) return;
   Fl_Color col = value() ? selection_color() : color();
-//if (col == FL_GRAY && Fl::belowmouse()==this) col = FL_LIGHT1;
   draw_box(value() ? (down_box()?down_box():fl_down(box())) : box(), col);
-  draw_label();
+  if (labeltype() == FL_NORMAL_LABEL && value()) {
+    Fl_Color c = labelcolor();
+    labelcolor(fl_contrast(c, col));
+    draw_label();
+    labelcolor(c);
+  } else draw_label();
   if (Fl::focus() == this) draw_focus();
 }
 
@@ -160,5 +165,5 @@ Fl_Button::Fl_Button(int X, int Y, int W, int H, const char *l)
 }
 
 //
-// End of "$Id: Fl_Button.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Button.cxx 5489 2006-09-25 16:36:52Z mike $".
 //

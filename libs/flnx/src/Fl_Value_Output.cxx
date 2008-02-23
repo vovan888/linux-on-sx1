@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Value_Output.cxx 4609 2005-10-30 17:42:21Z mike $"
+// "$Id: Fl_Value_Output.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Value output widget for the Fast Light Tool Kit (FLTK).
 //
@@ -99,5 +99,5 @@ Fl_Value_Output::Fl_Value_Output(int X, int Y, int W, int H,const char *l)
 }
 
 //
-// End of "$Id: Fl_Value_Output.cxx 4609 2005-10-30 17:42:21Z mike $".
+// End of "$Id: Fl_Value_Output.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

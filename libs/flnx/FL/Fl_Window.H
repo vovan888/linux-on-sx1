@@ -80,8 +80,6 @@ public:
 
   virtual int handle(int);
 
-  virtual void resize_notify(int,int,int,int);
-
   virtual void resize(int,int,int,int);
   void border(int b);
   void clear_border()	{set_flag(FL_NOBORDER);}

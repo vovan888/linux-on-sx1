@@ -1,9 +1,9 @@
 //
-// "$Id: bitmap.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: bitmap.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Bitmap label test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -96,11 +98,9 @@ static uchar sorceress_bits[] = {
    0xff, 0xff, 0x40, 0xf0, 0xff, 0xff, 0xff, 0x07, 0xff, 0xff, 0xff, 0xff,
    0x41, 0xf0, 0xff, 0xff, 0xff, 0x07};
 
-Fl_Bitmap fl_bitmap(sorceress_bits, sorceress_width, sorceress_height);
-
 #include <FL/Fl_Toggle_Button.H>
 
-Fl_Toggle_Button *leftb,*rightb,*topb,*bottomb,*insideb;
+Fl_Toggle_Button *leftb,*rightb,*topb,*bottomb,*insideb,*overb,*inactb;
 Fl_Button *b;
 Fl_Window *w;
 
@@ -111,31 +111,37 @@ void button_cb(Fl_Widget *,void *) {
   if (topb->value()) i |= FL_ALIGN_TOP;
   if (bottomb->value()) i |= FL_ALIGN_BOTTOM;
   if (insideb->value()) i |= FL_ALIGN_INSIDE;
+  if (overb->value()) i |= FL_ALIGN_TEXT_OVER_IMAGE;
   b->align(i);
+  if (inactb->value()) b->deactivate();
+  else b->activate();
   w->redraw();
 }
 
 int main(int argc, char **argv) {
-  Fl_Window window(400,400); ::w = &window;
-  Fl_Button b(140,160,120,120,0); ::b = &b;
-  //(new Fl_Bitmap(sorceress_bits,sorceress_width,sorceress_height))->label(&b);
-  fl_bitmap.label(&b);
-  leftb = new Fl_Toggle_Button(50,75,50,25,"left");
+  w = new Fl_Window(400,400);
+  b = new Fl_Button(140,160,120,120,"Bitmap");
+  b->image(new Fl_Bitmap(sorceress_bits,sorceress_width,sorceress_height));
+  leftb = new Fl_Toggle_Button(25,50,50,25,"left");
   leftb->callback(button_cb);
-  rightb = new Fl_Toggle_Button(100,75,50,25,"right");
+  rightb = new Fl_Toggle_Button(75,50,50,25,"right");
   rightb->callback(button_cb);
-  topb = new Fl_Toggle_Button(150,75,50,25,"top");
+  topb = new Fl_Toggle_Button(125,50,50,25,"top");
   topb->callback(button_cb);
-  bottomb = new Fl_Toggle_Button(200,75,50,25,"bottom");
+  bottomb = new Fl_Toggle_Button(175,50,50,25,"bottom");
   bottomb->callback(button_cb);
-  insideb = new Fl_Toggle_Button(250,75,50,25,"inside");
+  insideb = new Fl_Toggle_Button(225,50,50,25,"inside");
   insideb->callback(button_cb);
-  window.resizable(window);
-  window.end();
-  window.show(argc, argv);
+  overb = new Fl_Toggle_Button(25,75,100,25,"text over");
+  overb->callback(button_cb);
+  inactb = new Fl_Toggle_Button(125,75,100,25,"inactive");
+  inactb->callback(button_cb);
+  w->resizable(w);
+  w->end();
+  w->show(argc, argv);
   return Fl::run();
 }
 
 //
-// End of "$Id: bitmap.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: bitmap.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

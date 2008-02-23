@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Tile.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Tile.cxx 5606 2007-01-18 10:01:24Z matt $"
 //
 // Tile widget for the Fast Light Tool Kit (FLTK).
 //
@@ -66,6 +66,8 @@ void Fl_Tile::position(int oix, int oiy, int newx, int newy) {
 
 // move the lower-right corner (sort of):
 void Fl_Tile::resize(int X,int Y,int W,int H) {
+  //Fl_Group::resize(X, Y, W, H);
+  //return;
   // remember how much to move the child widgets:
   int dx = X-x();
   int dy = Y-y();
@@ -92,7 +94,9 @@ void Fl_Tile::resize(int X,int Y,int W,int H) {
     int B = yy+o->h();
     if (*p++ >= OB) yy += dh; else if (yy > NB) yy = NB;
     if (*p++ >= OB) B += dh; else if (B > NB) B = NB;
-    o->resize(xx,yy,R-xx,B-yy); o->redraw();
+    o->resize(xx,yy,R-xx,B-yy);
+    // do *not* call o->redraw() here! If you do, and the tile is inside a 
+    // scroll, it'll set the damage areas wrong for all children!
   }
 }
 
@@ -199,5 +203,5 @@ int Fl_Tile::handle(int event) {
 }
 
 //
-// End of "$Id: Fl_Tile.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Tile.cxx 5606 2007-01-18 10:01:24Z matt $".
 //

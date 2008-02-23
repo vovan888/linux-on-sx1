@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Window.cxx 4711 2005-12-14 13:51:51Z matt $"
+// "$Id: Fl_Window.cxx 5251 2006-06-28 10:23:33Z matt $"
 //
 // Window widget class for the Fast Light Tool Kit (FLTK).
 //
@@ -36,7 +36,7 @@
 #include "flstring.h"
 
 #ifdef __APPLE_QUARTZ__
-#include <FL/fl_draw.h>
+#include <FL/fl_draw.H>
 #endif
 
 void Fl_Window::_Fl_Window() {
@@ -101,14 +101,15 @@ int Fl_Window::y_root() const {
 
 void Fl_Window::draw() {
   const char *savelabel = label();
-  uchar saveflags = flags();
+  int saveflags = flags();
   int savex = x(); x(0);
   int savey = y(); y(0);
   // Make sure we don't draw the window title in the window background...
+  clear_flag(COPIED_LABEL); // do not free copied labels!
   Fl_Widget::label(0);
   Fl_Group::draw();
 #ifdef __APPLE_QUARTZ__
-  if (!parent() && resizable()) {
+  if (!parent() && resizable() && (!size_range_set || minh!=maxh || minw!=maxw)) {
     int dx = Fl::box_dw(box())-Fl::box_dx(box());
     int dy = Fl::box_dh(box())-Fl::box_dy(box());
     if (dx<=0) dx = 1;
@@ -134,14 +135,9 @@ void Fl_Window::draw() {
   x(savex);
 }
 
-void Fl_Window::resize_notify(int X,int Y,int W,int H)
-{
-  if ( (X == x()) && (Y == y()) ) {
-    size(W, H);
-  }
+void Fl_Window::label(const char *name) {
+  label(name, iconlabel());
 }
-
-void Fl_Window::label(const char *name) {label(name, iconlabel());}
 
 void Fl_Window::copy_label(const char *a) {
   if (flags() & COPIED_LABEL) {
@@ -180,5 +176,5 @@ Fl_Window *Fl_Window::current() {
 
 
 //
-// End of "$Id: Fl_Window.cxx 4711 2005-12-14 13:51:51Z matt $".
+// End of "$Id: Fl_Window.cxx 5251 2006-06-28 10:23:33Z matt $".
 //

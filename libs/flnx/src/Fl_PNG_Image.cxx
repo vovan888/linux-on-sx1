@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_PNG_Image.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_PNG_Image.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Fl_PNG_Image routines.
 //
@@ -151,5 +151,5 @@ Fl_PNG_Image::Fl_PNG_Image(const char *png) // I - File to read
 
 
 //
-// End of "$Id: Fl_PNG_Image.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_PNG_Image.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

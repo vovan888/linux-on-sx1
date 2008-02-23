@@ -1,5 +1,5 @@
 //
-// "$Id: factory.cxx,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $"
+// "$Id: factory.cxx 5658 2007-02-02 20:09:53Z mike $"
 //
 // Widget factory code for the Fast Light Tool Kit (FLTK).
 //
@@ -11,7 +11,7 @@
 // to a factory instance for every class (both the ones defined
 // here and ones in other files)
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -28,20 +28,48 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Menu_Item.H>
-#include <string.h>
+#include <FL/Fl_Pixmap.H>
 #include <stdio.h>
-
-#if defined(WIN32) || defined(__EMX__)
-#define strcasecmp stricmp
-#endif
+#include "../src/flstring.h"
+#include "undo.h"
 
 #include "Fl_Widget_Type.h"
+
+extern Fl_Pixmap *pixmap[];
+
+#if !HAVE_STRCASECMP
+//
+// 'strcasecmp()' - Do a case-insensitive compare...
+//
+
+static int
+strcasecmp(const char *s, const char *t) {
+  while (*s != '\0' && *t != '\0') {
+    if (tolower(*s) < tolower(*t))
+      return (-1);
+    else if (tolower(*s) > tolower(*t))
+      return (1);
+
+    s ++;
+    t ++;
+  }
+
+  if (*s == '\0' && *t == '\0')
+    return (0);
+  else if (*s != '\0')
+    return (1);
+  else
+    return (-1);
+}
+#endif // !HAVE_STRCASECMP
 
 ////////////////////////////////////////////////////////////////
 
@@ -52,6 +80,7 @@ public:
   Fl_Widget *widget(int x,int y,int w, int h) {
     return new Fl_Box(x,y,w,h,"label");}
   Fl_Widget_Type *_make() {return new Fl_Box_Type();}
+  int pixmapID() { return 5; }
 };
 static Fl_Box_Type Fl_Box_type;
 
@@ -66,11 +95,17 @@ static Fl_Menu_Item buttontype_menu[] = {
 class Fl_Button_Type : public Fl_Widget_Type {
   Fl_Menu_Item *subtypes() {return buttontype_menu;}
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Widget_Type::ideal_size(w, h);
+    w += 2 * (o->labelsize() - 4);
+    h = (h / 5) * 5;
+  }
   virtual const char *type_name() {return "Fl_Button";}
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Button(x,y,w,h,"button");}
   Fl_Widget_Type *_make() {return new Fl_Button_Type();}
   int is_button() const {return 1;}
+  int pixmapID() { return 2; }
 };
 static Fl_Button_Type Fl_Button_type;
 
@@ -79,10 +114,17 @@ static Fl_Button_Type Fl_Button_type;
 #include <FL/Fl_Return_Button.H>
 class Fl_Return_Button_Type : public Fl_Button_Type {
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Button_Type::ideal_size(w, h);
+    int W = o->h();
+    if (o->w()/3 < W) W = o->w()/3;
+    w += W + 8 - o->labelsize();
+  }
   virtual const char *type_name() {return "Fl_Return_Button";}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    return new Fl_Return_Button(x,y,w,h,0);}
+    return new Fl_Return_Button(x,y,w,h,"button");}
   Fl_Widget_Type *_make() {return new Fl_Return_Button_Type();}
+  int pixmapID() { return 23; }
 };
 static Fl_Return_Button_Type Fl_Return_Button_type;
 
@@ -93,8 +135,9 @@ class Fl_Repeat_Button_Type : public Fl_Widget_Type {
 public:
   virtual const char *type_name() {return "Fl_Repeat_Button";}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    return new Fl_Repeat_Button(x,y,w,h,0);}
+    return new Fl_Repeat_Button(x,y,w,h,"button");}
   Fl_Widget_Type *_make() {return new Fl_Repeat_Button_Type();}
+  int pixmapID() { return 25; }
 };
 static Fl_Repeat_Button_Type Fl_Repeat_Button_type;
 
@@ -103,10 +146,15 @@ static Fl_Repeat_Button_Type Fl_Repeat_Button_type;
 #include <FL/Fl_Light_Button.H>
 class Fl_Light_Button_Type : public Fl_Button_Type {
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Button_Type::ideal_size(w, h);
+    w += 4;
+  }
   virtual const char *type_name() {return "Fl_Light_Button";}
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Light_Button(x,y,w,h,"button");}
   Fl_Widget_Type *_make() {return new Fl_Light_Button_Type();}
+  int pixmapID() { return 24; }
 };
 static Fl_Light_Button_Type Fl_Light_Button_type;
 
@@ -115,10 +163,15 @@ static Fl_Light_Button_Type Fl_Light_Button_type;
 #include <FL/Fl_Check_Button.H>
 class Fl_Check_Button_Type : public Fl_Button_Type {
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Button_Type::ideal_size(w, h);
+    w += 4;
+  }
   virtual const char *type_name() {return "Fl_Check_Button";}
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Check_Button(x,y,w,h,"button");}
   Fl_Widget_Type *_make() {return new Fl_Check_Button_Type();}
+  int pixmapID() { return 3; }
 };
 static Fl_Check_Button_Type Fl_Check_Button_type;
 
@@ -127,10 +180,15 @@ static Fl_Check_Button_Type Fl_Check_Button_type;
 #include <FL/Fl_Round_Button.H>
 class Fl_Round_Button_Type : public Fl_Button_Type {
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Button_Type::ideal_size(w, h);
+    w += 4;
+  }
   virtual const char *type_name() {return "Fl_Round_Button";}
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Round_Button(x,y,w,h,"button");}
   Fl_Widget_Type *_make() {return new Fl_Round_Button_Type();}
+  int pixmapID() { return 4; }
 };
 static Fl_Round_Button_Type Fl_Round_Button_type;
 
@@ -139,6 +197,9 @@ static Fl_Round_Button_Type Fl_Round_Button_type;
 extern int compile_only;
 
 #include <FL/Fl_Browser.H>
+#include <FL/Fl_Check_Browser.H>
+#include <FL/Fl_File_Browser.H>
+
 static Fl_Menu_Item browser_type_menu[] = {
   {"No Select",0,0,(void*)FL_NORMAL_BROWSER},
   {"Select",0,0,(void*)FL_SELECT_BROWSER},
@@ -149,6 +210,18 @@ class Fl_Browser_Type : public Fl_Widget_Type {
   Fl_Menu_Item *subtypes() {return browser_type_menu;}
   int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Browser *myo = (Fl_Browser *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h -= Fl::box_dh(o->box());
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    h = ((h + fl_height() - 1) / fl_height()) * fl_height() +
+        Fl::box_dh(o->box());
+    if (h < 30) h = 30;
+    if (w < 50) w = 50;
+  }
   virtual const char *type_name() {return "Fl_Browser";}
   Fl_Widget *widget(int x,int y,int w,int h) {
     Fl_Browser* b = new Fl_Browser(x,y,w,h);
@@ -164,17 +237,108 @@ public:
     return b;
   }
   Fl_Widget_Type *_make() {return new Fl_Browser_Type();}
+  int pixmapID() { return 31; }
 };
 static Fl_Browser_Type Fl_Browser_type;
 
 int Fl_Browser_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
-  Fl_Browser *o = (Fl_Browser*)(w==4 ? ((Fl_Widget_Type*)this->factory)->o : this->o);
+  Fl_Browser *myo = (Fl_Browser*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
   switch (w) {
     case 4:
-    case 0: f = o->textfont(); s = o->textsize(); c = o->textcolor(); break;
-    case 1: o->textfont(f); break;
-    case 2: o->textsize(s); break;
-    case 3: o->textcolor(c); break;
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
+  }
+  return 1;
+}
+
+class Fl_Check_Browser_Type : public Fl_Widget_Type {
+  Fl_Menu_Item *subtypes() {return browser_type_menu;}
+  int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
+public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Check_Browser *myo = (Fl_Check_Browser *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h -= Fl::box_dh(o->box());
+    w -= Fl::box_dw(o->box()) - fl_height();
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    h = ((h + fl_height() - 1) / fl_height()) * fl_height() +
+        Fl::box_dh(o->box());
+    if (h < 30) h = 30;
+    if (w < 50) w = 50;
+  }
+  virtual const char *type_name() {return "Fl_Check_Browser";}
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    Fl_Check_Browser* b = new Fl_Check_Browser(x,y,w,h);
+    // Fl_Check_Browser::add calls fl_height(), which requires the X display open.
+    // Avoid this when compiling so it works w/o a display:
+    if (!compile_only) {
+      char buffer[20];
+      for (int i = 1; i <= 20; i++) {
+	sprintf(buffer,"Browser Line %d",i);
+	b->add(buffer);
+      }
+    }
+    return b;
+  }
+  Fl_Widget_Type *_make() {return new Fl_Check_Browser_Type();}
+  int pixmapID() { return 32; }
+};
+static Fl_Check_Browser_Type Fl_Check_Browser_type;
+
+int Fl_Check_Browser_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
+  Fl_Check_Browser *myo = (Fl_Check_Browser*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
+  switch (w) {
+    case 4:
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
+  }
+  return 1;
+}
+
+class Fl_File_Browser_Type : public Fl_Widget_Type {
+  Fl_Menu_Item *subtypes() {return browser_type_menu;}
+  int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
+public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_File_Browser *myo = (Fl_File_Browser *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h -= Fl::box_dh(o->box());
+    w -= Fl::box_dw(o->box()) + fl_height();
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    h = ((h + fl_height() - 1) / fl_height()) * fl_height() +
+        Fl::box_dh(o->box());
+    if (h < 30) h = 30;
+    if (w < 50) w = 50;
+  }
+  virtual const char *type_name() {return "Fl_File_Browser";}
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    Fl_File_Browser* b = new Fl_File_Browser(x,y,w,h);
+    // Fl_File_Browser::add calls fl_height(), which requires the X display open.
+    // Avoid this when compiling so it works w/o a display:
+    if (!compile_only) {
+      b->load(".");
+    }
+    return b;
+  }
+  Fl_Widget_Type *_make() {return new Fl_File_Browser_Type();}
+  int pixmapID() { return 33; }
+};
+static Fl_File_Browser_Type Fl_File_Browser_type;
+
+int Fl_File_Browser_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
+  Fl_File_Browser *myo = (Fl_File_Browser*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
+  switch (w) {
+    case 4:
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
   }
   return 1;
 }
@@ -190,6 +354,7 @@ class Fl_Counter_Type : public Fl_Widget_Type {
   Fl_Menu_Item *subtypes() {return counter_type_menu;}
   int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
   int is_valuator() const {return 1;}
+  int pixmapID() { return 41; }
 public:
   virtual const char *type_name() {return "Fl_Counter";}
   Fl_Widget *widget(int x,int y,int w,int h) {
@@ -199,13 +364,55 @@ public:
 static Fl_Counter_Type Fl_Counter_type;
 
 int Fl_Counter_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
-  Fl_Counter *o = (Fl_Counter*)(w==4 ? ((Fl_Widget_Type*)this->factory)->o : this->o);
+  Fl_Counter *myo = (Fl_Counter*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
   switch (w) {
     case 4:
-    case 0: f = o->textfont(); s = o->textsize(); c = o->textcolor(); break;
-    case 1: o->textfont(f); break;
-    case 2: o->textsize(s); break;
-    case 3: o->textcolor(c); break;
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
+  }
+  return 1;
+}
+
+////////////////////////////////////////////////////////////////
+
+#include <FL/Fl_Spinner.H>
+static Fl_Menu_Item spinner_type_menu[] = {
+  {"Integer",0,0,(void*)FL_INT_INPUT},
+  {"Float",  0,0,(void*)FL_FLOAT_INPUT},
+  {0}};
+class Fl_Spinner_Type : public Fl_Widget_Type {
+  Fl_Menu_Item *subtypes() {return spinner_type_menu;}
+  int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
+  int pixmapID() { return 47; }
+public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Spinner *myo = (Fl_Spinner *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h = fl_height() + myo->textsize() - 6;
+    if (h < 15) h = 15;
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box()) + h / 2;
+    if (w < 40) w = 40	;
+  }
+  virtual const char *type_name() {return "Fl_Spinner";}
+  int is_spinner() const { return 1; }
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    return new Fl_Spinner(x,y,w,h,"spinner:");}
+  Fl_Widget_Type *_make() {return new Fl_Spinner_Type();}
+};
+static Fl_Spinner_Type Fl_Spinner_type;
+
+int Fl_Spinner_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
+  Fl_Spinner *myo = (Fl_Spinner*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
+  switch (w) {
+    case 4:
+    case 0: f = (Fl_Font)myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
   }
   return 1;
 }
@@ -224,24 +431,162 @@ class Fl_Input_Type : public Fl_Widget_Type {
   Fl_Menu_Item *subtypes() {return input_type_menu;}
   int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Input *myo = (Fl_Input *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h = fl_height() + myo->textsize() - 6;
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    if (h < 15) h = 15;
+    if (w < 15) w = 15;
+  }
   virtual const char *type_name() {return "Fl_Input";}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    Fl_Input *o = new Fl_Input(x,y,w,h,"input:");
-    o->value("Text Input");
-    return o;
+    Fl_Input *myo = new Fl_Input(x,y,w,h,"input:");
+    myo->value("Text Input");
+    return myo;
   }
   Fl_Widget_Type *_make() {return new Fl_Input_Type();}
+  int pixmapID() { return 14; }
+  virtual void copy_properties() {
+    Fl_Widget_Type::copy_properties();
+    Fl_Input_ *d = (Fl_Input_*)live_widget, *s = (Fl_Input_*)o;
+    d->textfont(s->textfont());
+    d->textsize(s->textsize());
+    d->textcolor(s->textcolor());
+  }
 };
 static Fl_Input_Type Fl_Input_type;
 
 int Fl_Input_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
-  Fl_Input_ *o = (Fl_Input_*)(w==4 ? ((Fl_Widget_Type*)this->factory)->o : this->o);
+  Fl_Input_ *myo = (Fl_Input_*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
   switch (w) {
     case 4:
-    case 0: f = o->textfont(); s = o->textsize(); c = o->textcolor(); break;
-    case 1: o->textfont(f); break;
-    case 2: o->textsize(s); break;
-    case 3: o->textcolor(c); break;
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
+  }
+  return 1;
+}
+
+////////////////////////////////////////////////////////////////
+
+#include <FL/Fl_File_Input.H>
+class Fl_File_Input_Type : public Fl_Widget_Type {
+  Fl_Menu_Item *subtypes() {return 0;}
+  int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
+public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_File_Input *myo = (Fl_File_Input *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h = fl_height() + myo->textsize() + 4;
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    if (h < 20) h = 20;
+    if (w < 50) w = 50;
+  }
+  virtual const char *type_name() {return "Fl_File_Input";}
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    Fl_File_Input *myo = new Fl_File_Input(x,y,w,h,"file:");
+    myo->value("/now/is/the/time/for/a/filename.ext");
+    return myo;
+  }
+  Fl_Widget_Type *_make() {return new Fl_File_Input_Type();}
+  int pixmapID() { return 30; }
+};
+static Fl_File_Input_Type Fl_File_Input_type;
+
+int Fl_File_Input_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
+  Fl_File_Input *myo = (Fl_File_Input*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
+  switch (w) {
+    case 4:
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
+  }
+  return 1;
+}
+
+////////////////////////////////////////////////////////////////
+
+#include <FL/Fl_Text_Display.H>
+class Fl_Text_Display_Type : public Fl_Widget_Type {
+  int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
+public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Text_Display *myo = (Fl_Text_Display *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h -= Fl::box_dh(o->box());
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    h = ((h + fl_height() - 1) / fl_height()) * fl_height() +
+        Fl::box_dh(o->box());
+    if (h < 30) h = 30;
+    if (w < 50) w = 50;
+  }
+  virtual const char *type_name() {return "Fl_Text_Display";}
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    Fl_Text_Display *myo = new Fl_Text_Display(x,y,w,h);
+    return myo;
+  }
+  Fl_Widget_Type *_make() {return new Fl_Text_Display_Type();}
+  int pixmapID() { return 28; }
+};
+static Fl_Text_Display_Type Fl_Text_Display_type;
+
+int Fl_Text_Display_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
+  Fl_Text_Display *myo = (Fl_Text_Display*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
+  switch (w) {
+    case 4:
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
+  }
+  return 1;
+}
+
+////////////////////////////////////////////////////////////////
+
+#include <FL/Fl_Text_Editor.H>
+class Fl_Text_Editor_Type : public Fl_Widget_Type {
+  int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
+public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Text_Editor *myo = (Fl_Text_Editor *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h -= Fl::box_dh(o->box());
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    h = ((h + fl_height() - 1) / fl_height()) * fl_height() +
+        Fl::box_dh(o->box());
+    if (h < 30) h = 30;
+    if (w < 50) w = 50;
+  }
+  virtual const char *type_name() {return "Fl_Text_Editor";}
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    Fl_Text_Editor *myo = new Fl_Text_Editor(x,y,w,h);
+    return myo;
+  }
+  Fl_Widget_Type *_make() {return new Fl_Text_Editor_Type();}
+  int pixmapID() { return 29; }
+};
+static Fl_Text_Editor_Type Fl_Text_Editor_type;
+
+int Fl_Text_Editor_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
+  Fl_Text_Editor *myo = (Fl_Text_Editor*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
+  switch (w) {
+    case 4:
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
   }
   return 1;
 }
@@ -255,8 +600,54 @@ public:
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Clock(x,y,w,h);}
   Fl_Widget_Type *_make() {return new Fl_Clock_Type();}
+  int pixmapID() { return 34; }
 };
 static Fl_Clock_Type Fl_Clock_type;
+
+////////////////////////////////////////////////////////////////
+
+#include <FL/Fl_Help_View.H>
+class Fl_Help_View_Type : public Fl_Widget_Type {
+public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Help_View *myo = (Fl_Help_View *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h -= Fl::box_dh(o->box());
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    h = ((h + fl_height() - 1) / fl_height()) * fl_height() +
+        Fl::box_dh(o->box());
+    if (h < 30) h = 30;
+    if (w < 50) w = 50;
+  }
+  virtual const char *type_name() {return "Fl_Help_View";}
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    Fl_Help_View *myo = new Fl_Help_View(x,y,w,h);
+    if (!compile_only) {
+      myo->value("<HTML><BODY><H1>Fl_Help_View Widget</H1>"
+                 "<P>This is a Fl_Help_View widget.</P></BODY></HTML>");
+    }
+    return myo;}
+  Fl_Widget_Type *_make() {return new Fl_Help_View_Type();}
+  int pixmapID() { return 35; }
+};
+static Fl_Help_View_Type Fl_Help_View_type;
+
+////////////////////////////////////////////////////////////////
+
+#include <FL/Fl_Progress.H>
+class Fl_Progress_Type : public Fl_Widget_Type {
+public:
+  virtual const char *type_name() {return "Fl_Progress";}
+  Fl_Widget *widget(int x,int y,int w,int h) {
+    Fl_Progress *myo = new Fl_Progress(x,y,w,h,"label");
+    myo->value(50);
+    return myo;}
+  Fl_Widget_Type *_make() {return new Fl_Progress_Type();}
+  int pixmapID() { return 36; }
+};
+static Fl_Progress_Type Fl_Progress_type;
 
 ////////////////////////////////////////////////////////////////
 
@@ -268,6 +659,7 @@ public:
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Adjuster(x,y,w,h);}
   Fl_Widget_Type *_make() {return new Fl_Adjuster_Type();}
+  int pixmapID() { return 40; }
 };
 static Fl_Adjuster_Type Fl_Adjuster_type;
 
@@ -287,6 +679,7 @@ public:
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Dial(x,y,w,h);}
   Fl_Widget_Type *_make() {return new Fl_Dial_Type();}
+  int pixmapID() { return 42; }
 };
 static Fl_Dial_Type Fl_Dial_type;
 
@@ -305,6 +698,7 @@ public:
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Roller(x,y,w,h);}
   Fl_Widget_Type *_make() {return new Fl_Roller_Type();}
+  int pixmapID() { return 43; }
 };
 static Fl_Roller_Type Fl_Roller_type;
 
@@ -325,8 +719,9 @@ class Fl_Slider_Type : public Fl_Widget_Type {
 public:
   virtual const char *type_name() {return "Fl_Slider";}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    return new Fl_Slider(x,y,w,h);}
+    return new Fl_Slider(x,y,w,h,"slider:");}
   Fl_Widget_Type *_make() {return new Fl_Slider_Type();}
+  int pixmapID() { return 37; }
 };
 static Fl_Slider_Type Fl_Slider_type;
 
@@ -336,11 +731,13 @@ static Fl_Menu_Item scrollbar_type_menu[] = {
   {0}};
 class Fl_Scrollbar_Type : public Fl_Slider_Type {
   Fl_Menu_Item *subtypes() {return scrollbar_type_menu;}
+  int is_valuator() const {return 3;}
 public:
   virtual const char *type_name() {return "Fl_Scrollbar";}
   Fl_Widget *widget(int x,int y,int w,int h) {
     return new Fl_Scrollbar(x,y,w,h);}
   Fl_Widget_Type *_make() {return new Fl_Scrollbar_Type();}
+  int pixmapID() { return 38; }
 };
 static Fl_Scrollbar_Type Fl_Scrollbar_type;
 
@@ -348,19 +745,30 @@ static Fl_Scrollbar_Type Fl_Scrollbar_type;
 
 #include <FL/Fl_Output.H>
 static Fl_Menu_Item output_type_menu[] = {
-  {"Normal",0,0,(void*)FL_NORMAL_INPUT},
-  {"Multiline",0,0,(void*)FL_MULTILINE_INPUT},
+  {"Normal",0,0,(void*)FL_NORMAL_OUTPUT},
+  {"Multiline",0,0,(void*)FL_MULTILINE_OUTPUT},
   {0}};
 class Fl_Output_Type : public Fl_Input_Type {
   Fl_Menu_Item *subtypes() {return output_type_menu;}
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Output *myo = (Fl_Output *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h = fl_height() + myo->textsize() - 6;
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    if (h < 15) h = 15;
+    if (w < 15) w = 15;
+  }
   virtual const char *type_name() {return "Fl_Output";}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    Fl_Output *o = new Fl_Output(x,y,w,h,"output:");
-    o->value("Text Output");
-    return o;
+    Fl_Output *myo = new Fl_Output(x,y,w,h,"output:");
+    myo->value("Text Output");
+    return myo;
   }
   Fl_Widget_Type *_make() {return new Fl_Output_Type();}
+  int pixmapID() { return 27; }
 };
 static Fl_Output_Type Fl_Output_type;
 
@@ -369,25 +777,36 @@ static Fl_Output_Type Fl_Output_type;
 #include <FL/Fl_Value_Input.H>
 class Fl_Value_Input_Type : public Fl_Widget_Type {
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Value_Input *myo = (Fl_Value_Input *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h = fl_height() + myo->textsize() - 6;
+    w -= Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    if (h < 15) h = 15;
+    if (w < 15) w = 15;
+  }
   virtual const char *type_name() {return "Fl_Value_Input";}
   int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
   int is_valuator() const {return 1;}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    Fl_Value_Input *o = new Fl_Value_Input(x,y,w,h,"value:");
-    return o;
+    Fl_Value_Input *myo = new Fl_Value_Input(x,y,w,h,"value:");
+    return myo;
   }
   Fl_Widget_Type *_make() {return new Fl_Value_Input_Type();}
+  int pixmapID() { return 44; }
 };
 static Fl_Value_Input_Type Fl_Value_Input_type;
 
 int Fl_Value_Input_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
-  Fl_Value_Input *o = (Fl_Value_Input*)(w==4 ? ((Fl_Widget_Type*)this->factory)->o : this->o);
+  Fl_Value_Input *myo = (Fl_Value_Input*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
   switch (w) {
     case 4:
-    case 0: f = o->textfont(); s = o->textsize(); c = o->textcolor(); break;
-    case 1: o->textfont(f); break;
-    case 2: o->textsize(s); break;
-    case 3: o->textcolor(c); break;
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
   }
   return 1;
 }
@@ -397,25 +816,36 @@ int Fl_Value_Input_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
 #include <FL/Fl_Value_Output.H>
 class Fl_Value_Output_Type : public Fl_Widget_Type {
 public:
+  virtual void ideal_size(int &w, int &h) {
+    Fl_Value_Output *myo = (Fl_Value_Output *)o;
+    fl_font(myo->textfont(), myo->textsize());
+    h = fl_height() + myo->textsize() - 6;
+    w = o->w() - Fl::box_dw(o->box());
+    int ww = (int)fl_width('m');
+    w = ((w + ww - 1) / ww) * ww + Fl::box_dw(o->box());
+    if (h < 15) h = 15;
+    if (w < 15) w = 15;
+  }
   virtual const char *type_name() {return "Fl_Value_Output";}
   int textstuff(int w, Fl_Font& f, int& s, Fl_Color& c);
   int is_valuator() const {return 1;}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    Fl_Value_Output *o = new Fl_Value_Output(x,y,w,h,"value:");
-    return o;
+    Fl_Value_Output *myo = new Fl_Value_Output(x,y,w,h,"value:");
+    return myo;
   }
   Fl_Widget_Type *_make() {return new Fl_Value_Output_Type();}
+  int pixmapID() { return 45; }
 };
 static Fl_Value_Output_Type Fl_Value_Output_type;
 
 int Fl_Value_Output_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
-  Fl_Value_Output *o = (Fl_Value_Output*)(w==4 ? ((Fl_Widget_Type*)this->factory)->o : this->o);
+  Fl_Value_Output *myo = (Fl_Value_Output*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
   switch (w) {
     case 4:
-    case 0: f = o->textfont(); s = o->textsize(); c = o->textcolor(); break;
-    case 1: o->textfont(f); break;
-    case 2: o->textsize(s); break;
-    case 3: o->textcolor(c); break;
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
   }
   return 1;
 }
@@ -428,19 +858,20 @@ class Fl_Value_Slider_Type : public Fl_Slider_Type {
 public:
   virtual const char *type_name() {return "Fl_Value_Slider";}
   Fl_Widget *widget(int x,int y,int w,int h) {
-    return new Fl_Value_Slider(x,y,w,h);}
+    return new Fl_Value_Slider(x,y,w,h,"slider:");}
   Fl_Widget_Type *_make() {return new Fl_Value_Slider_Type();}
+  int pixmapID() { return 39; }
 };
 static Fl_Value_Slider_Type Fl_Value_Slider_type;
 
 int Fl_Value_Slider_Type::textstuff(int w, Fl_Font& f, int& s, Fl_Color& c) {
-  Fl_Value_Slider *o = (Fl_Value_Slider*)(w==4 ? ((Fl_Widget_Type*)this->factory)->o : this->o);
+  Fl_Value_Slider *myo = (Fl_Value_Slider*)(w==4 ? ((Fl_Widget_Type*)factory)->o : o);
   switch (w) {
     case 4:
-    case 0: f = o->textfont(); s = o->textsize(); c = o->textcolor(); break;
-    case 1: o->textfont(f); break;
-    case 2: o->textsize(s); break;
-    case 3: o->textcolor(c); break;
+    case 0: f = myo->textfont(); s = myo->textsize(); c = myo->textcolor(); break;
+    case 1: myo->textfont(f); break;
+    case 2: myo->textsize(s); break;
+    case 3: myo->textcolor(c); break;
   }
   return 1;
 }
@@ -452,88 +883,170 @@ extern class Fl_Code_Type Fl_Code_type;
 extern class Fl_CodeBlock_Type Fl_CodeBlock_type;
 extern class Fl_Decl_Type Fl_Decl_type;
 extern class Fl_DeclBlock_Type Fl_DeclBlock_type;
+extern class Fl_Comment_Type Fl_Comment_type;
 extern class Fl_Class_Type Fl_Class_type;
 extern class Fl_Window_Type Fl_Window_type;
+extern class Fl_Widget_Class_Type Fl_Widget_Class_type;
 extern class Fl_Group_Type Fl_Group_type;
 extern class Fl_Pack_Type Fl_Pack_type;
 extern class Fl_Tabs_Type Fl_Tabs_type;
 extern class Fl_Scroll_Type Fl_Scroll_type;
 extern class Fl_Tile_Type Fl_Tile_type;
+extern class Fl_Input_Choice_Type Fl_Input_Choice_type;
 extern class Fl_Choice_Type Fl_Choice_type;
 extern class Fl_Menu_Bar_Type Fl_Menu_Bar_type;
 extern class Fl_Menu_Button_Type Fl_Menu_Button_type;
 extern class Fl_Menu_Item_Type Fl_Menu_Item_type;
 extern class Fl_Submenu_Type Fl_Submenu_type;
+extern class Fl_Wizard_Type Fl_Wizard_type;
 
 extern void select(Fl_Type *,int);
 extern void select_only(Fl_Type *);
 
+#include <FL/Fl_Window.H>
+
 static void cb(Fl_Widget *, void *v) {
+  undo_checkpoint();
+  undo_suspend();
   Fl_Type *t = ((Fl_Type*)v)->make();
-  if (t) {select_only(t); modflag = 1; t->open();}
+  if (t) {
+    if (t->is_widget() && !t->is_window()) {
+      Fl_Widget_Type *wt = (Fl_Widget_Type *)t;
+
+      // Set font sizes...
+      wt->o->labelsize(Fl_Widget_Type::default_size);
+
+      Fl_Font f;
+      int s = Fl_Widget_Type::default_size;
+      Fl_Color c;
+
+      wt->textstuff(2, f, s, c);
+
+      // Resize and/or reposition new widget...
+      int w = 0, h = 0;
+      wt->ideal_size(w, h);
+
+      if (!strcmp(wt->type_name(), "Fl_Menu_Bar")) {
+        // Move and resize the menubar across the top of the window...
+        wt->o->resize(0, 0, w, h);
+      } else {
+        // Just resize to the ideal size...
+        wt->o->size(w, h);
+      }
+    }
+    select_only(t);
+    set_modflag(1);
+    t->open();
+  } else {
+    undo_current --;
+    undo_last --;
+  }
+  undo_resume();
 }
 
 Fl_Menu_Item New_Menu[] = {
-{"code",0,0,0,FL_SUBMENU},
-  {"function/method",0,cb,(void*)&Fl_Function_type},
-  {"code",0,cb,(void*)&Fl_Code_type},
-  {"code block",0,cb,(void*)&Fl_CodeBlock_type},
-  {"declaration",0,cb,(void*)&Fl_Decl_type},
-  {"declaration block",0,cb,(void*)&Fl_DeclBlock_type},
-  {"class",0,cb,(void*)&Fl_Class_type},
+{"Code",0,0,0,FL_SUBMENU},
+  {"Function/Method",0,cb,(void*)&Fl_Function_type},
+  {"Code",0,cb,(void*)&Fl_Code_type},
+  {"Code Block",0,cb,(void*)&Fl_CodeBlock_type},
+  {"Declaration",0,cb,(void*)&Fl_Decl_type},
+  {"Declaration Block",0,cb,(void*)&Fl_DeclBlock_type},
+  {"Class",0,cb,(void*)&Fl_Class_type},
+  {"Widget Class",0,cb,(void*)&Fl_Widget_Class_type},
+  {"Comment",0,cb,(void*)&Fl_Comment_type},
 {0},
-{"group",0,0,0,FL_SUBMENU},
+{"Group",0,0,0,FL_SUBMENU},
   {0,0,cb,(void*)&Fl_Window_type},
   {0,0,cb,(void*)&Fl_Group_type},
   {0,0,cb,(void*)&Fl_Pack_type},
   {0,0,cb,(void*)&Fl_Tabs_type},
   {0,0,cb,(void*)&Fl_Scroll_type},
   {0,0,cb,(void*)&Fl_Tile_type},
+  {0,0,cb,(void*)&Fl_Wizard_type},
 {0},
-{"buttons",0,0,0,FL_SUBMENU},
+{"Buttons",0,0,0,FL_SUBMENU},
   {0,0,cb,(void*)&Fl_Button_type},
   {0,0,cb,(void*)&Fl_Return_Button_type},
   {0,0,cb,(void*)&Fl_Light_Button_type},
   {0,0,cb,(void*)&Fl_Check_Button_type},
-  {0,0,cb,(void*)&Fl_Round_Button_type},
   {0,0,cb,(void*)&Fl_Repeat_Button_type},
+  {0,0,cb,(void*)&Fl_Round_Button_type},
 {0},
-{"valuators",0,0,0,FL_SUBMENU},
+{"Valuators",0,0,0,FL_SUBMENU},
   {0,0,cb,(void*)&Fl_Slider_type},
   {0,0,cb,(void*)&Fl_Scrollbar_type},
   {0,0,cb,(void*)&Fl_Value_Slider_type},
   {0,0,cb,(void*)&Fl_Adjuster_type},
   {0,0,cb,(void*)&Fl_Counter_type},
+  {0,0,cb,(void*)&Fl_Spinner_type},
   {0,0,cb,(void*)&Fl_Dial_type},
   {0,0,cb,(void*)&Fl_Roller_type},
   {0,0,cb,(void*)&Fl_Value_Input_type},
   {0,0,cb,(void*)&Fl_Value_Output_type},
 {0},
-{"text",0,0,0,FL_SUBMENU},
+{"Text",0,0,0,FL_SUBMENU},
+  {0,0,cb,(void*)&Fl_File_Input_type},
   {0,0,cb,(void*)&Fl_Input_type},
   {0,0,cb,(void*)&Fl_Output_type},
+  {0,0,cb,(void*)&Fl_Text_Display_type},
+  {0,0,cb,(void*)&Fl_Text_Editor_type},
 {0},
-{"menus",0,0,0,FL_SUBMENU},
+{"Menus",0,0,0,FL_SUBMENU},
   {0,0,cb,(void*)&Fl_Menu_Bar_type},
   {0,0,cb,(void*)&Fl_Menu_Button_type},
   {0,0,cb,(void*)&Fl_Choice_type},
+  {0,0,cb,(void*)&Fl_Input_Choice_type},
   {0,0,cb, (void*)&Fl_Submenu_type},
   {0,0,cb, (void*)&Fl_Menu_Item_type},
 {0},
-{"other",0,0,0,FL_SUBMENU},
+{"Browsers",0,0,0,FL_SUBMENU},
   {0,0,cb,(void*)&Fl_Browser_type},
+  {0,0,cb,(void*)&Fl_Check_Browser_type},
+  {0,0,cb,(void*)&Fl_File_Browser_type},
+{0},
+{"Other",0,0,0,FL_SUBMENU},
   {0,0,cb,(void*)&Fl_Box_type},
   {0,0,cb,(void*)&Fl_Clock_type},
+  {0,0,cb,(void*)&Fl_Help_View_type},
+  {0,0,cb,(void*)&Fl_Progress_type},
 {0},
 {0}};
+
+#include <FL/Fl_Multi_Label.H>
+
+// modify a menuitem to display an icon in front of the label
+static void make_iconlabel( Fl_Menu_Item *mi, Fl_Image *ic, const char *txt )
+{
+  if (ic) {
+    char *t1 = new char[strlen(txt)+6];
+    strcpy( t1, " " );
+    strcat(t1, txt);
+    strcat(t1, "...");
+    mi->image( ic );
+    Fl_Multi_Label *ml = new Fl_Multi_Label;
+    ml->labela = (char*)ic;
+    ml->labelb = t1;
+    ml->typea = _FL_IMAGE_LABEL;
+    ml->typeb = FL_NORMAL_LABEL;
+    ml->label( mi );
+  }
+  else if (txt!=mi->text)
+    mi->label(txt);
+}
 
 void fill_in_New_Menu() {
   for (unsigned i = 0; i < sizeof(New_Menu)/sizeof(*New_Menu); i++) {
     Fl_Menu_Item *m = New_Menu+i;
-    if (m->user_data() && !m->text) {
-      const char *n = ((Fl_Type*)(m->user_data()))->type_name();
-      if (!strncmp(n,"Fl_",3)) n += 3;
-      m->text = n;
+    if (m->user_data()) {
+      Fl_Type *t = (Fl_Type*)m->user_data();
+      if (m->text) {
+	make_iconlabel( m, pixmap[t->pixmapID()], m->label() );
+      }
+      else {
+	const char *n = t->type_name();
+	if (!strncmp(n,"Fl_",3)) n += 3;
+	make_iconlabel( m, pixmap[t->pixmapID()], n );
+      }
     }
   }
 }
@@ -693,5 +1206,5 @@ int lookup_symbol(const char *name, int &v, int numberok) {
 }
 
 //
-// End of "$Id: factory.cxx,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $".
+// End of "$Id: factory.cxx 5658 2007-02-02 20:09:53Z mike $".
 //

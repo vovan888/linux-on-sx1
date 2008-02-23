@@ -1,4 +1,7 @@
 <HTML>
+<HEAD>
+	<TITLE>Fl</TITLE>
+</HEAD>
 <BODY>
 
 <!-- NEW PAGE -->
@@ -64,11 +67,12 @@ state information and global methods for the current application.</P>
 	<LI><A HREF="#Fl.event_clicks">event_clicks</A></LI>
 	<LI><A HREF="#Fl.event_ctrl">event_ctrl</A></LI>
 	<LI><A HREF="#Fl.event_dx">event_dx</A></LI>
-	<LI><A HREF="#Fl.event_dy">event_dx</A></LI>
+	<LI><A HREF="#Fl.event_dy">event_dy</A></LI>
 	<LI><A HREF="#Fl.event_inside">event_inside</A></LI>
 	<LI><A HREF="#Fl.event_is_click">event_is_click</A></LI>
 	<LI><A HREF="#Fl.event_key">event_key</A></LI>
 	<LI><A HREF="#Fl.event_length">event_length</A></LI>
+	<LI><A HREF="#Fl.event_original_key">event_original_key</A></LI>
 	<LI><A HREF="#Fl.event_shift">event_shift</A></LI>
 	<LI><A HREF="#Fl.event_state">event_state</A></LI>
 	<LI><A HREF="#Fl.event_text">event_text</A></LI>
@@ -117,6 +121,7 @@ state information and global methods for the current application.</P>
 	<LI><A HREF="#Fl.scheme">scheme</A></LI>
 	<LI><A HREF="#Fl.screen_count">screen_count</A></LI>
 	<LI><A HREF="#Fl.screen_xywh">screen_xywh</A></LI>
+	<LI><A HREF="#Fl.scrollbar_size">scrollbar_size</A></LI>
 	<LI><A HREF="#Fl.selection">selection</A></LI>
 	<LI><A HREF="#Fl.selection_owner">selection_owner</A></LI>
 	<LI><A HREF="#Fl.set_abort">set_abort</A></LI>
@@ -164,7 +169,7 @@ void callback(void*) {
   if (!state_changed) return;
   state_changed = false;
   do_expensive_calculation();
-  widget->redraw();
+  widget-&gt;redraw();
 }
 
 main() {
@@ -385,10 +390,26 @@ argument on the command-line. You can change the message by setting the
 
 <H4><A NAME="Fl.awake">void awake(void *p);</A></H4>
 
-<P>The <TT>awake()</TT> method sends a message pointer to the
-main thread, causing any pending <TT>wait()</TT> call to
-terminate so that the main thread can retrieve the message and
-any pending redraws can be processed.
+<H4><A NAME="Fl.awake">int awake(void (*callback)(void*), void *userdata);</A></H4>
+
+<P>The <TT>awake()</TT> method sends a message pointer to the main thread, 
+causing any pending <A HREF="#Fl.wait"><TT>Fl::wait()</TT></A> call to 
+terminate so that the main thread can retrieve the message and any pending 
+redraws can be processed.
+
+<P>Multiple calls to <TT>Fl::awake()</TT> will queue multiple pointers 
+for the main thread to process, up to a system-defined (typically several 
+thousand) depth. The default message handler saves the last message which 
+can be accessed using the <A HREF="#Fl.thread_message">
+<TT>Fl::thread_message()</TT></A> function.
+
+<P>The second form of <TT>awake()</TT> registers a function that will be 
+called by the main thread during the next message handling cycle. 
+<TT>awake()</TT> will return 0 if the callback function was registered, 
+and -1 if registration failed. Over a thousand awake callbacks can be
+registered simultaneously.
+
+<P>See also: <a href="advanced.html#multithreading">multithreading</a>.
 
 <H4><A NAME="Fl.background2">void background2(uchar, uchar, uchar);</A></H4>
 
@@ -423,18 +444,42 @@ handle()</tt>).
 <H4><A NAME="Fl.box_dh">int box_dh(Fl_Boxtype);</A></H4>
 
 <P>Returns the height offset for the given boxtype.
+See <tt><a href="#Fl.box_dy">box_dy</a></tt>.
 
 <H4><A NAME="Fl.box_dw">int box_dw(Fl_Boxtype);</A></H4>
 
 <P>Returns the width offset for the given boxtype.
+See <tt><a href="#Fl.box_dy">box_dy</a></tt>.
 
 <H4><A NAME="Fl.box_dx">int box_dx(Fl_Boxtype);</A></H4>
 
 <P>Returns the X offset for the given boxtype.
+See <tt><a href="#Fl.box_dy">box_dy</a></tt>.
 
 <H4><A NAME="Fl.box_dy">int box_dy(Fl_Boxtype);</A></H4>
 
 <P>Returns the Y offset for the given boxtype.
+
+<P>These functions return the offset values necessary for a given
+boxtype, useful for computing the area inside a box's borders, to
+prevent overdrawing the borders.
+
+<P>For instance, in the case of a boxtype like <tt>FL_DOWN_BOX</tt>
+where the border width might be 2 pixels all around, the above 
+functions would return 2, 2, 4, and 4 for <tt>box_dx</tt>, 
+<tt>box_dy</tt>, <tt>box_dw</tt>, and <tt>box_dh</tt>
+respectively.
+
+<P>An example to compute the area inside a widget's box():
+<pre>
+      int X = yourwidget-&gt;x() + Fl::box_dx(yourwidget-&gt;box());
+      int Y = yourwidget-&gt;y() + Fl::box_dy(yourwidget-&gt;box());
+      int W = yourwidget-&gt;w() - Fl::box_dw(yourwidget-&gt;box());
+      int H = yourwidget-&gt;h() - Fl::box_dh(yourwidget-&gt;box());
+</pre>
+<P>These functions are mainly useful in the <tt>draw()</tt> code 
+for deriving custom widgets, where one wants to avoid drawing 
+over the widget's own border <tt>box()</tt>.
 
 <H4><A NAME="Fl.check">int check();</A></H4>
 
@@ -500,9 +545,14 @@ window and then calls the default widget callback.</p>
 
 <H4><A NAME="Fl.delete_widget">void delete_widget(Fl_Widget*);</A></H4>
 
-<p>Schedules a widget for deletion when it is safe to do so. Use
-this method to delete a widget inside a callback function. When
-deleting groups or windows, you must only delete the group or
+<p>Schedules a widget for deletion at the next call to the event loop.
+Use this method to delete a widget inside a callback function. 
+To avoid early deletion of widgets, this function
+should be called toward the end of a callback and only after any call 
+to the event loop (<tt>Fl:wait()</tt>, <tt>Fl::flush()</tt>, 
+<tt>fl_ask()</tt>, etc).</p>
+
+<p>When deleting groups or windows, you must only delete the group or
 window widget and not the individual child widgets.</p>
 
 <H4><A NAME="Fl.display">void display(const char*);</A></H4>
@@ -543,26 +593,33 @@ prints the error message to <TT>stderr</TT> and returns.
 
 <H4><A NAME="Fl.event_button1">int event_button1();</A></H4>
 
-<P>Returns non-zero if button 1 is pressed.
+<P>Returns non-zero if button 1 is currently held down.
+For more details, see <TT><A href="#Fl.event_buttons">Fl::event_buttons()</A></TT>.
 
 <H4><A NAME="Fl.event_button2">int event_button2();</A></H4>
 
-<P>Returns non-zero if button 2 is pressed.
+<P>Returns non-zero if button 2 is currently held down.
+For more details, see <TT><A href="#Fl.event_buttons">Fl::event_buttons()</A></TT>.
 
 <H4><A NAME="Fl.event_button3">int event_button3();</A></H4>
 
-<P>Returns non-zero if button 3 is pressed.
+<P>Returns non-zero if button 3 is currently held down.
+For more details, see <TT><A href="#Fl.event_buttons">Fl::event_buttons()</A></TT>.
 
 <H4><A NAME="Fl.event_button">int event_button();</A></H4>
 
-<P>Returns which mouse button was pressed.  This returns garbage if the
+<P>Returns which mouse button caused te current event. This returns garbage if the
 most recent event was not a <tt>FL_PUSH</tt> or <tt>FL_RELEASE</tt>
 event.
 
 <H4><A NAME="Fl.event_buttons">int event_buttons();</A></H4>
 
 <P>Returns the button state bits; if non-zero, then at least one
-button is pressed.
+button is pressed.  This function returns the button state at the 
+time of the event. During an <tt>FL_RELEASE</tt> event, the state 
+of the released button will be <tt>0</tt>. To find out, which button 
+caused an <tt>FL_RELEASE</tt> event, you can use 
+<tt><a href="#Fl.event_button">Fl::event_button()</a></tt> instead.
 
 <H4><A NAME="Fl.event_clicks">int event_clicks();<BR>
 void event_clicks(int i);</A></H4>
@@ -659,6 +716,14 @@ Fl::event_key(FL_KP_Enter)</tt> do not work.
 will always be a nul at this position in the text.  However there may
 be a nul before that if the keystroke translates to a nul character or
 you paste a nul character.
+
+<H4><A NAME="Fl.event_original_key">int event_original_key();</A></H4>
+
+<P> If NumLock is deactivated, FLTK translates events from the 
+numeric keypad into the corresponding arrow key events. 
+<tt>event_key()</tt> returns the translated key code, whereas
+<tt>event_original_key()</tt> returns the keycode before 
+NumLock translation.
 
 <H4><A NAME="Fl.event_shift">int event_shift();</A></H4>
 
@@ -919,6 +984,8 @@ wait until all child threads have called <A
 HREF="#Fl.unlock"><TT>unlock()</TT></A> before processing
 additional data.
 
+<P>See also: <a href="advanced.html#multithreading">multithreading</a>
+
 <H4><A NAME="Fl.modal">Fl_Window* modal();</A></H4>
 
 <P>Returns the top-most <tt>modal()</tt> window currently shown.
@@ -1054,10 +1121,23 @@ with <tt>return Fl::run();</tt>.
 <H4><A NAME="Fl.scheme">void scheme(const char *name);
 <BR>const char *scheme();</A></H4>
 
-<P>Gets or sets the current widget scheme. Currently only "none"
-and "plastic" are recognized, and <TT>NULL</TT> will use the
-scheme defined in the <TT>FLTK_SCHEME</TT> environment variable
-or the <TT>scheme</TT> resource under X11.
+<P>Gets or sets the current widget scheme. <TT>NULL</TT> will use
+the scheme defined in the <TT>FLTK_SCHEME</TT> environment
+variable or the <TT>scheme</TT> resource under X11. Otherwise,
+any of the following schemes can be used:</P>
+
+<ul>
+
+	<li>"none" - This is the default look-n-feel which resembles old
+	Windows (95/98/Me/NT/2000) and old GTK/KDE</li>
+
+	<li>"plastic" - This scheme is inspired by the Aqua user interface
+	on Mac OS X</li>
+
+	<li>"gtk+" - This scheme is inspired by the Red Hat Bluecurve
+	theme</li>
+
+</ul>
 
 <H4><A NAME="Fl.screen_count">int screen_count();</A></H4>
 
@@ -1073,6 +1153,15 @@ form gets the bounding box for the screen that contains the
 specified coordinates. The last form gets the bounding box for
 the numbered screen, where <tt>n</tt> is a number from 0 to the
 number of screens less 1.</P>
+
+<H4><A NAME="Fl.scrollbar_size">void scrollbar_size(int W);<BR>
+int scrollbar_size();</A></H4>
+
+<P>Sets or gets the default scrollbar size that is used by the
+<A HREF="Fl_Browser_.html#Fl_Browser_"><TT>Fl_Browser_</TT></A>,
+<A HREF="Fl_Help_View.html#Fl_Help_View"><TT>Fl_Help_View</TT></A>,
+<A HREF="Fl_Scroll.html#Fl_Scroll"><TT>Fl_Scroll</TT></A>, and
+<A HREF="Fl_Text_Display.html#Fl_Text_Display"><TT>Fl_Text_Display</TT></A> widgets.</P>
 
 <H4><A NAME="Fl.selection">void selection(Fl_Widget &amp;owner, const char* stuff, int len);</A></H4>
 
@@ -1172,12 +1261,16 @@ Fl_Widget::test_shortcut()</tt></A>.
 that was sent from a child by the <A
 HREF="#Fl.awake"><TT>awake()</TT></A> method.
 
+<P>See also: <a href="advanced.html#multithreading">multithreading</a>
+
 <H4><A NAME="Fl.unlock">void unlock();</A></H4>
 
 <P>The <TT>unlock()</TT> method releases the lock that was set
 using the <A HREF="#Fl.lock"><TT>lock()</TT></A> method. Child
 threads should call this method as soon as they are finished
 accessing FLTK.
+
+<P>See also: <a href="advanced.html#multithreading">multithreading</a>
 
 <H4><A NAME="Fl.version">double version();</A></H4>
 
@@ -1279,9 +1372,18 @@ the top edge of the screen.
 
 <H4><A NAME="Fl.event_dx">int event_dx();</A></H4>
 
+Returns the current horizontal mouse scrolling associated with the
+<tt>FL_MOUSEWHEEL</tt> event. Right is positive.
+
 <H4><A NAME="Fl.event_dy">int event_dy();</A></H4>
 
+Returns the current vertical mouse scrolling assoaciated with the
+<tt>FL_MOUSEWHEEL</tt> event. Down is positive.
+
 <H4><A NAME="Fl.event_text">const char* event_text();</A></H4>
+
+Returns the text associated with the current <tt>FL_PASTE</tt> or
+<tt>FL_DND_RELEASE</tt> event.
 
 </BODY>
 </HTML>

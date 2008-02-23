@@ -1,9 +1,9 @@
 //
-// "$Id: resizebox.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: resizebox.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Resize box test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #define W1 (big ? 60 : 40)
@@ -77,7 +79,6 @@ int main(int argc, char **argv) {
   n = new Fl_Box(FL_FRAME_BOX,W1+B+B,W1+B+B,2*W1+B,2*W1+B,0);
   n->color(8);
 
-  Fl::enable_symbols();
   Fl_Button *b = new Fl_Radio_Button(W1+B+50,W1+B+30,20,20,"@6>");
   b->callback(b_cb,6);
   (new Fl_Radio_Button(W1+B+30,W1+B+10,20,20,"@8>"))->callback(b_cb,8);
@@ -97,5 +98,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: resizebox.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: resizebox.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

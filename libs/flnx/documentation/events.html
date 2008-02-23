@@ -1,4 +1,7 @@
 <HTML>
+<HEAD>
+	<TITLE>6 - Handling Events</TITLE>
+</HEAD>
 <BODY>
 
 <H1 ALIGN="RIGHT"><A NAME="events">6 - Handling Events</A></H1>
@@ -146,6 +149,11 @@ call the <a href="Fl.html#Fl.compose"><TT>Fl::compose()</TT></a>
 function to translate individual keystrokes into foreign
 characters.
 
+<P><code>FL_KEYUP</code> events are sent to the widget that 
+currently has focus. This is not necessarily the same widget
+that received the corresponding <code>FL_KEYDOWN</code> event
+because focus may have changed between events.
+
 <H3>FL_SHORTCUT</H3>
 
 <P>If the <A href="Fl.html#Fl.focus"><TT>Fl::focus()</TT></A>
@@ -218,6 +226,21 @@ claimed the selection. Motif programs used this to clear the
 selection indication. Most modern programs ignore this.
 
 <H2><A NAME="dnd">Drag And Drop Events</A></H2>
+
+<P>FLTK supports drag and drop of text and files from any 
+application on the desktop. Text is transfered using
+the current code page. Files are received as a list of full path
+and file names, seperated by newline. On some platforms, path
+names are prepended with <tt>file://</tt>.
+
+<P>The drag and drop data is available in <tt>Fl::event_text()</tt> 
+at the concluding <tt>FL_PASTE</tt>. On some platforms, the
+event text is also available for the <tt>FL_DND_*</tt> events,
+however application must not depend on that behavior because it
+depends on the protocol used on each platform.
+
+<P><tt>FL_DND_*</tt> events cannot be used in widgets derived
+from <tt>Fl_Group</tt> or <tt>Fl_Window</tt>.
 
 <H3>FL_DND_ENTER</H3>
 

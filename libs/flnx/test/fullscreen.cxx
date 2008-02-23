@@ -1,5 +1,5 @@
 //
-// "$Id: fullscreen.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: fullscreen.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
 // Fullscreen test program for the Fast Light Tool Kit (FLTK).
 //
@@ -34,7 +34,7 @@
 // can avoid this by making the Fl_Gl_Window a child of a normal
 // window.
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -51,10 +51,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#include <config.h>
+#include "config.h"
 #include <FL/Fl.H>
 #include <FL/Fl_Single_Window.H>
 #include <FL/Fl_Hor_Slider.H>
@@ -89,8 +91,8 @@ void shape_window::draw() {
   glClear(GL_COLOR_BUFFER_BIT);
   glColor3f(.5,.6,.7);
   glBegin(GL_POLYGON);
-  for (int i=0; i<sides; i++) {
-    double ang = i*2*M_PI/sides;
+  for (int j = 0; j < sides; j ++) {
+    double ang = j*2*M_PI/sides;
     glVertex3f(cos(ang),sin(ang),0);
   }
   glEnd();
@@ -142,6 +144,11 @@ void border_cb(Fl_Widget *o, void *p) {
   Fl_Window *w = (Fl_Window *)p;
   int d = ((Fl_Button *)o)->value();
   w->border(d);
+#if defined(WIN32) || defined(__APPLE__)
+  int wx = w->x(), wy = w->y();
+  w->hide(); w->show();
+  w->position(wx, wy);
+#endif
 }
 
 int px,py,pw,ph;
@@ -240,5 +247,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: fullscreen.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: fullscreen.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

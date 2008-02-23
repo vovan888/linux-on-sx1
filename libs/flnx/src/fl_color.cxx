@@ -1,5 +1,5 @@
 //
-// "$Id: fl_color.cxx 4339 2005-05-12 17:08:35Z mike $"
+// "$Id: fl_color.cxx 5835 2007-05-16 11:46:07Z matt $"
 //
 // Color functions for the Fast Light Tool Kit (FLTK).
 //
@@ -71,19 +71,16 @@ static void figure_out_visual() {
 #ifndef NANO_X			//tanghao + vovan888 FIXME: temporary hack?
   for (i = 0, m = 1; m; i++, m<<=1) if (fl_visual->red_mask & m) break;
   for (j = i; m; j++, m<<=1) if (!(fl_visual->red_mask & m)) break;
-
   fl_redshift = j-8;
   fl_redmask = (j-i >= 8) ? 0xFF : 0xFF-(255>>(j-i));
 
   for (i = 0, m = 1; m; i++, m<<=1) if (fl_visual->green_mask & m) break;
   for (j = i; m; j++, m<<=1) if (!(fl_visual->green_mask & m)) break;
-
   fl_greenshift = j-8;
   fl_greenmask = (j-i >= 8) ? 0xFF : 0xFF-(255>>(j-i));
 
   for (i = 0, m = 1; m; i++, m<<=1) if (fl_visual->blue_mask & m) break;
   for (j = i; m; j++, m<<=1) if (!(fl_visual->blue_mask & m)) break;
-
   fl_blueshift = j-8;
   fl_bluemask = (j-i >= 8) ? 0xFF : 0xFF-(255>>(j-i));
 #endif //tanghao
@@ -162,7 +159,7 @@ void fl_color(uchar r,uchar g,uchar b) {
 
   fl_color_ = fl_rgb_color(r, g, b);
   GrSetGCForeground(fl_gc, fl_xpixel(r, g, b));	//(GR_GC_ID gc, GR_COLOR foreground);
-  GrSetGCBackground(fl_gc, GR_RGB(200, 200, 200));
+//  GrSetGCBackground(fl_gc, GR_RGB(200, 200, 200));
 #else
   fl_color_ = fl_rgb_color(r, g, b);
   XSetForeground(fl_display, fl_gc, fl_xpixel(r,g,b));
@@ -177,7 +174,7 @@ void fl_color(uchar r,uchar g,uchar b) {
 
 // calculate what color is actually on the screen for a mask:
 static inline uchar realcolor(uchar color, uchar mask) {
-#  if 1
+#  if 0
   // accurate version if the display has linear gamma, but fl_draw_image
   // works better with the simpler version on most screens...
   uchar m = mask;
@@ -329,7 +326,7 @@ void fl_color(Fl_Color i) {
 #ifdef NANO_X
     //GR_COLOR c = fl_xpixel(i);
     GrSetGCForeground(fl_gc, fl_xpixel(i));	//(GR_GC_ID gc, GR_COLOR foreground);
-    GrSetGCBackground(fl_gc, GR_RGB(255, 255, 255));
+//    GrSetGCBackground(fl_gc, GR_RGB(255, 255, 255));
 #else
     XSetForeground(fl_display, fl_gc, fl_xpixel(i));
 #endif //tanghao
@@ -427,16 +424,16 @@ Fl_Color fl_contrast(Fl_Color fg, Fl_Color bg) {
   else c2 = fl_cmap[bg];
 
   // Compute the luminosity...
-  l1 = ((c1 >> 24) * 31 + ((c1 >> 16) & 255) * 61 + ((c1 >> 8) & 255) * 8) / 100;
-  l2 = ((c2 >> 24) * 31 + ((c2 >> 16) & 255) * 61 + ((c2 >> 8) & 255) * 8) / 100;
+  l1 = ((c1 >> 24) * 30 + ((c1 >> 16) & 255) * 59 + ((c1 >> 8) & 255) * 11) / 100;
+  l2 = ((c2 >> 24) * 30 + ((c2 >> 16) & 255) * 59 + ((c2 >> 8) & 255) * 11) / 100;
 
   // Compare and return the contrasting color...
-  if ((l1 - l2) > 127) return fg;
-  else if ((l2 - l1) > 127) return fg;
+  if ((l1 - l2) > 99) return fg;
+  else if ((l2 - l1) > 99) return fg;
   else if (l2 > 127) return FL_BLACK;
   else return FL_WHITE;
 }
 
 //
-// End of "$Id: fl_color.cxx 4339 2005-05-12 17:08:35Z mike $".
+// End of "$Id: fl_color.cxx 5835 2007-05-16 11:46:07Z matt $".
 //

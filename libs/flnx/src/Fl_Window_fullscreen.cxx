@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Window_fullscreen.cxx 4676 2005-12-01 08:56:24Z matt $"
+// "$Id: Fl_Window_fullscreen.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Fullscreen window support for the Fast Light Tool Kit (FLTK).
 //
@@ -93,5 +93,5 @@ void Fl_Window::fullscreen_off(int X,int Y,int W,int H) {
 }
 
 //
-// End of "$Id: Fl_Window_fullscreen.cxx 4676 2005-12-01 08:56:24Z matt $".
+// End of "$Id: Fl_Window_fullscreen.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

@@ -1,9 +1,9 @@
 //
-// "$Id: Fluid_Image.cxx,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $"
+// "$Id: Fluid_Image.cxx 5266 2006-07-26 19:52:28Z mike $"
 //
 // Pixmap label support for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,313 +20,126 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include "Fl_Type.h"
 #include "Fluid_Image.h"
-#include <string.h>
+#include "../src/flstring.h"
 #include <stdio.h>
 #include <errno.h>
-#include <ctype.h>
 #include <stdlib.h>
 #include <FL/filename.H>
 
 extern void goto_source_dir(); // in fluid.C
 extern void leave_source_dir(); // in fluid.C
 
-////////////////////////////////////////////////////////////////
-#include <FL/Fl_Pixmap.H>
-
-class pixmap_image : public Fluid_Image {
-protected:
-  Fl_Pixmap *p;
-  int *linelength;
-public:
-  pixmap_image(const char *name, FILE *);
-  ~pixmap_image();
-  virtual void label(Fl_Widget *); // set the label of this widget
-  virtual void write_static();
-  virtual void write_code();
-  static int test_file(char *buffer);
-};
-
-int pixmap_image::test_file(char *buffer) {
-  return (strstr(buffer,"/* XPM") != 0);
+void Fluid_Image::image(Fl_Widget *o) {
+  if (o->window() != o) o->image(img);
 }
 
-void pixmap_image::label(Fl_Widget *o) {
-  if (p) p->label(o);
+void Fluid_Image::deimage(Fl_Widget *o) {
+  if (o->window() != o) o->deimage(img);
 }
 
-static int pixmap_header_written;
+static int pixmap_header_written = 0;
+static int bitmap_header_written = 0;
+static int image_header_written = 0;
 
-void pixmap_image::write_static() {
-  if (!p) return;
-  write_c("\n");
-  if (pixmap_header_written != write_number) {
-    write_c("#include <FL/Fl_Pixmap.H>\n");
-    pixmap_header_written = write_number;
-  }
-  write_c("static unsigned char *%s[] = {\n",
-	  unique_id(this, "image", filename_name(name()), 0));
-  int l;
-  for (l = 0; p->data[l]; l++) {
-    if (l) write_c(",\n");
-    write_c("(unsigned char*)\n");
-    write_cstring(p->data[l],linelength[l]);
-  }
-  write_c("\n};\n");
-  write_c("static Fl_Pixmap %s(%s);\n",
-	  unique_id(this, "pixmap", filename_name(name()), 0),
-	  unique_id(this, "image", filename_name(name()), 0));
-}
+void Fluid_Image::write_static() {
+  if (!img) return;
+  if (img->count() > 1) {
+    // Write Pixmap data...
+    write_c("\n");
+    if (pixmap_header_written != write_number) {
+      write_c("#include <FL/Fl_Pixmap.H>\n");
+      pixmap_header_written = write_number;
+    }
+    write_c("static const char *%s[] = {\n",
+	    unique_id(this, "idata", fl_filename_name(name()), 0));
+    write_cstring(img->data()[0], strlen(img->data()[0]));
 
-void pixmap_image::write_code() {
-  if (!p) return;
-  write_c("%s%s.label(o);\n", indent(),
-	  unique_id(this, "pixmap", filename_name(name()), 0));
-}
+    int i;
+    int ncolors, chars_per_color;
+    sscanf(img->data()[0], "%*d%*d%d%d", &ncolors, &chars_per_color);
 
-static int hexdigit(int x) {
-  if (isdigit(x)) return x-'0';
-  if (isupper(x)) return x-'A'+10;
-  if (islower(x)) return x-'a'+10;
-  return 20;
-}
-
-#define MAXSIZE 2048
-
-pixmap_image::pixmap_image(const char *name, FILE *f) : Fluid_Image(name) {
-  if (!f) return; // for subclasses
-  // read all the c-strings out of the file:
-  char *data[MAXSIZE+1];
-  int length[MAXSIZE+1];
-  char buffer[MAXSIZE+20];
-  int i = 0;
-  while (i < MAXSIZE && fgets(buffer,MAXSIZE+20,f)) {
-    if (buffer[0] != '\"') continue;
-    char *p = buffer;
-    char *q = buffer+1;
-    while (*q != '\"' && p < buffer+MAXSIZE) {
-      if (*q == '\\') switch (*++q) {
-      case '\n':
-	fgets(q,(buffer+MAXSIZE+20)-q,f); break;
-      case 0:
-	break;
-      case 'x': {
-	q++;
-	int n = 0;
-	for (int x = 0; x < 3; x++) {
-	  int d = hexdigit(*q);
-	  if (d > 15) break;
-	  n = (n<<4)+d;
-	  q++;
-	}
-	*p++ = n;
-      } break;
-      default: {
-	int c = *q++;
-	if (c>='0' && c<='7') {
-	  c -= '0';
-	  for (int x=0; x<2; x++) {
-	    int d = hexdigit(*q);
-	    if (d>7) break;
-	    c = (c<<3)+d;
-	    q++;
-	  }
-	}
-	*p++ = c;
-      } break;
-      } else {
-	*p++ = *q++;
+    if (ncolors < 0) {
+      write_c(",\n");
+      write_cstring(img->data()[1], ncolors * -4);
+      i = 2;
+    } else {
+      for (i = 1; i <= ncolors; i ++) {
+        write_c(",\n");
+        write_cstring(img->data()[i], strlen(img->data()[i]));
       }
     }
-    *p++ = 0;
-    data[i] = new char[p-buffer];
-    memcpy(data[i],buffer,p-buffer);
-    length[i] = p-buffer-1;
-    i++;
-  }
-  data[i++] = 0; // put a null at the end
-
-  char** real_data = new char*[i];
-  linelength = new int[i];
-  while (i--) {real_data[i] = data[i]; linelength[i] = length[i];}
-  p = new Fl_Pixmap(real_data);
-}
-
-pixmap_image::~pixmap_image() {
-  if (p && p->data) {
-    char** real_data = (char**)(p->data);
-    for (int i = 0; real_data[i]; i++) delete[] real_data[i];
-    delete[] real_data;
-  }
-  delete[] linelength;
-  delete p;
-}
-
-////////////////////////////////////////////////////////////////
-
-class gif_image : public pixmap_image {
-public:
-  gif_image(const char *name, FILE *);
-  ~gif_image();
-  static int test_file(char *buffer);
-};
-
-int gif_image::test_file(char *buffer) {
-  return !strncmp(buffer,"GIF",3);
-}
-
-// function in gif.C:
-int gif2xpm(
-    const char *infname,// filename for error messages
-    FILE *GifFile,	// file to read
-    char*** datap,	// return xpm data here
-    int** lengthp,	// return line lengths here
-    int inumber		// which image in movie (0 = first)
-);
-
-gif_image::gif_image(const char *name, FILE *f) : pixmap_image(name,0) {
-  char** datap;
-  if (gif2xpm(name,f,&datap,&linelength,0)) {
-    p = new Fl_Pixmap(datap);
-  } else
-    p = 0;
-}
-
-gif_image::~gif_image() {
-  if (p && p->data) {
-    char** real_data = (char**)(p->data);
-    for (int i = 0; i < 3; i++) delete[] real_data[i];
-    delete[] real_data;
-    p->data = 0;
-  }
-}
-
-////////////////////////////////////////////////////////////////
-#include <FL/Fl_Bitmap.H>
-
-class bitmap_image : public Fluid_Image {
-  Fl_Bitmap *p;
-public:
-  ~bitmap_image();
-  bitmap_image(const char *name, FILE *);
-  virtual void label(Fl_Widget *); // set the label of this widget
-  virtual void write_static();
-  virtual void write_code();
-  static int test_file(char *buffer);
-};
-
-// bad test, always do this last!
-int bitmap_image::test_file(char *buffer) {
-  return (strstr(buffer,"#define ") != 0);
-}
-
-void bitmap_image::label(Fl_Widget *o) {
-  if (p) p->label(o); else o->labeltype(FL_NORMAL_LABEL);
-}
-
-static int bitmap_header_written;
-
-void bitmap_image::write_static() {
-  if (!p) return;
-  write_c("\n");
-  if (bitmap_header_written != write_number) {
-    write_c("#include <FL/Fl_Bitmap.H>\n");
-    bitmap_header_written = write_number;
-  }
-#if 0 // older one
-  write_c("static unsigned char %s[] = {  \n",
-	  unique_id(this, "bits", filename_name(name()), 0));
-  int n = ((p->w+7)/8)*p->h;
-  int linelength = 0;
-  for (int i = 0; i < n; i++) {
-    if (i) {write_c(","); linelength++;}
-    if (linelength > 75) {write_c("\n"); linelength=0;}
-    int v = p->array[i];
-    write_c("%d",v);
-    linelength++; if (v>9) linelength++; if (v>99) linelength++;
-  }
-  write_c("\n};\n");
-#else // this seems to produce slightly shorter c++ files
-  write_c("static unsigned char %s[] =\n",
-	  unique_id(this, "bits", filename_name(name()), 0));
-  int n = ((p->w+7)/8)*p->h;
-  write_cstring((const char*)(p->array), n);
-  write_c(";\n");
-#endif
-  write_c("static Fl_Bitmap %s(%s, %d, %d);\n",
-	  unique_id(this, "bitmap", filename_name(name()), 0),
-	  unique_id(this, "bits", filename_name(name()), 0),
-	  p->w, p->h);
-}
-
-void bitmap_image::write_code() {
-  if (!p) return;
-  write_c("%s%s.label(o);\n", indent(),
-	  unique_id(this, "bitmap", filename_name(name()), 0));
-}
-
-bitmap_image::bitmap_image(const char *name, FILE *f) : Fluid_Image(name) {
-  p = 0; // if any problems with parse we exit with this zero
-  char buffer[1024];
-  char junk[1024];
-  int wh[2]; // width and height
-  int i;
-  for (i = 0; i<2; i++) {
-    for (;;) {
-      if (!fgets(buffer,1024,f)) return;
-      int r = sscanf(buffer,"#define %s %d",junk,&wh[i]);
-      if (r >= 2) break;
+    for (; i < img->count(); i ++) {
+      write_c(",\n");
+      write_cstring(img->data()[i], img->w() * chars_per_color);
     }
-  }
-  // skip to data array:
-  for (;;) {
-    if (!fgets(buffer,1024,f)) return;
-    if (!strncmp(buffer,"static ",7)) break;
-  }
-  int n = ((wh[0]+7)/8)*wh[1];
-  uchar *data = new uchar[n];
-  // read the data:
-  i = 0;
-  for (;i<n;) {
-    if (!fgets(buffer,1024,f)) return;
-    const char *a = buffer;
-    while (*a && i<n) {
-      int t;
-      if (sscanf(a," 0x%x",&t)>0) data[i++] = t;
-      while (*a && *a++ != ',');
+    write_c("\n};\n");
+    write_c("static Fl_Pixmap %s(%s);\n",
+	    unique_id(this, "image", fl_filename_name(name()), 0),
+	    unique_id(this, "idata", fl_filename_name(name()), 0));
+  } else if (img->d() == 0) {
+    // Write Bitmap data...
+    write_c("\n");
+    if (bitmap_header_written != write_number) {
+      write_c("#include <FL/Fl_Bitmap.H>\n");
+      bitmap_header_written = write_number;
     }
+    write_c("static unsigned char %s[] =\n",
+	    unique_id(this, "idata", fl_filename_name(name()), 0));
+    write_cdata(img->data()[0], ((img->w() + 7) / 8) * img->h());
+    write_c(";\n");
+    write_c("static Fl_Bitmap %s(%s, %d, %d);\n",
+	    unique_id(this, "image", fl_filename_name(name()), 0),
+	    unique_id(this, "idata", fl_filename_name(name()), 0),
+	    img->w(), img->h());
+  } else {
+    // Write image data...
+    write_c("\n");
+    if (image_header_written != write_number) {
+      write_c("#include <FL/Fl_Image.H>\n");
+      image_header_written = write_number;
+    }
+    write_c("static unsigned char %s[] =\n",
+	    unique_id(this, "idata", fl_filename_name(name()), 0));
+    write_cdata(img->data()[0], (img->w() * img->d() + img->ld()) * img->h());
+    write_c(";\n");
+    write_c("static Fl_RGB_Image %s(%s, %d, %d, %d, %d);\n",
+	    unique_id(this, "image", fl_filename_name(name()), 0),
+	    unique_id(this, "idata", fl_filename_name(name()), 0),
+	    img->w(), img->h(), img->d(), img->ld());
   }
-  p = new Fl_Bitmap(data,wh[0],wh[1]);
 }
 
-bitmap_image::~bitmap_image() {
-  if (p) {
-    delete[] (uchar*)(p->array);
-    delete p;
-  }
+void Fluid_Image::write_code(const char *var, int inactive) {
+  if (!img) return;
+  write_c("%s%s->%s(%s);\n", indent(), var, inactive ? "deimage" : "image",
+	  unique_id(this, "image", fl_filename_name(name()), 0));
 }
+
 
 ////////////////////////////////////////////////////////////////
 
-static Fluid_Image** images; // sorted list
-static int numimages;
-static int tablesize;
+static Fluid_Image** images = 0; // sorted list
+static int numimages = 0;
+static int tablesize = 0;
 
-Fluid_Image* Fluid_Image::find(const char *name) {
-  if (!name || !*name) return 0;
+Fluid_Image* Fluid_Image::find(const char *iname) {
+  if (!iname || !*iname) return 0;
 
   // first search to see if it exists already:
   int a = 0;
   int b = numimages;
   while (a < b) {
     int c = (a+b)/2;
-    int i = strcmp(name,images[c]->name_);
+    int i = strcmp(iname,images[c]->name_);
     if (i < 0) b = c;
     else if (i > 0) a = c+1;
     else return images[c];
@@ -335,34 +148,21 @@ Fluid_Image* Fluid_Image::find(const char *name) {
   // no, so now see if the file exists:
 
   goto_source_dir();
-  FILE *f = fopen(name,"rb");
+  FILE *f = fopen(iname,"rb");
   if (!f) {
-    read_error("%s : %s",name,strerror(errno));
+    read_error("%s : %s",iname,strerror(errno));
     leave_source_dir();
     return 0;
   }
-
-  Fluid_Image *ret;
-
-  // now see if we can identify the type, by reading in some data
-  // and asking all the types we know about:
-
-  char buffer[1025];
-  fread(buffer, 1, 1024, f);
-  rewind(f);
-  buffer[1024] = 0; // null-terminate so strstr() works
-
-  if (pixmap_image::test_file(buffer)) {
-    ret = new pixmap_image(name,f);
-  } else if (gif_image::test_file(buffer)) {
-    ret = new gif_image(name,f);
-  } else if (bitmap_image::test_file(buffer)) {
-    ret = new bitmap_image(name,f);
-  } else {
-    ret = 0;
-    read_error("%s : unrecognized image format", name);
-  }
   fclose(f);
+
+  Fluid_Image *ret = new Fluid_Image(iname);
+
+  if (!ret->img || !ret->img->w() || !ret->img->h()) {
+    delete ret;
+    ret = 0;
+    read_error("%s : unrecognized image format", iname);
+  }
   leave_source_dir();
   if (!ret) return 0;
 
@@ -370,7 +170,8 @@ Fluid_Image* Fluid_Image::find(const char *name) {
   numimages++;
   if (numimages > tablesize) {
     tablesize = tablesize ? 2*tablesize : 16;
-    images = (Fluid_Image**)realloc(images, tablesize*sizeof(Fluid_Image*));
+    if (images) images = (Fluid_Image**)realloc(images, tablesize*sizeof(Fluid_Image*));
+    else images = (Fluid_Image**)malloc(tablesize*sizeof(Fluid_Image*));
   }
   for (b = numimages-1; b > a; b--) images[b] = images[b-1];
   images[a] = ret;
@@ -378,10 +179,11 @@ Fluid_Image* Fluid_Image::find(const char *name) {
   return ret;
 }
 
-Fluid_Image::Fluid_Image(const char *name) {
-  name_ = strdup(name);
+Fluid_Image::Fluid_Image(const char *iname) {
+  name_ = strdup(iname);
   written = 0;
   refcount = 0;
+  img = Fl_Shared_Image::get(iname);
 }
 
 void Fluid_Image::increment() {
@@ -396,26 +198,32 @@ void Fluid_Image::decrement() {
 
 Fluid_Image::~Fluid_Image() {
   int a;
-  for (a = 0;; a++) if (images[a] == this) break;
-  numimages--;
-  for (; a < numimages; a++) images[a] = images[a+1];
+  if (images) {
+    for (a = 0;; a++) if (images[a] == this) break;
+    numimages--;
+    for (; a < numimages; a++) images[a] = images[a+1];
+  }
+  if (img) img->release();
   free((void*)name_);
 }
 
 ////////////////////////////////////////////////////////////////
 
-#include <FL/fl_file_chooser.H>
+#include <FL/Fl_File_Chooser.H>
 
 const char *ui_find_image_name;
 Fluid_Image *ui_find_image(const char *oldname) {
   goto_source_dir();
-  const char *name = fl_file_chooser("Image","*.{bm|xbm|xpm|gif}",oldname);
+  fl_file_chooser_ok_label("Use Image");
+  const char *name = fl_file_chooser("Image?","Image Files (*.{bm,bmp,gif,jpg,pbm,pgm,png,ppm,xbm,xpm})",oldname,1);
+  fl_file_chooser_ok_label(NULL);
   ui_find_image_name = name;
   Fluid_Image *ret = (name && *name) ? Fluid_Image::find(name) : 0;
   leave_source_dir();
   return ret;
 }
 
+
 //
-// End of "$Id: Fluid_Image.cxx,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $".
+// End of "$Id: Fluid_Image.cxx 5266 2006-07-26 19:52:28Z mike $".
 //

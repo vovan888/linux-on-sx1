@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Roller.cxx 4425 2005-07-16 08:25:06Z matt $"
+// "$Id: Fl_Roller.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Roller widget for the Fast Light Tool Kit (FLTK).
 //
@@ -176,5 +176,5 @@ Fl_Roller::Fl_Roller(int X,int Y,int W,int H,const char* L)
 }
 
 //
-// End of "$Id: Fl_Roller.cxx 4425 2005-07-16 08:25:06Z matt $".
+// End of "$Id: Fl_Roller.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

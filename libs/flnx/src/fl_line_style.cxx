@@ -1,5 +1,5 @@
 //
-// "$Id: fl_line_style.cxx 4563 2005-09-12 23:03:34Z matt $"
+// "$Id: fl_line_style.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Line style code for the Fast Light Tool Kit (FLTK).
 //
@@ -125,8 +125,6 @@ void fl_line_style(int style, int width, char* dashes) {
     fl_quartz_line_pattern = 0; fl_quartz_line_pattern_size = 0;
   }
   fl_quartz_restore_line_style_();
-#elif defined(NANO_X)
-// TODO ???
 #else
   int ndashes = dashes ? strlen(dashes) : 0;
   // emulate the WIN32 dash patterns on X
@@ -152,16 +150,23 @@ void fl_line_style(int style, int width, char* dashes) {
     }
     ndashes = p-buf;
   }
+#ifndef NANO_X
   static int Cap[4] = {CapButt, CapButt, CapRound, CapProjecting};
   static int Join[4] = {JoinMiter, JoinMiter, JoinRound, JoinBevel};
   XSetLineAttributes(fl_display, fl_gc, width, 
 		     ndashes ? LineOnOffDash : LineSolid,
 		     Cap[(style>>8)&3], Join[(style>>12)&3]);
   if (ndashes) XSetDashes(fl_display, fl_gc, 0, dashes, ndashes);
+#else
+  GrSetGCLineAttributes(fl_gc, ndashes ? GR_LINE_ONOFF_DASH : GR_LINE_SOLID);
+  if (ndashes) 
+  	GrSetGCDash(fl_gc, dashes, ndashes);
+#endif
+
 #endif
 }
 
 
 //
-// End of "$Id: fl_line_style.cxx 4563 2005-09-12 23:03:34Z matt $".
+// End of "$Id: fl_line_style.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

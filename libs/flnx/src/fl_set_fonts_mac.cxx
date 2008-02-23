@@ -1,5 +1,5 @@
 //
-// "$Id: fl_set_fonts_mac.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_set_fonts_mac.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // MacOS font utilities for the Fast Light Tool Kit (FLTK).
 //
@@ -209,5 +209,5 @@ int Fl::get_font_sizes(Fl_Font fnum, int*& sizep) {
 }
 
 //
-// End of "$Id: fl_set_fonts_mac.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_set_fonts_mac.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

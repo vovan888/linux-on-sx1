@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Bitmap.cxx 4564 2005-09-12 23:12:06Z matt $"
+// "$Id: Fl_Bitmap.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Bitmap drawing routines for the Fast Light Tool Kit (FLTK).
 //
@@ -449,7 +449,7 @@ void Fl_Bitmap::draw(int XP, int YP, int WP, int HP, int cx, int cy) {
 #elif defined(__APPLE_QUARTZ__)
   if (!id) id = fl_create_bitmask(w(), h(), array);
   if (id && fl_gc) {
-    CGRect rect = { X, Y, W, H };
+    CGRect rect = { { X, Y }, { W, H } };
     Fl_X::q_begin_image(rect, cx, cy, w(), h());
     CGContextDrawImage(fl_gc, rect, (CGImageRef)id);
     Fl_X::q_end_image();
@@ -579,5 +579,5 @@ Fl_Image *Fl_Bitmap::copy(int W, int H) {
 
 
 //
-// End of "$Id: Fl_Bitmap.cxx 4564 2005-09-12 23:12:06Z matt $".
+// End of "$Id: Fl_Bitmap.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

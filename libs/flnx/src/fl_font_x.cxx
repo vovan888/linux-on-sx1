@@ -1,5 +1,5 @@
 //
-// "$Id: fl_font_x.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_font_x.cxx 5421 2006-09-05 11:26:41Z matt $"
 //
 // Standard X11 font selection code for the Fast Light Tool Kit (FLTK).
 //
@@ -196,9 +196,14 @@ static Fl_FontSize* find(int fnum, int size) {
 int fl_font_ = 0;
 int fl_size_ = 0;
 XFontStruct* fl_xfont = 0;
+void *fl_xftfont = 0;
 static GC font_gc;
 
 void fl_font(int fnum, int size) {
+  if (fnum==-1) {
+    fl_font_ = 0; fl_size_ = 0;
+    return;
+  }
   if (fnum == fl_font_ && size == fl_size_) return;
   fl_font_ = fnum; fl_size_ = size;
   Fl_FontSize* f = find(fnum, size);
@@ -260,5 +265,5 @@ void fl_draw(const char* str, int n, float x, float y) {
 }
 
 //
-// End of "$Id: fl_font_x.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_font_x.cxx 5421 2006-09-05 11:26:41Z matt $".
 //

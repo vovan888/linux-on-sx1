@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Text_Buffer.cxx 4301 2005-04-28 17:48:04Z mike $"
+// "$Id: Fl_Text_Buffer.cxx 6011 2008-01-04 20:32:37Z matt $"
 //
 // Copyright 2001-2005 by Bill Spitzak and others.
 // Original code Copyright Mark Edel.  Permission to distribute under
@@ -33,7 +33,7 @@
 #include <FL/Fl_Text_Buffer.H>
 
 
-#define PREFERRED_GAP_SIZE 80
+#define PREFERRED_GAP_SIZE 1024
 /* Initial size for the buffer gap (empty space
 in the buffer where text might be inserted
 if the user is typing sequential chars ) */
@@ -669,6 +669,11 @@ void Fl_Text_Buffer::secondary_select_rectangular( int start, int end,
   redisplay_selection( &oldSelection, &mSecondary );
 }
 
+int Fl_Text_Buffer::secondary_selection_position( int *start, int *end
+                                      ) {
+  return mSecondary.position( start, end );
+}
+
 int Fl_Text_Buffer::secondary_selection_position( int *start, int *end,
     int *isRect, int *rectStart, int *rectEnd ) {
   return mSecondary.position( start, end, isRect, rectStart,
@@ -707,6 +712,11 @@ void Fl_Text_Buffer::highlight_rectangular( int start, int end,
 
   mHighlight.set_rectangular( start, end, rectStart, rectEnd );
   redisplay_selection( &oldSelection, &mHighlight );
+}
+
+int Fl_Text_Buffer::highlight_position( int *start, int *end
+                                      ) {
+  return mHighlight.position( start, end );
 }
 
 int Fl_Text_Buffer::highlight_position( int *start, int *end,
@@ -2520,5 +2530,5 @@ Fl_Text_Buffer::outputfile(const char *file, int start, int end, int buflen) {
 
 
 //
-// End of "$Id: Fl_Text_Buffer.cxx 4301 2005-04-28 17:48:04Z mike $".
+// End of "$Id: Fl_Text_Buffer.cxx 6011 2008-01-04 20:32:37Z matt $".
 //

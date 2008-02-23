@@ -1,9 +1,9 @@
 //
-// "$Id: scroll.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: scroll.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
 // Fl_Scroll test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,13 +20,15 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Scroll.H>
-#include <FL/Fl_Toggle_Button.H>
+#include <FL/Fl_Light_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Box.H>
 #include <string.h>
@@ -69,7 +71,7 @@ void box_cb(Fl_Widget* o, void*) {
 }
 
 void type_cb(Fl_Widget*, void* v) {
-  thescroll->type(int(v));
+  thescroll->type((uchar)((long)v));
   thescroll->redraw();
 }
 
@@ -85,7 +87,7 @@ Fl_Menu_Item choices[] = {
 };
 
 void align_cb(Fl_Widget*, void* v) {
-  thescroll->scrollbar.align(int(v));
+  thescroll->scrollbar.align((uchar)((long)v));
   thescroll->redraw();
 }
 
@@ -105,7 +107,8 @@ int main(int argc, char** argv) {
   int n = 0;
   for (int y=0; y<16; y++) for (int x=0; x<5; x++) {
     char buf[20]; sprintf(buf,"%d",n++);
-    Fl_Button* b = new Fl_Button(x*75,y*25+(y>=8?5*75:0),75,25,strdup(buf));
+    Fl_Button* b = new Fl_Button(x*75,y*25+(y>=8?5*75:0),75,25);
+    b->copy_label(buf);
     b->color(n);
     b->labelcolor(FL_WHITE);
   }
@@ -116,7 +119,7 @@ int main(int argc, char** argv) {
   Fl_Box box(0,300,5*75,window.h()-300); // gray area below the scroll
   box.box(FL_FLAT_BOX);
 
-  Fl_Toggle_Button but1(150, 310, 200, 25, "box");
+  Fl_Light_Button but1(150, 310, 200, 25, "box");
   but1.callback(box_cb);
   
   Fl_Choice choice(150, 335, 200, 25, "type():");
@@ -137,5 +140,5 @@ int main(int argc, char** argv) {
 }
 
 //
-// End of "$Id: scroll.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: scroll.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

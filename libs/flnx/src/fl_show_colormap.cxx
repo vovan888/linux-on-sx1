@@ -1,5 +1,5 @@
 //
-// "$Id: fl_show_colormap.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_show_colormap.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Colormap color selection dialog for the Fast Light Tool Kit (FLTK).
 //
@@ -157,5 +157,5 @@ Fl_Color fl_show_colormap(Fl_Color oldcol) {
 }
 
 //
-// End of "$Id: fl_show_colormap.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_show_colormap.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

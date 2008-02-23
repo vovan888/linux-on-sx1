@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Chart.cxx 4609 2005-10-30 17:42:21Z mike $"
+// "$Id: Fl_Chart.cxx 5942 2007-10-06 17:33:17Z matt $"
 //
 // Forms-compatible chart widget for the Fast Light Tool Kit (FLTK).
 //
@@ -115,7 +115,7 @@ static void draw_horbarchart(int x,int y,int w,int h,
       if (ww > 0)
 	fl_rectbound(zeroh,y+i*bwidth,ww+1,bwidth+1, (Fl_Color)entries[i].col);
       else if (ww < 0)
-	fl_rectbound(zeroh+w,y+i*bwidth,-ww+1,bwidth+1,(Fl_Color)entries[i].col);
+	fl_rectbound(zeroh+ww,y+i*bwidth,-ww+1,bwidth+1,(Fl_Color)entries[i].col);
   }
   /* Draw the labels */
   fl_color(textcolor);
@@ -386,5 +386,5 @@ void Fl_Chart::maxsize(int m) {
 }
 
 //
-// End of "$Id: Fl_Chart.cxx 4609 2005-10-30 17:42:21Z mike $".
+// End of "$Id: Fl_Chart.cxx 5942 2007-10-06 17:33:17Z matt $".
 //

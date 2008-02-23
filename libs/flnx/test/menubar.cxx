@@ -1,9 +1,9 @@
 //
-// "$Id: menubar.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: menubar.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Menubar test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -32,8 +34,13 @@
 #include <FL/Fl_Choice.H>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include "../src/flstring.h"
 #include <FL/fl_draw.H>
+
+void window_cb(Fl_Widget* w, void*) {
+  puts("window callback called");
+  ((Fl_Window *)w)->hide();
+}
 
 void test_cb(Fl_Widget* w, void*) {
   Fl_Menu_* mw = (Fl_Menu_*)w;
@@ -64,7 +71,7 @@ Fl_Menu_Item menutable[] = {
     {"shortcut",FL_ALT+FL_SHIFT+'a'},
     {"shortcut",FL_ALT+FL_CTRL+'a'},
     {"shortcut",FL_ALT+FL_SHIFT+FL_CTRL+'a', 0,0, FL_MENU_DIVIDER},
-  {"shortcut",'\r'/*FL_Enter*/},
+    {"shortcut",'\r'/*FL_Enter*/},
     {"shortcut",FL_CTRL+FL_Enter, 0,0, FL_MENU_DIVIDER},
     {"shortcut",FL_F+1},
     {"shortcut",FL_SHIFT+FL_F+1},
@@ -85,7 +92,7 @@ Fl_Menu_Item menutable[] = {
       {"after submenu"},
       {0},
     {0},
-  {"&Edit",0,0,0,FL_SUBMENU},
+  {"&Edit",FL_F+2,0,0,FL_SUBMENU},
     {"Undo",	FL_ALT+'z',	0},
     {"Redo",	FL_ALT+'r',	0, 0, FL_MENU_DIVIDER},
     {"Cut",	FL_ALT+'x',	0},
@@ -97,7 +104,7 @@ Fl_Menu_Item menutable[] = {
     {"Preferences",0,	0},
     {"Size",	0,	0},
     {0},
-  {"&Checkbox",0,0,0,FL_SUBMENU},
+  {"&Checkbox",FL_F+3,0,0,FL_SUBMENU},
     {"&Alpha",	FL_F+2,	0, (void *)1, FL_MENU_TOGGLE},
     {"&Beta",	0,	0, (void *)2, FL_MENU_TOGGLE},
     {"&Gamma",	0,	0, (void *)3, FL_MENU_TOGGLE},
@@ -145,7 +152,7 @@ Fl_Menu_Item menutable[] = {
     {"A very long menu item"},
     {0},
   {"&Huge", 0, 0, (void*)hugemenu, FL_SUBMENU_POINTER},
-  {"button",0, 0, 0, FL_MENU_TOGGLE},
+  {"button",FL_F+4, 0, 0, FL_MENU_TOGGLE},
   {0}
 };
 
@@ -153,7 +160,7 @@ Fl_Menu_Item pulldown[] = {
   {"Red",	FL_ALT+'r'},
   {"Green",	FL_ALT+'g'},
   {"Blue",	FL_ALT+'b'},
-  {"Strange",	FL_ALT+'s'},
+  {"Strange",	FL_ALT+'s', 0, 0, FL_MENU_INACTIVE},
   {"&Charm",	FL_ALT+'c'},
   {"Truth",	FL_ALT+'t'},
   {"Beauty",	FL_ALT+'b'},
@@ -164,55 +171,41 @@ Fl_Menu_Item pulldown[] = {
 
 Fl_Menu_* menus[4];
 
-// turn MicroSoft style on/off
-void button_cb(Fl_Widget* w, void*) {
-  if (((Fl_Button*)w)->value()) {
-    for (int i = 0; i < 4; i++) {
-      menus[i]->down_box(FL_FLAT_BOX);
-      menus[i]->selection_color(137);
-      menus[i]->textfont(FL_HELVETICA);
-    }
-  } else {
-    for (int i = 0; i < 4; i++) {
-      menus[i]->down_box(FL_NO_BOX);
-      menus[i]->selection_color(FL_WHITE);
-      menus[i]->textfont(FL_BOLD|FL_ITALIC);
-    }
-  }
-  menus[0]->parent()->redraw();
-}
-
 int main(int argc, char **argv) {
+  //Fl::set_color(Fl_Color(15),0,0,128);
   for (int i=0; i<99; i++) {
     char buf[100];
     sprintf(buf,"item %d",i);
     hugemenu[i].text = strdup(buf);
   }
   Fl_Window window(WIDTH,400);
+  window.callback(window_cb);
   Fl_Menu_Bar menubar(0,0,WIDTH,30); menubar.menu(menutable);
   menubar.callback(test_cb);
   menus[0] = &menubar;
   Fl_Menu_Button mb1(100,100,120,25,"&menubutton"); mb1.menu(pulldown);
+  mb1.tooltip("this is a menu button");
   mb1.callback(test_cb);
   menus[1] = &mb1;
   Fl_Choice ch(300,100,80,25,"&choice:"); ch.menu(pulldown);
+  ch.tooltip("this is a choice menu");
   ch.callback(test_cb);
   menus[2] = &ch;
   Fl_Menu_Button mb(0,0,WIDTH,400,"&popup");
   mb.type(Fl_Menu_Button::POPUP3);
+  mb.box(FL_NO_BOX);
   mb.menu(menutable);
+  mb.remove(1); // delete the "File" submenu
   mb.callback(test_cb);
   menus[3] = &mb;
   Fl_Box b(200,200,200,100,"Press right button\nfor a pop-up menu");
-  Fl_Toggle_Button t(250,50,150,25,"MicroSoft Style");
-  t.callback(button_cb);
   window.resizable(&mb);
-  window.size_range(300,20);
+  window.size_range(300,400,0,400);
   window.end();
   window.show(argc, argv);
   return Fl::run();
 }
 
 //
-// End of "$Id: menubar.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: menubar.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

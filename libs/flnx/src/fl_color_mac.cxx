@@ -1,5 +1,5 @@
 //
-// "$Id: fl_color_mac.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_color_mac.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // MacOS color functions for the Fast Light Tool Kit (FLTK).
 //
@@ -110,5 +110,5 @@ void Fl::set_color(Fl_Color i, unsigned c) {
 }
 
 //
-// End of "$Id: fl_color_mac.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_color_mac.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

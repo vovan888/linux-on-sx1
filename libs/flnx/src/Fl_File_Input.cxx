@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Input.cxx 4728 2005-12-30 15:45:38Z matt $"
+// "$Id: Fl_File_Input.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // File_Input header file for the Fast Light Tool Kit (FLTK).
 //
@@ -279,5 +279,5 @@ Fl_File_Input::handle_button(int event)		// I - Event
 
 
 //
-// End of "$Id: Fl_File_Input.cxx 4728 2005-12-30 15:45:38Z matt $".
+// End of "$Id: Fl_File_Input.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

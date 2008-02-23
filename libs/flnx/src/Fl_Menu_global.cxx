@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Menu_global.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Menu_global.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Global menu shortcut code for the Fast Light Tool Kit (FLTK).
 //
@@ -46,5 +46,5 @@ void Fl_Menu_::global() {
 }
 
 //
-// End of "$Id: Fl_Menu_global.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Menu_global.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

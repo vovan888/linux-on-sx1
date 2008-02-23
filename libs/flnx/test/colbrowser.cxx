@@ -1,5 +1,5 @@
 //
-// "$Id: colbrowser.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: colbrowser.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Forms test program for the Fast Light Tool Kit (FLTK).
 //
@@ -8,7 +8,7 @@
 // using fltk's Forms emulation.  Search for "fltk" to find all the
 // changes
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -25,7 +25,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/forms.H>	// changed for fltk
@@ -41,22 +43,6 @@ char dbname[FL_PATH_MAX];
 static void create_form_cl(void);
 static int load_browser(char *);
 
-/* the RGB data file does not have a standard location on unix. */
-
-#ifdef __VMS
-  static char *rgbfile = "SYS$MANAGER:DECW$RGB.DAT";
-#else
-#ifdef __EMX__   /* OS2 */
-  static char *rgbfile = "/XFree86/lib/X11/rgb.txt";
-#else
-#ifdef __FreeBSD__
-  static char *rgbfile = "/usr/X11R6/lib/X11/rgb.txt";
-#else
-   static char *rgbfile = "/usr/lib/X11/rgb.txt";
-#endif
-#endif
-#endif
-
 typedef struct { int r, g, b; } RGBdb;
 
 static RGBdb rgbdb[MAX_RGB];
@@ -68,7 +54,7 @@ main(int argc, char *argv[])
     fl_initialize(&argc, argv, "FormDemo", 0, 0);
 
     create_form_cl();
-    strcpy(dbname, rgbfile);
+    strcpy(dbname, "rgb.txt");
 
     if (load_browser(dbname))
 	fl_set_object_label(dbobj, dbname);
@@ -207,7 +193,7 @@ search_entry(int r, int g, int b)
     int i, j, diffr, diffg, diffb;
     unsigned int diff, mindiff;
 
-    mindiff = ~0;
+    mindiff = (unsigned int)~0;
     for (i = j = 0; db->r < 256; db++, i++)
     {
        diffr = r - db->r;
@@ -340,5 +326,5 @@ create_form_cl(void)
 }
 
 //
-// End of "$Id: colbrowser.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: colbrowser.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

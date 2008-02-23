@@ -1,9 +1,9 @@
 //
-// "$Id: mandelbrot.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: mandelbrot.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Mandelbrot set demo for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,10 +20,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
-#include "mandelbrot_ui.cxx"
+#include "mandelbrot_ui.h"
 #include <FL/fl_draw.H>
 #include <stdio.h>
 #include <stdlib.h>
@@ -171,9 +173,9 @@ int Drawing_Area::handle(int event) {
       }
       jbrot.d->jX = X + (ix-x()-W/2)*scale/W;
       jbrot.d->jY = Y + (H/2-iy+y())*scale/W;
-      static char buffer[128];
-      sprintf(buffer, "Julia %.7f %.7f",jbrot.d->jX,jbrot.d->jY);
-      jbrot.window->label(buffer);
+      static char s[128];
+      sprintf(s, "Julia %.7f %.7f",jbrot.d->jX,jbrot.d->jY);
+      jbrot.window->label(s);
       jbrot.window->show();
       jbrot.d->new_display();
     }
@@ -187,15 +189,15 @@ void Drawing_Area::new_display() {
   set_idle();
 }
 
-void Drawing_Area::resize(int X,int Y,int W,int H) {
-  if (W != w() || H != h()) {
-    this->W = W-6;
-    this->H = H-8;
+void Drawing_Area::resize(int XX,int YY,int WW,int HH) {
+  if (WW != w() || HH != h()) {
+    W = WW-6;
+    H = HH-8;
     if (buffer) {delete[] buffer; buffer = 0; new_display();}
   }
-  Fl_Box::resize(X,Y,W,H);
+  Fl_Box::resize(XX,YY,WW,HH);
 }
 
 //
-// End of "$Id: mandelbrot.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: mandelbrot.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

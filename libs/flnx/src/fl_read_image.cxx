@@ -1,5 +1,5 @@
 //
-// "$Id: fl_read_image.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_read_image.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // X11 image reading routines for the Fast Light Tool Kit (FLTK).
 //
@@ -423,5 +423,5 @@ fl_read_image(uchar *p,		// I - Pixel buffer or NULL to allocate
 #endif
 
 //
-// End of "$Id: fl_read_image.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_read_image.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

@@ -1,4 +1,7 @@
 <HTML>
+<HEAD>
+	<TITLE>Fl_Input</TITLE>
+</HEAD>
 <BODY>
 
 <!-- NEW PAGE -->
@@ -33,7 +36,7 @@ inset box and a white background. The text may contain any
 characters (even 0), and will correctly display anything, using
 ^X notation for unprintable control characters and \nnn notation
 for unprintable characters with the high bit set. It assumes the
-font can draw any characters in the ISO-8859-1 character set.
+font can draw any characters in the ISO-8859-1 character set.</P>
 
 <CENTER><TABLE border=1 WIDTH=90% summary="Fl_Input keyboard and mouse bindings.">
 
@@ -84,14 +87,14 @@ a <A href="events.html#compose">compose-character</A>
 sequence.  The next one or two keys typed define the character to
 insert (see table that follows.)
 
-<p>For instance, to type "Ã¡" type [compose][a]['] or [compose]['][a].
+<p>For instance, to type "á" type [compose][a]['] or [compose]['][a].
 
 <P>The character "nbsp" (non-breaking space) is typed by using
 [compose][space].
 
 <P>The single-character sequences may be followed by a space if
 necessary to remove ambiguity.  For instance, if you really want to
-type "Âª~" rather than "Ã£" you must type [compose][a][space][~].
+type "ª~" rather than "ã" you must type [compose][a][space][~].
 
 <p>The same key may be used to "quote" control characters into the
 text.  If you need a <tt>^Q</tt> character you can get one by typing
@@ -106,7 +109,7 @@ as the right-hand control key.  You can set this up with the program
 also be able to type "dead key" prefix characters.  On X you will
 actually be able to see what dead key you typed, and if you then move
 the cursor without completing the sequence the accent will remain
-inserted.
+inserted.</TD></TR>
 </TABLE></CENTER>
 
 <!-- NEW PAGE -->
@@ -122,118 +125,118 @@ inserted.
 
 </tr><tr>
 	<td align=center><TT>sp</TT></td><td align=center><small>nbsp</small></td>
-	<td align=center><TT>*</tt></td><td align=center>Â°</td>
-	<td align=center><TT>` A</tt></td><td align=center>Ã€</td>
-	<td align=center><TT>D -</tt></td><td align=center>Ã</td>
-	<td align=center><TT>` a</tt></td><td align=center>Ã </td>
-	<td align=center><TT>d -</tt></td><td align=center>Ã°
+	<td align=center><TT>*</tt></td><td align=center>°</td>
+	<td align=center><TT>` A</tt></td><td align=center>À</td>
+	<td align=center><TT>D -</tt></td><td align=center>Ğ</td>
+	<td align=center><TT>` a</tt></td><td align=center>à</td>
+	<td align=center><TT>d -</tt></td><td align=center>ğ</td>
 </tr><tr>
-	<td align=center><TT>!</tt></td><td align=center>Â¡</td>
-	<td align=center><TT>+ -</tt></td><td align=center>Â±</td>
-	<td align=center><TT>' A</tt></td><td align=center>Ã</td>
-	<td align=center><TT>~ N</tt></td><td align=center>Ã‘</td>
-	<td align=center><TT>' a</tt></td><td align=center>Ã¡</td>
-	<td align=center><TT>~ n</tt></td><td align=center>Ã±
+	<td align=center><TT>!</tt></td><td align=center>¡</td>
+	<td align=center><TT>+ -</tt></td><td align=center>±</td>
+	<td align=center><TT>' A</tt></td><td align=center>Á</td>
+	<td align=center><TT>~ N</tt></td><td align=center>Ñ</td>
+	<td align=center><TT>' a</tt></td><td align=center>á</td>
+	<td align=center><TT>~ n</tt></td><td align=center>ñ</td>
 </tr><tr>
-	<td align=center><TT>%</tt></td><td align=center>Â¢</td>
-	<td align=center><TT>2</tt></td><td align=center>Â²</td>
-	<td align=center><TT>A ^</tt></td><td align=center>Ã‚</td>
-	<td align=center><TT>` O</tt></td><td align=center>Ã’</td>
-	<td align=center><TT>^ a</tt></td><td align=center>Ã¢</td>
-	<td align=center><TT>` o</tt></td><td align=center>Ã²
+	<td align=center><TT>%</tt></td><td align=center>¢</td>
+	<td align=center><TT>2</tt></td><td align=center>²</td>
+	<td align=center><TT>A ^</tt></td><td align=center>Â</td>
+	<td align=center><TT>` O</tt></td><td align=center>Ò</td>
+	<td align=center><TT>^ a</tt></td><td align=center>â</td>
+	<td align=center><TT>` o</tt></td><td align=center>ò</td>
 </tr><tr>
-	<td align=center><TT>#</tt></td><td align=center>Â£</td>
-	<td align=center><TT>3</tt></td><td align=center>Â³</td>
-	<td align=center><TT>~ A</tt></td><td align=center>Ãƒ</td>
-	<td align=center><TT>' O</tt></td><td align=center>Ã“</td>
-	<td align=center><TT>~ a</tt></td><td align=center>Ã£</td>
-	<td align=center><TT>' o</tt></td><td align=center>Ã³
+	<td align=center><TT>#</tt></td><td align=center>£</td>
+	<td align=center><TT>3</tt></td><td align=center>³</td>
+	<td align=center><TT>~ A</tt></td><td align=center>Ã</td>
+	<td align=center><TT>' O</tt></td><td align=center>Ó</td>
+	<td align=center><TT>~ a</tt></td><td align=center>ã</td>
+	<td align=center><TT>' o</tt></td><td align=center>ó</td>
 </tr><tr>
-	<td align=center><TT>$</tt></td><td align=center>Â¤</td>
-	<td align=center><TT>'</tt></td><td align=center>Â´</td>
-	<td align=center><TT>: A</tt></td><td align=center>Ã„</td>
-	<td align=center><TT>^ O</tt></td><td align=center>Ã”</td>
-	<td align=center><TT>: a</tt></td><td align=center>Ã¤</td>
-	<td align=center><TT>^ o</tt></td><td align=center>Ã´
+	<td align=center><TT>$</tt></td><td align=center>¤</td>
+	<td align=center><TT>'</tt></td><td align=center>´</td>
+	<td align=center><TT>: A</tt></td><td align=center>Ä</td>
+	<td align=center><TT>^ O</tt></td><td align=center>Ô</td>
+	<td align=center><TT>: a</tt></td><td align=center>ä</td>
+	<td align=center><TT>^ o</tt></td><td align=center>ô</td>
 </tr><tr>
-	<td align=center><TT>y =</tt></td><td align=center>Â¥</td>
-	<td align=center><TT>u</tt></td><td align=center>Âµ</td>
-	<td align=center><TT>* A</tt></td><td align=center>Ã…</td>
-	<td align=center><TT>~ O</tt></td><td align=center>Ã•</td>
-	<td align=center><TT>* a</tt></td><td align=center>Ã¥</td>
-	<td align=center><TT>~ o</tt></td><td align=center>Ãµ
+	<td align=center><TT>y =</tt></td><td align=center>¥</td>
+	<td align=center><TT>u</tt></td><td align=center>µ</td>
+	<td align=center><TT>* A</tt></td><td align=center>Å</td>
+	<td align=center><TT>~ O</tt></td><td align=center>Õ</td>
+	<td align=center><TT>* a</tt></td><td align=center>å</td>
+	<td align=center><TT>~ o</tt></td><td align=center>õ</td>
 </tr><tr>
-	<td align=center><TT>|</tt></td><td align=center>Â¦</td>
-	<td align=center><TT>p</tt></td><td align=center>Â¶</td>
-	<td align=center><TT>A E</tt></td><td align=center>Ã†</td>
-	<td align=center><TT>: O</tt></td><td align=center>Ã–</td>
-	<td align=center><TT>a e</tt></td><td align=center>Ã¦</td>
-	<td align=center><TT>: o</tt></td><td align=center>Ã¶
+	<td align=center><TT>|</tt></td><td align=center>¦</td>
+	<td align=center><TT>p</tt></td><td align=center>¶</td>
+	<td align=center><TT>A E</tt></td><td align=center>Æ</td>
+	<td align=center><TT>: O</tt></td><td align=center>Ö</td>
+	<td align=center><TT>a e</tt></td><td align=center>æ</td>
+	<td align=center><TT>: o</tt></td><td align=center>ö</td>
 </tr><tr>
-	<td align=center><TT>&amp;</tt></td><td align=center>Â§</td>
-	<td align=center><TT>.</tt></td><td align=center>Â·</td>
-	<td align=center><TT>, C</tt></td><td align=center>Ã‡</td>
-	<td align=center><TT>x</tt></td><td align=center>Ã—</td>
-	<td align=center><TT>, c</tt></td><td align=center>Ã§</td>
-	<td align=center><TT>- :</tt></td><td align=center>Ã·
+	<td align=center><TT>&amp;</tt></td><td align=center>§</td>
+	<td align=center><TT>.</tt></td><td align=center>·</td>
+	<td align=center><TT>, C</tt></td><td align=center>Ç</td>
+	<td align=center><TT>x</tt></td><td align=center>×</td>
+	<td align=center><TT>, c</tt></td><td align=center>ç</td>
+	<td align=center><TT>- :</tt></td><td align=center>÷</td>
 </tr><tr>
-	<td align=center><TT>:</tt></td><td align=center>Â¨</td>
-	<td align=center><TT>,</tt></td><td align=center>Â¸</td>
-	<td align=center><TT>E `</tt></td><td align=center>Ãˆ</td>
-	<td align=center><TT>O /</tt></td><td align=center>Ã˜</td>
-	<td align=center><TT>` e</tt></td><td align=center>Ã¨</td>
-	<td align=center><TT>o /</tt></td><td align=center>Ã¸
+	<td align=center><TT>:</tt></td><td align=center>¨</td>
+	<td align=center><TT>,</tt></td><td align=center>¸</td>
+	<td align=center><TT>E `</tt></td><td align=center>È</td>
+	<td align=center><TT>O /</tt></td><td align=center>Ø</td>
+	<td align=center><TT>` e</tt></td><td align=center>è</td>
+	<td align=center><TT>o /</tt></td><td align=center>ø</td>
 </tr><tr>
-	<td align=center><TT>c</tt></td><td align=center>Â©</td>
-	<td align=center><TT>1</tt></td><td align=center>Â¹</td>
-	<td align=center><TT>' E</tt></td><td align=center>Ã‰</td>
-	<td align=center><TT>` U</tt></td><td align=center>Ã™</td>
-	<td align=center><TT>' e</tt></td><td align=center>Ã©</td>
-	<td align=center><TT>` u</tt></td><td align=center>Ã¹
+	<td align=center><TT>c</tt></td><td align=center>©</td>
+	<td align=center><TT>1</tt></td><td align=center>¹</td>
+	<td align=center><TT>' E</tt></td><td align=center>É</td>
+	<td align=center><TT>` U</tt></td><td align=center>Ù</td>
+	<td align=center><TT>' e</tt></td><td align=center>é</td>
+	<td align=center><TT>` u</tt></td><td align=center>ù</td>
 </tr><tr>
-	<td align=center><TT>a</tt></td><td align=center>Âª</td>
-	<td align=center><TT>o</tt></td><td align=center>Âº</td>
-	<td align=center><TT>^ E</tt></td><td align=center>ÃŠ</td>
-	<td align=center><TT>' U</tt></td><td align=center>Ãš</td>
-	<td align=center><TT>^ e</tt></td><td align=center>Ãª</td>
-	<td align=center><TT>' u</tt></td><td align=center>Ãº
+	<td align=center><TT>a</tt></td><td align=center>ª</td>
+	<td align=center><TT>o</tt></td><td align=center>º</td>
+	<td align=center><TT>^ E</tt></td><td align=center>Ê</td>
+	<td align=center><TT>' U</tt></td><td align=center>Ú</td>
+	<td align=center><TT>^ e</tt></td><td align=center>ê</td>
+	<td align=center><TT>' u</tt></td><td align=center>ú</td>
 </tr><tr>
-	<td align=center><TT>&lt; &lt;</tt></td><td align=center>Â«</td>
-	<td align=center><TT>&gt; &gt;</tt></td><td align=center>Â»</td>
-	<td align=center><TT>: E</tt></td><td align=center>Ã‹</td>
-	<td align=center><TT>^ U</tt></td><td align=center>Ã›</td>
-	<td align=center><TT>: e</tt></td><td align=center>Ã«</td>
-	<td align=center><TT>^ u</tt></td><td align=center>Ã»
+	<td align=center><TT>&lt; &lt;</tt></td><td align=center>«</td>
+	<td align=center><TT>&gt; &gt;</tt></td><td align=center>»</td>
+	<td align=center><TT>: E</tt></td><td align=center>Ë</td>
+	<td align=center><TT>^ U</tt></td><td align=center>Û</td>
+	<td align=center><TT>: e</tt></td><td align=center>ë</td>
+	<td align=center><TT>^ u</tt></td><td align=center>û</td>
 </tr><tr>
-	<td align=center><TT>~</tt></td><td align=center>Â¬</td>
-	<td align=center><TT>1 4</tt></td><td align=center>Â¼</td>
-	<td align=center><TT>` I</tt></td><td align=center>ÃŒ</td>
-	<td align=center><TT>: U</tt></td><td align=center>Ãœ</td>
-	<td align=center><TT>` i</tt></td><td align=center>Ã¬</td>
-	<td align=center><TT>: u</tt></td><td align=center>Ã¼
+	<td align=center><TT>~</tt></td><td align=center>¬</td>
+	<td align=center><TT>1 4</tt></td><td align=center>¼</td>
+	<td align=center><TT>` I</tt></td><td align=center>Ì</td>
+	<td align=center><TT>: U</tt></td><td align=center>Ü</td>
+	<td align=center><TT>` i</tt></td><td align=center>ì</td>
+	<td align=center><TT>: u</tt></td><td align=center>ü</td>
 </tr><tr>
-	<td align=center><TT>-</tt></td><td align=center>Â­</td>
-	<td align=center><TT>1 2</tt></td><td align=center>Â½</td>
-	<td align=center><TT>' I</tt></td><td align=center>Ã</td>
-	<td align=center><TT>' Y</tt></td><td align=center>Ã</td>
-	<td align=center><TT>' i</tt></td><td align=center>Ã­</td>
-	<td align=center><TT>' y</tt></td><td align=center>Ã½
+	<td align=center><TT>-</tt></td><td align=center>­</td>
+	<td align=center><TT>1 2</tt></td><td align=center>½</td>
+	<td align=center><TT>' I</tt></td><td align=center>Í</td>
+	<td align=center><TT>' Y</tt></td><td align=center>İ</td>
+	<td align=center><TT>' i</tt></td><td align=center>í</td>
+	<td align=center><TT>' y</tt></td><td align=center>ı</td>
 </tr><tr>
-	<td align=center><TT>r</tt></td><td align=center>Â®</td>
-	<td align=center><TT>3 4</tt></td><td align=center>Â¾</td>
-	<td align=center><TT>^ I</tt></td><td align=center>Ã</td>
-	<td align=center><TT>T H</tt></td><td align=center>Ã</td>
-	<td align=center><TT>^ i</tt></td><td align=center>Ã®</td>
-	<td align=center><TT>t h</tt></td><td align=center>Ã¾
+	<td align=center><TT>r</tt></td><td align=center>®</td>
+	<td align=center><TT>3 4</tt></td><td align=center>¾</td>
+	<td align=center><TT>^ I</tt></td><td align=center>Î</td>
+	<td align=center><TT>T H</tt></td><td align=center>Ş</td>
+	<td align=center><TT>^ i</tt></td><td align=center>î</td>
+	<td align=center><TT>t h</tt></td><td align=center>ş</td>
 </tr><tr>
-	<td align=center><TT>_</tt></td><td align=center>Â¯</td>
-	<td align=center><TT>?</tt></td><td align=center>Â¿</td>
-	<td align=center><TT>: I</tt></td><td align=center>Ã</td>
-	<td align=center><TT>s s</tt></td><td align=center>ÃŸ</td>
-	<td align=center><TT>: i</tt></td><td align=center>Ã¯</td>
-	<td align=center><TT>: y</tt></td><td align=center>Ã¿
+	<td align=center><TT>_</tt></td><td align=center>¯</td>
+	<td align=center><TT>?</tt></td><td align=center>¿</td>
+	<td align=center><TT>: I</tt></td><td align=center>Ï</td>
+	<td align=center><TT>s s</tt></td><td align=center>ß</td>
+	<td align=center><TT>: i</tt></td><td align=center>ï</td>
+	<td align=center><TT>: y</tt></td><td align=center>ÿ</td>
+</tr>
 </table></center>
-
 <H3>Methods</H3>
 <CENTER>
 <TABLE width=90% summary="Fl_Input methods.">

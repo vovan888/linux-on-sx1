@@ -1,4 +1,8 @@
-<HTML><BODY>
+<HTML>
+<HEAD>
+	<TITLE>Fl_Widget</TITLE>
+</HEAD>
+<BODY>
 <!-- NEW PAGE -->
 <H2><A name=Fl_Widget>class Fl_Widget</A></H2>
 <HR>
@@ -7,7 +11,7 @@
 <PRE>
 <B>Fl_Widget</B>
    |
-   +----<A href=Fl_Box.html#Fl_Box>Fl_Box</A>, <A href=Fl_Browser_.html#Fl_Browser_>Fl_Browser_</A>, <A href=Fl_Button.html#Fl_Button>Fl_Button</A>, <A href=Fl_Chart.html#Fl_Chart>Fl_Chart</A>, <A href=Fl_Clock.html#Fl_Clock>Fl_Clock</A>,
+   +----<A href=Fl_Box.html#Fl_Box>Fl_Box</A>, <A href=Fl_Browser_.html#Fl_Browser_>Fl_Browser_</A>, <A href=Fl_Button.html#Fl_Button>Fl_Button</A>, <A href=Fl_Chart.html#Fl_Chart>Fl_Chart</A>, <A href=Fl_Clock_Output.html#Fl_Clock_Output>Fl_Clock_Output</A>,
         <A href=Fl_Free.html#Fl_Free>Fl_Free</A>, <A href=Fl_Group.html#Fl_Group>Fl_Group</A>, <A href=Fl_Input_.html#Fl_Input_>Fl_Input_</A>, <A href=Fl_Menu_.html#Fl_Menu_>Fl_Menu_</A>, <A href=Fl_Positioner.html#Fl_Positioner>Fl_Positioner</A>,
         <A HREF="Fl_Progress.html">Fl_Progress</A>, <A href=Fl_Timer.html#Fl_Timer>Fl_Timer</A>, <A href=Fl_Valuator.html#Fl_Valuator>Fl_Valuator</A>
 </PRE>
@@ -128,16 +132,19 @@ will destroy all of the child widgets and groups in that group.
 
 
 <H4><A name=Fl_Widget.active>int Fl_Widget::active() const</A><BR>
-<A name=Fl_Widget.active_r>int Fl_Widget::active_r() const</A></BR>
-<A name=Fl_Widget.activate>void Fl_Widget::activate()</A></BR>
+<A name=Fl_Widget.active_r>int Fl_Widget::active_r() const</A><BR>
+<A name=Fl_Widget.activate>void Fl_Widget::activate()</A><BR>
 <A name=Fl_Widget.deactivate>void Fl_Widget::deactivate()</A></H4>
 
 <P><TT>Fl_Widget::active()</TT> returns whether the widget is
 active. <TT>Fl_Widget::active_r()</TT> returns whether the
-widget and all of its parents are active.  An inactive widget
-does not get any events, but it does get redrawn. A widget is
-only active if <TT>active()</TT> is true on it <I>and all of its
-parents</I>.
+widget and all of its parents are active. Inactive widgets
+will be drawn "grayed out", e.g. with less contrast than the 
+active widget. Inactive widgets will not receive any keyboard or
+mouse button events. Other events (including <tt>FL_ENTER</tt>,
+<tt>FL_MOVE</tt>, <tt>FL_LEAVE</tt>, <tt>FL_SHORTCUT</tt>, and 
+others) will still be sent. A widget is only active if 
+<TT>active()</TT> is true on it <I>and all of its parents</I>.
 
 <P>Changing this value will send <TT>FL_ACTIVATE</TT> or <TT>
 FL_DEACTIVATE</TT> to the widget if <tt>active_r()</tt> is true.
@@ -224,7 +231,7 @@ the program sets the stored value. </P>
 
 <P>Hides the widget; you must still redraw the parent to see a
 change in the window. Normally you want to use the <A
-HREF="#Fl_Widget.hide"><CODE>hide()</CODE> method instead.
+HREF="#Fl_Widget.hide"><CODE>hide()</CODE></A> method instead.
 
 
 <H4><A NAME="Fl_Widget.clear_visible_focus">void Fl_Window::clear_visible_focus();</A></H4>
@@ -425,6 +432,10 @@ resizing. The default version does <I>not</I> call the
 widget to do so because the parent may know a faster way to
 update the display, such as scrolling from the old position.
 
+<P>Some window managers under X11 call <TT>resize</TT> a lot more
+often than needed. Please verify that the position or size of
+a widget did actually change before doing any extensiive calculations.
+
 <P><TT>position(x,y)</TT> is a shortcut for <TT>resize(x,y,w(),h())</TT>,
 and <TT>size(w,h)</TT> is a shortcut for <TT>resize(x(),y(),w,h)</TT>.</P>
 
@@ -462,6 +473,11 @@ window when the user hovers the mouse over the widget. The
 string is <I>not</I> copied, so make sure any formatted string
 is stored in a <TT>static</TT>, global, or allocated buffer.
 
+<P>If no tooltip is set, the tooltip of the parent is inherited.
+Setting a tooltip for a group and setting no tooltip for a child 
+will show the group's tooltip instead. To avoid this behavior, 
+you can set the child's tooltip to an empty string 
+(<tt>&quot;&quot;</tt>).
 
 <H4><A NAME="Fl_Widget.type">uchar Fl_Widget::type() const;</A></H4>
 
@@ -533,7 +549,7 @@ int Fl_Widget::visible_focus();</H4>
 
 <P>Modifies keyboard focus navigation. 
 See <A HREF="#Fl_Widget.set_visible_focus"><code>set_visible_focus()</code></a> and 
-<A HREF="#Fl_Widget.cleare_visible_focus"><code>clear_visible_focus()</code></a>. 
+<A HREF="#Fl_Widget.clear_visible_focus"><code>clear_visible_focus()</code></a>. 
 The second form returns non-zero if this widget will participate in keyboard focus navigation.
 
 <H4><A name=Fl_Widget.when>Fl_When Fl_Widget::when() const

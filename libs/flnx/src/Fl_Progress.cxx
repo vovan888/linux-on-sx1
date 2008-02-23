@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Progress.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Progress.cxx 5540 2006-11-12 20:44:12Z matt $"
 //
 // Progress bar widget routines.
 //
@@ -67,7 +67,7 @@ void Fl_Progress::draw()
 
   // Draw the progress bar...
   if (maximum_ > minimum_)
-    progress = (int)(tw * (value_ - minimum_) / (maximum_ - minimum_) + 0.5f);
+    progress = (int)(w() * (value_ - minimum_) / (maximum_ - minimum_) + 0.5f);
   else
     progress = 0;
 
@@ -83,12 +83,14 @@ void Fl_Progress::draw()
 
     labelcolor(c);
 
-    fl_clip(tx + progress, y(), w() - progress, h());
-      draw_box(box(), x(), y(), w(), h(), active_r() ? color() : fl_inactive(color()));
-      draw_label(tx, y() + by, tw, h() - bh);
-    fl_pop_clip();
+    if (progress<w()) {
+      fl_clip(tx + progress, y(), w() - progress, h());
+        draw_box(box(), x(), y(), w(), h(), active_r() ? color() : fl_inactive(color()));
+        draw_label(tx, y() + by, tw, h() - bh);
+      fl_pop_clip();
+    }
   } else {
-    draw_box(box(), x(), y(), w(), h(), color());
+    draw_box(box(), x(), y(), w(), h(), active_r() ? color() : fl_inactive(color()));
     draw_label(tx, y() + by, tw, h() - bh);
   }
 }
@@ -111,5 +113,5 @@ Fl_Progress::Fl_Progress(int X, int Y, int W, int H, const char* l)
 
 
 //
-// End of "$Id: Fl_Progress.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Progress.cxx 5540 2006-11-12 20:44:12Z matt $".
 //

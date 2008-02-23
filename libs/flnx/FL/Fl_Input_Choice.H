@@ -34,6 +34,7 @@
 #define Fl_Input_Choice_H
 
 #include <FL/Fl.H>
+#include <FL/Fl_Group.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Menu_Button.H>
 #include <FL/fl_draw.H>
@@ -58,13 +59,22 @@ class Fl_Input_Choice : public Fl_Group {
 
   static void menu_cb(Fl_Widget*, void *data) { 
     Fl_Input_Choice *o=(Fl_Input_Choice *)data;
+    const Fl_Menu_Item *item = o->menubutton()->mvalue();
+    if ( item && item->flags & (FL_SUBMENU|FL_SUBMENU_POINTER) ) return;	// ignore submenus
     o->inp_->value(o->menu_->text());
+    o->inp_->set_changed();
     o->do_callback();
   }
 
   static void inp_cb(Fl_Widget*, void *data) { 
     Fl_Input_Choice *o=(Fl_Input_Choice *)data;
+    if (o->inp_->changed()) 
+      o->Fl_Widget::set_changed();
+    else
+      o->Fl_Widget::clear_changed();
     o->do_callback();
+    if (o->callback() != default_callback)
+      o->Fl_Widget::clear_changed();
   }
 
   // Custom resize behavior -- input stretches, menu button doesn't
@@ -94,6 +104,17 @@ public:
   }
   void add(const char *s) {
     menu_->add(s);
+  }
+  int changed() const { 
+    return inp_->changed() | Fl_Widget::changed();
+  }
+  void clear_changed() { 
+    inp_->clear_changed();
+    Fl_Widget::clear_changed();
+  }
+  void set_changed() { 
+    inp_->set_changed();
+    // no need to call Fl_Widget::set_changed()
   }
   void clear() {
     menu_->clear();

@@ -1,9 +1,9 @@
 //
-// "$Id: adjuster.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: adjuster.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Adjuster test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <stdlib.h>
@@ -36,7 +38,7 @@ void adjcb(Fl_Widget *o, void *v) {
   b->redraw();
 }
 
-int main(int, char ** argv) {
+int main(int argc, char ** argv) {
    Fl_Window window(320,100,argv[0]);
 
    char buf1[100];
@@ -55,10 +57,10 @@ int main(int, char ** argv) {
 
    window.resizable(window);
    window.end();
-   window.show();
+   window.show(argc, argv);
    return Fl::run();
 }
 
 //
-// End of "$Id: adjuster.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: adjuster.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

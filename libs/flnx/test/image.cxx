@@ -1,5 +1,5 @@
 //
-// "$Id: image.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: image.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Fl_Image test program for the Fast Light Tool Kit (FLTK).
 //
@@ -7,7 +7,7 @@
 // as an icon or postage stamp.  Use fl_draw_image to go directly
 // from an buffered image that changes often.
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -24,7 +24,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -33,13 +35,14 @@
 #include <FL/Fl_Image.H>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
-int width = 75;
-int height = 75;
+int width = 100;
+int height = 100;
 uchar *image;
 
 void make_image() {
-  image = new uchar[3*width*height];
+  image = new uchar[4*width*height];
   uchar *p = image;
   for (int y = 0; y < height; y++) {
     double Y = double(y)/(height-1);
@@ -48,32 +51,39 @@ void make_image() {
       *p++ = uchar(255*((1-X)*(1-Y))); // red in upper-left
       *p++ = uchar(255*((1-X)*Y));	// green in lower-left
       *p++ = uchar(255*(X*Y));	// blue in lower-right
+      X -= 0.5;
+      Y -= 0.5;
+      int alpha = (int)(255 * sqrt(X * X + Y * Y));
+      if (alpha < 255) *p++ = uchar(alpha);	// alpha transparency
+      else *p++ = 255;
+      Y += 0.5;
     }
   }
 }
 
 #include <FL/Fl_Toggle_Button.H>
 
-Fl_Toggle_Button *leftb,*rightb,*topb,*bottomb,*insideb;
+Fl_Toggle_Button *leftb,*rightb,*topb,*bottomb,*insideb,*overb,*inactb;
 Fl_Button *b;
 Fl_Window *w;
 
 void button_cb(Fl_Widget *,void *) {
-    int i = 0;
-    if (leftb->value()) i |= FL_ALIGN_LEFT;
-    if (rightb->value()) i |= FL_ALIGN_RIGHT;
-    if (topb->value()) i |= FL_ALIGN_TOP;
-    if (bottomb->value()) i |= FL_ALIGN_BOTTOM;
-    if (insideb->value()) i |= FL_ALIGN_INSIDE;
-    b->align(i);
-    w->redraw();
+  int i = 0;
+  if (leftb->value()) i |= FL_ALIGN_LEFT;
+  if (rightb->value()) i |= FL_ALIGN_RIGHT;
+  if (topb->value()) i |= FL_ALIGN_TOP;
+  if (bottomb->value()) i |= FL_ALIGN_BOTTOM;
+  if (insideb->value()) i |= FL_ALIGN_INSIDE;
+  if (overb->value()) i |= FL_ALIGN_TEXT_OVER_IMAGE;
+  b->align(i);
+  if (inactb->value()) b->deactivate();
+  else b->activate();
+  w->redraw();
 }
 
 #include <FL/x.H>
-#ifndef WIN32
-#ifndef NANO_X
+#if !defined(WIN32) && !defined(__APPLE__)
 #include "list_visuals.cxx"
-#endif
 #endif
 
 int visid = -1;
@@ -88,19 +98,15 @@ int arg(int argc, char **argv, int &i) {
 }
 
 int main(int argc, char **argv) {
-
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
   int i = 1;
-  if (Fl::args(argc,argv,i,arg) < argc) {
-    fprintf(stderr," -v # : use visual\n%s\n",Fl::help);
-    exit(1);
-  }
-#ifndef NANO_X //tanghao
+
+  Fl::args(argc,argv,i,arg);
+
   if (visid >= 0) {
     fl_open_display();
     XVisualInfo templt; int num;
     templt.visualid = visid;
-
     fl_visual = XGetVisualInfo(fl_display, VisualIDMask, &templt, &num);
     if (!fl_visual) {
       fprintf(stderr, "No visual with id %d, use one of:\n",visid);
@@ -113,23 +119,37 @@ int main(int argc, char **argv) {
   } else {
     Fl::visual(FL_RGB);
   }
-#endif //tanghao
 #endif
 
   Fl_Window window(400,400); ::w = &window;
-  Fl_Button b(140,160,120,120,0); ::b = &b;
+  window.color(FL_WHITE);
+  Fl_Button b(140,160,120,120,"Image w/Alpha"); ::b = &b;
+
+  Fl_RGB_Image *rgb;
+  Fl_Image *dergb;
+
   make_image();
-  (new Fl_Image(image, width, height))->label(&b);
-  leftb = new Fl_Toggle_Button(50,75,50,25,"left");
+  rgb = new Fl_RGB_Image(image, width, height,4);
+  dergb = rgb->copy();
+  dergb->inactive();
+
+  b.image(rgb);
+  b.deimage(dergb);
+
+  leftb = new Fl_Toggle_Button(25,50,50,25,"left");
   leftb->callback(button_cb);
-  rightb = new Fl_Toggle_Button(100,75,50,25,"right");
+  rightb = new Fl_Toggle_Button(75,50,50,25,"right");
   rightb->callback(button_cb);
-  topb = new Fl_Toggle_Button(150,75,50,25,"top");
+  topb = new Fl_Toggle_Button(125,50,50,25,"top");
   topb->callback(button_cb);
-  bottomb = new Fl_Toggle_Button(200,75,50,25,"bottom");
+  bottomb = new Fl_Toggle_Button(175,50,50,25,"bottom");
   bottomb->callback(button_cb);
-  insideb = new Fl_Toggle_Button(250,75,50,25,"inside");
+  insideb = new Fl_Toggle_Button(225,50,50,25,"inside");
   insideb->callback(button_cb);
+  overb = new Fl_Toggle_Button(25,75,100,25,"text over");
+  overb->callback(button_cb);
+  inactb = new Fl_Toggle_Button(125,75,100,25,"inactive");
+  inactb->callback(button_cb);
   window.resizable(window);
   window.end();
   window.show(argc, argv);
@@ -137,5 +157,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: image.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: image.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

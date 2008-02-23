@@ -1,9 +1,9 @@
 //
-// "$Id: color_chooser.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: color_chooser.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Color chooser test program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -35,10 +37,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#ifndef WIN32
-#ifndef NANO_X
+#if !defined(WIN32) && !defined(__APPLE__)
 #include "list_visuals.cxx"
-#endif //tanghao
 #endif
 
 int width = 75;
@@ -107,7 +107,7 @@ int main(int argc, char ** argv) {
   b2.callback(cb2,&box);
   Fl_Box image_box(140,200,120,120,0);
   make_image();
-  (new Fl_Image(image, width, height))->label(&image_box);
+  (new Fl_RGB_Image(image, width, height))->label(&image_box);
   Fl_Box b(140,320,120,0,"Example of fl_draw_image()");
   Pens p(80,200,3*8,120,"lines");
   p.align(FL_ALIGN_TOP);
@@ -117,11 +117,9 @@ int main(int argc, char ** argv) {
 	   " - : default visual\n"
 	   " r : call Fl::visual(FL_RGB)\n"
 	   " c : call Fl::own_colormap()\n",argv[0]);
-#ifndef WIN32
-#ifndef NANO_X
+#if !defined(WIN32) && !defined(__APPLE__)
     printf(" # : use this visual with an empty colormap:\n");
     list_visuals();
-#endif
 #endif
     puts(Fl::help);
     exit(1);
@@ -131,22 +129,18 @@ int main(int argc, char ** argv) {
   } else if (argv[i][0] == 'c') {
     Fl::own_colormap();
   } else if (argv[i][0] != '-') {
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
     int visid = atoi(argv[i]);
     fl_open_display();
     XVisualInfo templt; int num;
-#ifndef NANO_X
     templt.visualid = visid;
     fl_visual = XGetVisualInfo(fl_display, VisualIDMask, &templt, &num);
-#endif
     if (!fl_visual) Fl::fatal("No visual with id %d",visid);
-#ifndef NANO_X
     fl_colormap = XCreateColormap(fl_display, RootWindow(fl_display,fl_screen),
 				  fl_visual->visual, AllocNone);
-#endif
     fl_xpixel(FL_BLACK); // make sure black is allocated
 #else
-    Fl::fatal("Visual id's not supported on MSWindows");
+    Fl::fatal("Visual id's not supported on MSWindows or MacOS.");
 #endif
   }
   window.show(argc,argv);
@@ -154,5 +148,5 @@ int main(int argc, char ** argv) {
 }
 
 //
-// End of "$Id: color_chooser.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: color_chooser.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

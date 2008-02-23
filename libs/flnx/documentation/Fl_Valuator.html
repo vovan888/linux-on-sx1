@@ -1,4 +1,8 @@
-<HTML><BODY>
+<HTML>
+<HEAD>
+	<TITLE>Fl_Valuator</TITLE>
+</HEAD>
+<BODY>
 <!-- NEW PAGE -->
 <H2><A name=Fl_Valuator>class Fl_Valuator</A></H2>
 <HR>
@@ -95,12 +99,26 @@ turned off by <TT>value(x)</TT> and just before doing a callback
 
 <P>Clears the <TT>changed()</TT> flag.
 
-<H4><A name=Fl_Valuator.format>int Fl_Valuator::format(char *)</A></H4>
+<H4><A name=Fl_Valuator.format>int Fl_Valuator::format(char *buffer)</A></H4>
 
-<P>Format the passed value to show enough digits so that for the
-current step value. If the step has been set to zero then it
-does a <TT>%g</TT> format. The characters are written into the
-passed buffer.
+<P>Uses internal rules to format the fields numerical value into
+the character array pointed to by the passed parameter.</P>
+
+<P>The actual format used depends on the current step value. If
+the step value has been set to zero then a %g format is used.
+If the step value is non-zero, then a %.*f format is used,
+where the precision is calculated to show sufficient digits
+for the current step value. An integer step value, such as 1
+or 1.0, gives a precision of 0, so the formatted value will
+appear as an integer.</P>
+
+<P>This method is used by the <TT>Fl_Value_...</TT> group of widgets to 
+format the current value into a text string. 
+The return value is the length of the formatted text.
+The formatted value is written into in <i>buffer</i>. 
+<i>buffer</i> should have space for at least 128 bytes.</P>
+
+<P>You may override this function to create your own text formatting.</P>
 
 <H4><A name=Fl_Valuator.increment>double
 Fl_Valuator::increment(double,int n)</A></H4>

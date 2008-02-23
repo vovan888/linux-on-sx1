@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Tiled_Image.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Tiled_Image.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Tiled image code for the Fast Light Tool Kit (FLTK).
 //
@@ -135,5 +135,5 @@ Fl_Tiled_Image::draw(int X,	// I - Starting X position
 
 
 //
-// End of "$Id: Fl_Tiled_Image.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Tiled_Image.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

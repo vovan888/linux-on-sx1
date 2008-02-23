@@ -1,12 +1,12 @@
 //
-// "$Id: checkers.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: checkers.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Checkers game for the Fast Light Tool Kit (FLTK).
 //
 // Hours of fun: the FLTK checkers game!
-// Based on a very old algorithim, but it still works!
+// Based on a very old algorithm, but it still works!
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -23,7 +23,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 const char* copyright = 
@@ -60,7 +62,6 @@ const char* copyright =
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <ctype.h>
 #include <time.h>
 
 ////////////////////////////////////////////////////////////////
@@ -125,7 +126,7 @@ int nodes;		// count of nodes
 
 /*	Board positions:	Border positions:
 
-	      CWHITE		  00  01  02  03  04
+	      WHITE		  00  01  02  03  04
 	  05  06  07  08	04  XX  XX  XX  XX
 	09  10  11  12		  XX  XX  XX  XX  13
 	  14  15  16  17	13  XX  XX  XX  XX
@@ -134,23 +135,23 @@ int nodes;		// count of nodes
 	27  28  29  30		  XX  XX  XX  XX  31
 	  32  33  34  36	31  XX  XX  XX  XX
 	36  37  38  39		  XX  XX  XX  XX  40
-	      CBLACK		40  41  42  43  44
+	      BLACK		40  41  42  43  44
 
 */
 
 typedef char piece;
 
-// Piece values so that CBLACK and CWHITE are bit flags:
+// Piece values so that BLACK and WHITE are bit flags:
 #define EMPTY 0
-#define CBLACK 1
-#define CWHITE 2
+#define BLACK 1
+#define WHITE 2
 #define KING 4
 #define BLACKKING 5
 #define WHITEKING 6
-#define CBLUE 8
+#define BLUE 8
 
 const piece flip[9] = {
-  EMPTY, CWHITE, CBLACK, 0, 0, WHITEKING, BLACKKING, 0, CBLUE};
+  EMPTY, WHITE, BLACK, 0, 0, WHITEKING, BLACKKING, 0, BLUE};
 
 const int offset[9][4] = {	// legal move directions
   {0,0,0,0},
@@ -173,9 +174,9 @@ char is_protected[45];
 
 piece flipboard[45];	// swapped if enemy is black
 piece *tb;		// pointer to real or swapped board
-#define FRIEND CBLACK
+#define FRIEND BLACK
 #define FRIENDKING BLACKKING
-#define ENEMY CWHITE
+#define ENEMY WHITE
 #define ENEMYKING WHITEKING
 
 char check(int target,int direction) {
@@ -185,7 +186,7 @@ char check(int target,int direction) {
   int src = target+direction;
   if (tb[src] == FRIENDKING);
   else if (direction < 0 || tb[src] != FRIEND) return(0);
-  piece a = tb[target]; piece b = tb[src];
+  piece aa = tb[target]; piece bb = tb[src];
   tb[target] = EMPTY; tb[src] = EMPTY;
   int safe =
     (tb[src-4]&FRIEND && tb[src-8]&ENEMY
@@ -196,7 +197,7 @@ char check(int target,int direction) {
      ||tb[src+5]&FRIEND && tb[src+10]==ENEMYKING
      ||tb[dst+4]==ENEMYKING && !tb[dst-4]
      ||tb[dst+5]==ENEMYKING && !tb[dst-5]);
-  tb[target] = a; tb[src] = b;
+  tb[target] = aa; tb[src] = bb;
   return(safe);
 }
 
@@ -222,7 +223,7 @@ void evaluateboard(node *n,int print) {
 
   if (!n->who) tb = b;	// move was black's
   else {
-    for (int i=0; i<45; i++) flipboard[44-i] = flip[b[i]];
+    for (int i=0; i<45; i++) flipboard[44-i] = flip[(int)b[i]];
     tb = flipboard;
   }
 
@@ -414,7 +415,7 @@ void movepiece(node* f, int i, node* jnode) {
   static char jumphappened;
 
   for (int k=0; k<4; k++) {
-    int direction = offset[b[i]][k];
+    int direction = offset[(int)b[i]][k];
     if (!direction) break;
     int j = i+direction;
     if (b[j] == EMPTY) {
@@ -434,7 +435,7 @@ void movepiece(node* f, int i, node* jnode) {
 	insert(n);
 	b[i] = oldpiece; b[j] = EMPTY;
       }
-    } else if (((b[j]^b[i])&(CWHITE|CBLACK))==(CWHITE|CBLACK) && !b[j+direction]) {
+    } else if (((b[j]^b[i])&(WHITE|BLACK))==(WHITE|BLACK) && !b[j+direction]) {
       if (forcejumps && f->son && !f->son->jump) {
 	killnode(f->son);
 	f->son = 0;
@@ -473,7 +474,7 @@ void movepiece(node* f, int i, node* jnode) {
 
 void expandnode(node *f) {
   if (f->son || f->value > 28000) return;	// already done
-  piece turn = f->who ? CBLACK : CWHITE;
+  piece turn = f->who ? BLACK : WHITE;
   for (int i=5; i<40; i++) if (b[i]&turn) movepiece(f,i,0);
   if (f->son) {
     f->value = -f->son->value;
@@ -567,12 +568,12 @@ char autoplay;
 void newgame(void) {
 
   int n;
-  for (n=0; n<5; n++) b[n] = CBLUE;
-  for (n=5; n<18; n++) b[n] = CWHITE;
+  for (n=0; n<5; n++) b[n] = BLUE;
+  for (n=5; n<18; n++) b[n] = WHITE;
   for (n=18; n<27; n++) b[n] = EMPTY;
-  for (n=27; n<40; n++) b[n] = CBLACK;
-  for (n=40; n<45; n++) b[n] = CBLUE;
-  b[13] = b[22] = b[31] = CBLUE;
+  for (n=27; n<40; n++) b[n] = BLACK;
+  for (n=40; n<45; n++) b[n] = BLUE;
+  b[13] = b[22] = b[31] = BLUE;
 
   centralsquares[15] = centralsquares[16] =
     centralsquares[19] = centralsquares[20] =
@@ -606,7 +607,7 @@ node* undomove() {
   if (n->jump) memmove(b,jumpboards[--nextjump],sizeof(b));
   else {
     b[n->from] = b[n->to];
-    if (n->king) b[n->from] &= (CWHITE|CBLACK);
+    if (n->king) b[n->from] &= (WHITE|BLACK);
     b[n->to] = EMPTY;
   }
   root = n->father;
@@ -654,7 +655,7 @@ void positioncursor(int i) {
 }
 
 void outpiecename(piece n) {
-  printf(n&CBLACK ? "\033[1;7m" : "\033[1m");
+  printf(n&BLACK ? "\033[1;7m" : "\033[1m");
   putchar(" BW??BW??"[n]);
   putchar(" BW??KK??"[n]);
   printf("\033[0m");
@@ -870,22 +871,22 @@ int VT100main() {
 // rather tedious and perhaps fltk should provide a direct support
 // to do this:
 
-#include "black_1.xbm"
-#include "black_2.xbm"
-#include "black_3.xbm"
-#include "black_4.xbm"
-#include "white_1.xbm"
-#include "white_2.xbm"
-#include "white_3.xbm"
-#include "white_4.xbm"
-#include "blackking_1.xbm"
-#include "blackking_2.xbm"
-#include "blackking_3.xbm"
-#include "blackking_4.xbm"
-#include "whiteking_1.xbm"
-#include "whiteking_2.xbm"
-#include "whiteking_3.xbm"
-#include "whiteking_4.xbm"
+#include "pixmaps/black_1.xbm"
+#include "pixmaps/black_2.xbm"
+#include "pixmaps/black_3.xbm"
+#include "pixmaps/black_4.xbm"
+#include "pixmaps/white_1.xbm"
+#include "pixmaps/white_2.xbm"
+#include "pixmaps/white_3.xbm"
+#include "pixmaps/white_4.xbm"
+#include "pixmaps/blackking_1.xbm"
+#include "pixmaps/blackking_2.xbm"
+#include "pixmaps/blackking_3.xbm"
+#include "pixmaps/blackking_4.xbm"
+#include "pixmaps/whiteking_1.xbm"
+#include "pixmaps/whiteking_2.xbm"
+#include "pixmaps/whiteking_3.xbm"
+#include "pixmaps/whiteking_4.xbm"
 
 Fl_Bitmap *bm[4][4];
 
@@ -914,8 +915,8 @@ void make_bitmaps() {
 void draw_piece(int which, int x, int y) {
   if (!fl_not_clipped(x,y,ISIZE,ISIZE)) return;
   switch (which) {
-  case CBLACK: which = 0; break;
-  case CWHITE: which = 1; break;
+  case BLACK: which = 0; break;
+  case WHITE: which = 1; break;
   case BLACKKING: which = 2; break;
   case WHITEKING: which = 3; break;
   default: return;
@@ -966,8 +967,8 @@ void Board::draw() {
     fl_rectf(x*BOXSIZE,0,BORDER,h());
     fl_rectf(0,x*BOXSIZE,w(),BORDER);
   }
-  for (int i = 5; i < 40; i++) if (i != erase_this) {
-    draw_piece(b[i], squarex(i), squarey(i));
+  for (int j = 5; j < 40; j++) if (j != erase_this) {
+    draw_piece(b[j], squarex(j), squarey(j));
   }
   if (showlegal) {
     fl_color(FL_WHITE);
@@ -1004,13 +1005,13 @@ void Board::draw() {
 }
 
 // drag the piece on square i to dx dy, or undo drag if i is zero:
-void Board::drag_piece(int i, int dx, int dy) {
+void Board::drag_piece(int j, int dx, int dy) {
   dy = (dy&-2) | dx&1; // make halftone shadows line up
-  if (i != erase_this) drop_piece(erase_this); // should not happen
+  if (j != erase_this) drop_piece(erase_this); // should not happen
   if (!erase_this) { // pick up old piece
-    dragx = squarex(i); dragy = squarey(i);
-    erase_this = i;
-    dragging = b[i];
+    dragx = squarex(j); dragy = squarey(j);
+    erase_this = j;
+    dragging = b[j];
   }
   if (dx != dragx || dy != dragy) {
     damage(FL_DAMAGE_ALL, dragx, dragy, ISIZE, ISIZE);
@@ -1021,12 +1022,12 @@ void Board::drag_piece(int i, int dx, int dy) {
 }
 
 // drop currently dragged piece on square i
-void Board::drop_piece(int i) {
+void Board::drop_piece(int j) {
   if (!erase_this) return; // should not happen!
   erase_this = 0;
   dragging = 0;
-  int x = squarex(i);
-  int y = squarey(i);
+  int x = squarex(j);
+  int y = squarey(j);
   if (x != dragx || y != dragy) {
     damage(4, dragx, dragy, ISIZE, ISIZE);
     damage(4, x, y, ISIZE, ISIZE);
@@ -1045,9 +1046,9 @@ void Board::animate(node* move, int backwards) {
   int x2 = squarex(t);
   int y2 = squarey(t);
   const int STEPS=35;
-  for (int i=0; i<STEPS; i++) {
-    int x = x1+(x2-x1)*i/STEPS;
-    int y = y1+(y2-y1)*i/STEPS;
+  for (int j=0; j<STEPS; j++) {
+    int x = x1+(x2-x1)*j/STEPS;
+    int y = y1+(y2-y1)*j/STEPS;
     drag_piece(move->from,x,y);
     Fl::flush();
   }
@@ -1056,15 +1057,6 @@ void Board::animate(node* move, int backwards) {
 }
 
 int busy; // causes pop-up abort menu
-
-void message(const char* m, ...) {
-  char buffer[2048];
-  va_list a;
-  va_start(a,m);
-  vsprintf(buffer, m, a);
-  va_end(a);
-  fl_message(buffer);
-}
 
 void Board::computer_move(int help) {
   if (!playing) return;
@@ -1075,7 +1067,7 @@ void Board::computer_move(int help) {
   busy = 0;
   if (move) {
     if (!help && move->value <= -30000) {
-      message("%s resigns", move->who ? "White" : "Black");
+      fl_message("%s resigns", move->who ? "White" : "Black");
       playing = autoplay = 0;
       cursor(FL_CURSOR_DEFAULT);
       return;
@@ -1085,7 +1077,7 @@ void Board::computer_move(int help) {
   }
   expandnode(root);
   if (!root->son) {
-    message("%s has no move", root->who ? "Black" : "White");
+    fl_message("%s has no move", root->who ? "Black" : "White");
     playing = autoplay = 0;
   }
   if (!autoplay) cursor(FL_CURSOR_DEFAULT);
@@ -1365,5 +1357,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: checkers.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: checkers.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

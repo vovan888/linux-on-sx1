@@ -1,5 +1,5 @@
 //
-// "$Id: subwindow.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: subwindow.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Nested window test program for the Fast Light Tool Kit (FLTK).
 //
@@ -8,7 +8,7 @@
 // Buttons and pop-up menu should work, indicating that mouse positions
 // are being correctly translated.
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -25,7 +25,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <stdlib.h>
@@ -77,11 +79,13 @@ class testwindow : public Fl_Window {
   int handle(int);
   void draw();
   int cx, cy; char key;
+  Fl_Cursor crsr;
 public:
   testwindow(Fl_Boxtype b,int x,int y,const char *l)
-    : Fl_Window(x,y,l) {box(b); key = 0;}
+    : Fl_Window(x,y,l), crsr(FL_CURSOR_DEFAULT) {box(b); key = 0;}
   testwindow(Fl_Boxtype b,int x,int y,int w,int h,const char *l)
     : Fl_Window(x,y,w,h,l) {box(b); key = 0;}
+  void use_cursor(Fl_Cursor c) { crsr = c; }
 };
 
 #include <FL/fl_draw.H>
@@ -98,6 +102,12 @@ int testwindow::handle(int e) {
 #ifdef DEBUG
   if (e != FL_MOVE) printf("%s : %s\n",label(),eventnames[e]);
 #endif
+  if (crsr!=FL_CURSOR_DEFAULT) {
+    if (e == FL_ENTER) 
+      cursor(crsr);
+    if (e == FL_LEAVE) 
+      cursor(FL_CURSOR_DEFAULT);
+  }
   if (Fl_Window::handle(e)) return 1;
   if (e == FL_FOCUS) return 1;
   if (e == FL_PUSH) {Fl::focus(this); return 1;}
@@ -151,7 +161,7 @@ const char* bigmess =
 #endif
 ;
 
-int main(int, char **) {
+int main(int argc, char **argv) {
   testwindow *window =
     new testwindow(FL_UP_BOX,400,400,"outer");
   new Fl_Toggle_Button(310,310,80,80,"&outer");
@@ -167,6 +177,7 @@ int main(int, char **) {
   subwindow->resizable(subwindow);
   window->resizable(subwindow);
   subwindow->end();
+  subwindow->use_cursor(FL_CURSOR_HAND);
   (new Fl_Box(FL_NO_BOX,0,0,400,100,
 	     "A child Fl_Window with children of it's own may "
 	     "be useful for imbedding controls into a GL or display "
@@ -178,10 +189,10 @@ int main(int, char **) {
   popup->type(Fl_Menu_Button::POPUP3);
   popup->add("This|is|a popup|menu");
   popup->add(bigmess);
-  window->show();
+  window->show(argc, argv);
   return Fl::run();
 }
 
 //
-// End of "$Id: subwindow.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: subwindow.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

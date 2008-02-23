@@ -1,9 +1,9 @@
 //
-// "$Id: fl_boxtype.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_boxtype.cxx 5505 2006-10-03 02:35:12Z mike $"
 //
 // Box drawing code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2005 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -237,6 +237,18 @@ static struct {
   {fl_down_frame,	2,2,4,4,0}, // _FL_PLASTIC_DOWN_FRAME,
   {fl_up_box,		2,2,4,4,0}, // _FL_PLASTIC_THIN_UP_BOX,
   {fl_down_box,		2,2,4,4,0}, // _FL_PLASTIC_THIN_DOWN_BOX,
+  {fl_up_box,		2,2,4,4,0}, // _FL_PLASTIC_ROUND_UP_BOX,
+  {fl_down_box,		2,2,4,4,0}, // _FL_PLASTIC_ROUND_DOWN_BOX,
+  {fl_up_box,		2,2,4,4,0}, // _FL_GTK_UP_BOX,
+  {fl_down_box,		2,2,4,4,0}, // _FL_GTK_DOWN_BOX,
+  {fl_up_frame,		2,2,4,4,0}, // _FL_GTK_UP_FRAME,
+  {fl_down_frame,	2,2,4,4,0}, // _FL_GTK_DOWN_FRAME,
+  {fl_up_frame,		1,1,2,2,0}, // _FL_GTK_THIN_UP_FRAME,
+  {fl_down_frame,	1,1,2,2,0}, // _FL_GTK_THIN_DOWN_FRAME,
+  {fl_up_box,		1,1,2,2,0}, // _FL_GTK_THIN_ROUND_UP_BOX,
+  {fl_down_box,		1,1,2,2,0}, // _FL_GTK_THIN_ROUND_DOWN_BOX,
+  {fl_up_box,		2,2,4,4,0}, // _FL_GTK_ROUND_UP_BOX,
+  {fl_down_box,		2,2,4,4,0}, // _FL_GTK_ROUND_DOWN_BOX,
   {fl_up_box,		3,3,6,6,0}, // FL_FREE_BOX+0
   {fl_down_box,		3,3,6,6,0}, // FL_FREE_BOX+1
   {fl_up_box,		3,3,6,6,0}, // FL_FREE_BOX+2
@@ -306,5 +318,5 @@ const {
 }
 
 //
-// End of "$Id: fl_boxtype.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_boxtype.cxx 5505 2006-10-03 02:35:12Z mike $".
 //

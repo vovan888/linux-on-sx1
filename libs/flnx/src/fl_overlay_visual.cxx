@@ -1,5 +1,5 @@
 //
-// "$Id: fl_overlay_visual.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_overlay_visual.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // X overlay support for the Fast Light Tool Kit (FLTK).
 //
@@ -101,5 +101,5 @@ XVisualInfo *fl_find_overlay_visual() {
 #endif
 
 //
-// End of "$Id: fl_overlay_visual.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_overlay_visual.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

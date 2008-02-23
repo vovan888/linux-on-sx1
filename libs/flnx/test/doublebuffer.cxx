@@ -1,5 +1,5 @@
 //
-// "$Id: doublebuffer.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: doublebuffer.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Double-buffering test program for the Fast Light Tool Kit (FLTK).
 //
@@ -13,7 +13,7 @@
 // This demo should work for both the GL and X versions of Fl,
 // even though the double buffering mechanism is totally different.
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -30,7 +30,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -91,7 +93,7 @@ public:
     : Fl_Double_Window(x,y,w,h,l) {resizable(this);}
 };
 
-int main() {
+int main(int argc, char **argv) {
   if (!Fl::visual(FL_DOUBLE))
     printf("Xdbe not supported, faking double buffer with pixmaps.\n");
   Fl_Window w01(420,420,"Fl_Single_Window"); w01.box(FL_FLAT_BOX);
@@ -114,7 +116,7 @@ int main() {
   slider1.callback(slider_cb, 1);
   w2.end();
   w02.end();
-  w01.show();
+  w01.show(argc, argv);
   w1.show();
   w02.show();
   w2.show();
@@ -122,5 +124,5 @@ int main() {
 }
 
 //
-// End of "$Id: doublebuffer.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: doublebuffer.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

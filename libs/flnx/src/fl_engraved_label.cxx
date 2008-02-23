@@ -1,5 +1,5 @@
 //
-// "$Id: fl_engraved_label.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_engraved_label.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Engraved label drawing routines for the Fast Light Tool Kit (FLTK).
 //
@@ -89,5 +89,5 @@ Fl_Labeltype fl_define_FL_EMBOSSED_LABEL() {
 }
 
 //
-// End of "$Id: fl_engraved_label.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_engraved_label.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

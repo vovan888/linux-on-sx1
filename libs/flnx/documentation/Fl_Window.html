@@ -1,4 +1,8 @@
-<HTML><BODY>
+<HTML>
+<HEAD>
+	<TITLE>Fl_Window</TITLE>
+</HEAD>
+<BODY>
 <!-- NEW PAGE -->
 <H2><A name=Fl_Window>class Fl_Window</A></H2>
 <HR>
@@ -88,14 +92,16 @@ is not <tt>NULL</tt>, the window is created as a subwindow of
 the parent window.</p>
 
 <p>The first form of the constructor creates a top-level window
-and tells the window manager to position the window. The second
+and asks the window manager to position the window. The second
 form of the constructor either creates a subwindow or a
 top-level window at the specified location, subject to window
 manager configuration. If you do not specify the position of the
 window, the window manager will pick a place to show the window
 or allow the user to pick a location. Use <tt>position(x,y)</tt>
-or <tt>hotspot()</tt> before calling <tt>show()</tt> to force a
-position on the screen.</p>
+or <tt>hotspot()</tt> before calling <tt>show()</tt> to request a
+position on the screen. See <TT><A href="#Fl_Window.resize">
+Fl_Window::resize()</A></TT> for some more details on positioning 
+windows.</p>
 
 <p>Top-level windows initially have <tt>visible()</tt> set to 0
 and <tt>parent()</tt> set to <tt>NULL</tt>. Subwindows initially
@@ -120,7 +126,7 @@ int minh, int maxw=0, int maxh=0, int dw=0, int dh=0, int aspect=0)</A></H4>
 works for top-level windows.
 <UL>
 <LI><TT>minw</TT> and <TT>minh</TT> are the smallest the window  can
-be. </LI>
+be. Either value must be greater than 0.</LI>
 <LI><TT>maxw</TT> and <TT>maxh</TT> are the largest the window  can be.
  If either is <I>equal</I> to the minimum then you  cannot resize in
 that direction.  If either is zero  then FLTK picks a maximum size in
@@ -176,7 +182,6 @@ FL_SHOW</TT> events and <TT>visible()</TT> is turned on and off. </P>
 <P>There is no way to control what is drawn in the icon except with the
 string passed to <TT>Fl_Window::xclass()</TT>.  You should not rely on
 window managers displaying the icons. </P>
-
 <H4><A name=Fl_Window.resize>void Fl_Window::resize(int,int,int,int)</A></H4>
  Change the size and position of the window.  If <TT>shown()</TT> is
 true, these changes are communicated to the window server (which may
@@ -187,6 +192,11 @@ of resizing on the child widgets.
 <P>You can also call the <TT>Fl_Widget</TT> methods <TT>size(x,y)</TT>
  and <TT>position(w,h)</TT>, which are inline wrappers for this virtual
 function. </P>
+<P>A top-level window can not force, but merely suggest a position and 
+size to the operating system. The window manager may not be willing or 
+able to display a window at the desired position or with the given 
+dimensions. It is up to the application developer to verify window 
+parameters after the <tt>resize</tt> request.
 <H4><A name=Fl_Window.free_position>void Fl_Window::free_position()</A></H4>
  Undoes the effect of a previous <TT>resize()</TT> or <TT>show()</TT>
  so that the next time <TT>show()</TT> is called the window manager is
@@ -252,7 +262,8 @@ and &quot;xprog.1&quot; turns into &quot;xprog, XProg&quot;.</I> This only works
 before</I> calling <TT>show()</TT>.
 <P>Under Microsoft Windows this string is used as the name of the
 WNDCLASS structure, though it is not clear if this can have any
-visible effect. </P>
+visible effect. The passed pointer is stored unchanged. The string 
+is not copied.</P>
 <H4><A name=Fl_Window.make_current>void Fl_Window::make_current()</A></H4>
 <TT>make_current()</TT> sets things up so that the drawing functions in <A
 href=drawing.html#drawing><TT>&lt;FL/fl_draw.H&gt;</TT></A> will go into this

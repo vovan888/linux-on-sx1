@@ -1,5 +1,5 @@
 /*
- * "$Id: fl_call_main.c 4288 2005-04-16 00:13:17Z mike $"
+ * "$Id: fl_call_main.c 5848 2007-05-20 16:18:31Z mike $"
  *
  * Copyright 1998-2005 by Bill Spitzak and others.
  *
@@ -48,26 +48,26 @@
 
 #if defined(WIN32) && !defined(FL_DLL) && !defined (__GNUC__)
 
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
+#  include <windows.h>
+#  include <stdio.h>
+#  include <stdlib.h>
 
-#ifdef __MWERKS__
-# include <crtl.h>
-#endif
+#  ifdef __MWERKS__
+#   include <crtl.h>
+#  endif
 
 extern int main(int, char *[]);
 
-#ifdef BORLAND5
-# define __argc _argc
-# define __argv _argv
-#endif
+#  ifdef BORLAND5
+#    define __argc _argc
+#    define __argv _argv
+#  endif /* BORLAND5 */
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                              LPSTR lpCmdLine, int nCmdShow) {
   int rc;
 
-#ifdef _DEBUG
+#  ifdef _DEBUG
  /*
   * If we are using compiling in debug mode, open a console window so
   * we can see any printf's, etc...
@@ -82,26 +82,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   freopen("conin$", "r", stdin);
   freopen("conout$", "w", stdout);
   freopen("conout$", "w", stderr);
-#endif /* _DEBUG */
+#  endif /* _DEBUG */
 
   /* Run the standard main entry point function... */
   rc = main(__argc, __argv);
 
-#ifdef _DEBUG
+#  ifdef _DEBUG
   fclose(stdin);
   fclose(stdout);
   fclose(stderr);
-#endif /* _DEBUG */
+#  endif /* _DEBUG */
 
   return rc;
 }
 
-#else
+#elif defined(__hpux)
 /* This code to prevent "empty translation unit" or similar warnings... */
-static void dummy(void) {dummy();}
-#endif
+static void dummy(void) {}
+#endif // WIN32 && !FL_DLL && !__GNUC__
 
 /*
- * End of "$Id: fl_call_main.c 4288 2005-04-16 00:13:17Z mike $".
+ * End of "$Id: fl_call_main.c 5848 2007-05-20 16:18:31Z mike $".
  */
 

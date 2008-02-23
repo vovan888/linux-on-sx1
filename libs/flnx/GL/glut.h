@@ -1,9 +1,9 @@
 //
-// "$Id: glut.h,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $"
+// "$Id: glut.h 4052 2005-02-24 21:55:12Z mike $"
 //
 // GLUT compatibility header for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,11 +20,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems to "fltk-bugs@fltk.org".
 //
 
 #include <FL/glut.H>
 
 //
-// End of "$Id: glut.h,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $".
+// End of "$Id: glut.h 4052 2005-02-24 21:55:12Z mike $".
 //

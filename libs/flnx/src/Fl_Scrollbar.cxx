@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Scrollbar.cxx 4654 2005-11-26 00:47:45Z mike $"
+// "$Id: Fl_Scrollbar.cxx 5845 2007-05-20 00:01:06Z mike $"
 //
 // Scroll bar widget for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2005 by Bill Spitzak and others.
+// Copyright 1998-2006 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -29,6 +29,7 @@
 #include <FL/Fl_Scrollbar.H>
 #include <FL/fl_draw.H>
 #include <math.h>
+#include "flstring.h"
 
 #define INITIALREPEAT .5
 #define REPEAT .05
@@ -138,7 +139,6 @@ int Fl_Scrollbar::handle(int event) {
       handle_drag(clamp(value() + linesize_ * Fl::e_dy));
       return 1;
     }
-    break;
   case FL_SHORTCUT:
   case FL_KEYBOARD: {
     int v = value();
@@ -215,9 +215,15 @@ void Fl_Scrollbar::draw() {
       int w1 = (H-4)/3; if (w1 < 1) w1 = 1;
       int x1 = X+(H-w1-1)/2;
       int yy1 = Y+(H-2*w1-1)/2;
-      fl_polygon(x1, yy1+w1, x1+w1, yy1+2*w1, x1+w1, yy1);
-      x1 += (W-H);
-      fl_polygon(x1, yy1, x1, yy1+2*w1, x1+w1, yy1+w1);
+      if (Fl::scheme_ && !strcmp(Fl::scheme_, "gtk+")) {
+	fl_polygon(x1, yy1+w1, x1+w1, yy1+2*w1, x1+w1-1, yy1+w1, x1+w1, yy1);
+	x1 += (W-H);
+	fl_polygon(x1, yy1, x1+1, yy1+w1, x1, yy1+2*w1, x1+w1, yy1+w1);
+      } else {
+	fl_polygon(x1, yy1+w1, x1+w1, yy1+2*w1, x1+w1, yy1);
+	x1 += (W-H);
+	fl_polygon(x1, yy1, x1, yy1+2*w1, x1+w1, yy1+w1);
+      }
     }
   } else { // vertical
     if (H < 3*W) {Fl_Slider::draw(X,Y,W,H); return;}
@@ -234,9 +240,16 @@ void Fl_Scrollbar::draw() {
       int w1 = (W-4)/3; if (w1 < 1) w1 = 1;
       int x1 = X+(W-2*w1-1)/2;
       int yy1 = Y+(W-w1-1)/2;
-      fl_polygon(x1, yy1+w1, x1+2*w1, yy1+w1, x1+w1, yy1);
-      yy1 += H-W;
-      fl_polygon(x1, yy1, x1+w1, yy1+w1, x1+2*w1, yy1);
+      if (Fl::scheme_ && !strcmp(Fl::scheme_, "gtk+")) {
+	fl_polygon(x1, yy1+w1, x1+w1, yy1+w1-1, x1+2*w1, yy1+w1, x1+w1, yy1);
+	yy1 += H-W;
+	fl_polygon(x1, yy1, x1+w1, yy1+1, x1+w1, yy1+w1);
+	fl_polygon(x1+w1, yy1+1, x1+2*w1, yy1, x1+w1, yy1+w1);
+      } else {
+	fl_polygon(x1, yy1+w1, x1+2*w1, yy1+w1, x1+w1, yy1);
+	yy1 += H-W;
+	fl_polygon(x1, yy1, x1+w1, yy1+w1, x1+2*w1, yy1);
+      }
     }
   }
 }
@@ -253,5 +266,5 @@ Fl_Scrollbar::Fl_Scrollbar(int X, int Y, int W, int H, const char* L)
 }
 
 //
-// End of "$Id: Fl_Scrollbar.cxx 4654 2005-11-26 00:47:45Z mike $".
+// End of "$Id: Fl_Scrollbar.cxx 5845 2007-05-20 00:01:06Z mike $".
 //

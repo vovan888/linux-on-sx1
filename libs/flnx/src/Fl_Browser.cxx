@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Browser.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Browser.cxx 5987 2007-11-20 21:57:17Z mike $"
 //
 // Browser widget for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2005 by Bill Spitzak and others.
+// Copyright 1998-2007 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -472,7 +472,7 @@ void Fl_Browser::show(int line) {
   if (t->flags & NOTDISPLAYED) {
     t->flags &= ~NOTDISPLAYED;
     full_height_ += item_height(t);
-    if (Fl_Browser_::displayed(t)) redraw_lines();
+    if (Fl_Browser_::displayed(t)) redraw();
   }
 }
 
@@ -481,7 +481,7 @@ void Fl_Browser::hide(int line) {
   if (!(t->flags & NOTDISPLAYED)) {
     full_height_ -= item_height(t);
     t->flags |= NOTDISPLAYED;
-    if (Fl_Browser_::displayed(t)) redraw_lines();
+    if (Fl_Browser_::displayed(t)) redraw();
   }
 }
 
@@ -503,6 +503,7 @@ int Fl_Browser::value() const {
 void Fl_Browser::swap(FL_BLINE *a, FL_BLINE *b) {
 
   if ( a == b || !a || !b) return;          // nothing to do
+  swapping(a, b);
   FL_BLINE *aprev  = a->prev;
   FL_BLINE *anext  = a->next;
   FL_BLINE *bprev  = b->prev;
@@ -535,8 +536,7 @@ void Fl_Browser::swap(FL_BLINE *a, FL_BLINE *b) {
   }
   // Disable cache -- we played around with positions
   cacheline = 0;
-  // Redraw modified lines
-  redraw_lines();
+  cache = 0;
 }
 
 void Fl_Browser::swap(int ai, int bi) {
@@ -547,5 +547,5 @@ void Fl_Browser::swap(int ai, int bi) {
 }
 
 //
-// End of "$Id: Fl_Browser.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Browser.cxx 5987 2007-11-20 21:57:17Z mike $".
 //

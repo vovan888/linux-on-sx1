@@ -1,5 +1,5 @@
 //
-// "$Id: filename_ext.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: filename_ext.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Filename extension routines for the Fast Light Tool Kit (FLTK).
 //
@@ -43,5 +43,5 @@ const char *fl_filename_ext(const char *buf) {
 }
 
 //
-// End of "$Id: filename_ext.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: filename_ext.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

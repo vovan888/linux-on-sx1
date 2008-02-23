@@ -104,8 +104,10 @@ SET(CPPFILES
   fl_engraved_label.cxx
   fl_file_dir.cxx
   fl_font.cxx
+  fl_gtk.cxx
   fl_labeltype.cxx
   fl_line_style.cxx
+  fl_open_uri.cxx
   fl_oval_box.cxx
   fl_overlay.cxx
   fl_overlay_visual.cxx
@@ -136,6 +138,10 @@ SET(GLCPPFILES
   Fl_Gl_Choice.cxx
   Fl_Gl_Overlay.cxx
   Fl_Gl_Window.cxx
+  freeglut_geometry.cxx
+  freeglut_stroke_mono_roman.cxx
+  freeglut_stroke_roman.cxx
+  freeglut_teapot.cxx
   gl_draw.cxx
   gl_start.cxx
   glut_compatability.cxx

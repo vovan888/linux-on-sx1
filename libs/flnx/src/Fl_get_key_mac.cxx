@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_get_key_mac.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_get_key_mac.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // MacOS keyboard state routines for the Fast Light Tool Kit (FLTK).
 //
@@ -96,11 +96,15 @@ int Fl::get_key(int k) {
   printf("%08x %08x %08x %08x\n", (ulong*)(foo)[3], (ulong*)(foo)[2], (ulong*)(foo)[1], (ulong*)(foo)[0]);
  }
 #endif
-  int i = fltk2mac(k);
   unsigned char *b = (unsigned char*)foo;
+  // KP_Enter can be at different locations for Powerbooks vs. desktop Macs
+  if (k==FL_KP_Enter) {
+    return (((b[0x34>>3]>>(0x34&7))&1)||((b[0x4c>>3]>>(0x4c&7))&1));
+  }
+  int i = fltk2mac(k);
   return (b[i>>3]>>(i&7))&1;
 }
 
 //
-// End of "$Id: Fl_get_key_mac.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_get_key_mac.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

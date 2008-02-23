@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_XBM_Image.cxx 4547 2005-08-29 20:11:48Z matt $"
+// "$Id: Fl_XBM_Image.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Fl_XBM_Image routines.
 //
@@ -102,5 +102,5 @@ Fl_XBM_Image::Fl_XBM_Image(const char *name) : Fl_Bitmap((const char *)0,0,0) {
 
 
 //
-// End of "$Id: Fl_XBM_Image.cxx 4547 2005-08-29 20:11:48Z matt $".
+// End of "$Id: Fl_XBM_Image.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

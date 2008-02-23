@@ -1,4 +1,7 @@
 <HTML>
+<HEAD>
+	<TITLE>3 - Common Widgets and Attributes</TITLE>
+</HEAD>
 <BODY>
 
 <H1 ALIGN="RIGHT"><A NAME="common">3 - Common Widgets and Attributes</A></H1>
@@ -318,6 +321,27 @@ void xyz_draw(int x, int y, int w, int h, Fl_Color c) {
 }
 </PRE></UL>
 
+<H4><A name="fl_down">Fl_Boxtype fl_down(Fl_Boxtype)</A></H4>
+
+<P><tt>fl_down</tt> returns the "pressed" or "down" version of a box.
+If no "down" version of a given box exists, the behavior of this function
+is undefined and some random box or frame is returned.
+See also: <A HREF="drawing.html#fl_frame">fl_frame drawing</A>.
+
+<H4><A name="fl_frame">Fl_Boxtype fl_frame(Fl_Boxtype)</A></H4>
+
+<P><tt>fl_frame</tt> returns the unfilled, frame-only version of a box.
+If no frame version of a given box exists, the behavior of this function
+is undefined and some random box or frame is returned.
+See also: <A HREF="drawing.html#fl_frame">fl_frame drawing</A>.
+
+<H4><A name="fl_box">Fl_Boxtype fl_box(Fl_Boxtype)</A></H4>
+
+<P><tt>fl_box</tt> returns the filled version of a frame.
+If no filled version of a given frame exists, the behavior of this function
+is undefined and some random box or frame is returned.
+See also: <TT><A HREF="#fl_frame">fl_frame</A></TT>.
+
 <H4>Adding Your Box Type</H4>
 
 <P>The <TT>Fl::set_boxtype()</TT> method adds or replaces the
@@ -332,6 +356,16 @@ Fl::set_boxtype(XYZ_BOX, xyz_draw, 1, 1, 2, 2);
 <P>The last 4 arguments to <TT>Fl::set_boxtype()</TT> are the
 offsets for the x, y, width, and height values that should be
 subtracted when drawing the label inside the box.</P>
+
+<P>A complete box design contains four box types in this order: 
+a filled, neutral box (<TT>UP_BOX</TT>), a filled, depressed box 
+(<TT>DOWN_BOX</TT>), and the same as outlines only (<TT>UP_FRAME</TT> 
+and <TT>DOWN_FRAME</TT>). The function 
+<TT><A HREF="#fl_down">fl_down(Fl_Boxtype)</A></TT> 
+expects the neutral design on a boxtype with a numerical 
+value evenly divideable by two. 
+<TT><A HREF="#fl_frame">fl_frame(Fl_Boxtype)</A></TT> 
+expects the <TT>UP_BOX</TT> design at a value divideable by four.</P>
 
 <H2><A NAME="labels">Labels and Label Types</A></H2>
 
@@ -372,7 +406,7 @@ sign. Figure 3-4 shows the available symbols.</P>
 </UL>
 
 <P>Thus, to show a very large arrow pointing downward you would use the
-label string "@+92->".
+label string "@+92-&gt;".
 
 <H3>align()</H3>
 
@@ -507,6 +541,33 @@ method to select your label type.</P>
 <P>The <TT>Fl::set_labeltype</TT> method can also be used to overload
 an existing label type such as <TT>FL_NORMAL_LABEL</TT>.</P>
 
+<H4><A NAME="add_symbol">Making your own symbols</A></H4>
+
+<P>It is also possible to define your own drawings and add
+them to the symbol list, so they can be rendered as part of
+any label.</P>
+
+<P>To create a new symbol, you implement a drawing function 
+<tt>void drawit(Fl_Color c)</tt> which typically uses the
+<a href="drawing.html#complex">complex drawing functions</a>
+to generate a vector shape inside a two-by-two units sized box
+around the origin. This function is then linked into the symbols
+table using <tt>fl_add_symbol</tt>:</P>
+
+<UL><PRE>
+<A NAME="fl_add_symbol">int fl_add_symbol(const char *name, void (*drawit)(Fl_Color), int scalable)</A>
+</PRE></UL>
+
+<P><i>name</i> is the name of the symbol without the "@"; <i>scalable</I>
+must be set to 1 if the symbol is generated using scalable vector drawing
+functions.</P>
+
+<UL><PRE>
+<A NAME="fl_draw_symbol">int fl_draw_symbol(const char *name,int x,int y,int w,int h,Fl_Color col)</A>
+</PRE></UL>
+
+<P>This function draw a named symbol fitting the given rectangle.
+
 <H2>Callbacks</H2>
 
 <P>Callbacks are functions that are called when the value of a
@@ -572,15 +633,15 @@ button-&gt;when(FL_WHEN_CHANGED | FL_WHEN_NOT_CHANGED);
 	pointer to the instance of your class.</P>
 
 <PRE>
-class foo {
-  void my_callback(Widget *);
-  static void my_static_callback(Widget *w, foo *f) { f->my_callback(w); }
+class Foo {
+  void my_callback(Fl_Widget *w);
+  static void my_static_callback(Fl_Widget *w, void *f) { ((Foo *)f)-&gt;my_callback(w); }
   ...
 }
 
 ...
 
-w->callback(my_static_callback, this);
+w-&gt;callback(my_static_callback, (void *)this);
 </PRE>
 	</TD>
 </TR>

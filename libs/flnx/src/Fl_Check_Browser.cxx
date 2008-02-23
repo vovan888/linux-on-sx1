@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Check_Browser.cxx 4619 2005-11-02 10:48:05Z matt $"
+// "$Id: Fl_Check_Browser.cxx 5985 2007-11-20 21:15:08Z mike $"
 //
 // Fl_Check_Browser header file for the Fast Light Tool Kit (FLTK).
 //
@@ -193,6 +193,38 @@ int Fl_Check_Browser::add(char *s, int b) {
 	return (nitems_);
 }
 
+int Fl_Check_Browser::remove(int item) {
+  cb_item *p = find_item(item);
+  
+  // line at item exists
+  if(p) {
+    // tell the Browser_ what we will do
+    deleting(p);
+
+    // fix checked count
+    if(p->checked)
+      --nchecked_;
+    
+    // remove the node
+    if (p->prev) 
+      p->prev->next = p->next;
+    else 
+      first = p->next;
+    if (p->next) 
+      p->next->prev = p->prev;
+    else 
+      last = p->prev;
+    
+    free(p->text);
+    free(p);
+    
+    --nitems_;
+    cached_item = -1;
+  }
+  
+  return (nitems_);
+}
+
 void Fl_Check_Browser::clear() {
 	cb_item *p = first;
 	cb_item *next;
@@ -266,7 +298,12 @@ void Fl_Check_Browser::check_none() {
 	redraw();
 }
 
+int Fl_Check_Browser::handle(int event) {
+  if (event==FL_PUSH)
+    deselect();
+  return Fl_Browser_::handle(event);
+}
 
 //
-// End of "$Id: Fl_Check_Browser.cxx 4619 2005-11-02 10:48:05Z matt $".
+// End of "$Id: Fl_Check_Browser.cxx 5985 2007-11-20 21:15:08Z mike $".
 //

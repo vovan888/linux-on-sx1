@@ -1,5 +1,5 @@
 //
-// "$Id: gl_draw.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: gl_draw.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // OpenGL drawing support routines for the Fast Light Tool Kit (FLTK).
 //
@@ -127,17 +127,8 @@ void gl_remove_displaylist_fonts()
 #endif
 }
 
-#ifdef __APPLE__
-const char *fl_iso2macRoman(const char*, int);
-#endif
-
 void gl_draw(const char* str, int n) {
-#ifdef __APPLE__
-  const char *txt = fl_iso2macRoman(str, n);
-  glCallLists(n, GL_UNSIGNED_BYTE, txt);
-#else
   glCallLists(n, GL_UNSIGNED_BYTE, str);
-#endif
 }
 
 void gl_draw(const char* str, int n, int x, int y) {
@@ -228,5 +219,5 @@ void gl_draw_image(const uchar* b, int x, int y, int w, int h, int d, int ld) {
 #endif
 
 //
-// End of "$Id: gl_draw.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: gl_draw.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

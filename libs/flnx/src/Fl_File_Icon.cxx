@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Icon.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_File_Icon.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Fl_File_Icon routines.
 //
@@ -481,5 +481,5 @@ Fl_File_Icon::labeltype(const Fl_Label *o,	// I - Label data
 
 
 //
-// End of "$Id: Fl_File_Icon.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_File_Icon.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

@@ -1,9 +1,9 @@
 #
-# "$Id: Makefile,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $"
+# "$Id: Makefile 5728 2007-03-06 17:03:25Z matt $"
 #
-# Fluid makefile for the Fast Light Tool Kit (FLTK).
+# FLUID makefile for the Fast Light Tool Kit (FLTK).
 #
-# Copyright 1998-1999 by Bill Spitzak and others.
+# Copyright 1998-2007 by Bill Spitzak and others.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public
@@ -20,28 +20,31 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 #
-# Please report all bugs and problems to "fltk-bugs@easysw.com".
+# Please report all bugs and problems on the following page:
+#
+#      http://www.fltk.org/str.php
 #
 
-PROGRAM = fluid
-
 CPPFILES = \
+	CodeEditor.cxx \
 	Fl_Function_Type.cxx \
-	Fl_Menu_Type.cxx \
 	Fl_Group_Type.cxx \
-	Fl_Widget_Type.cxx \
+	Fl_Menu_Type.cxx \
 	Fl_Type.cxx \
+	Fl_Widget_Type.cxx \
 	Fl_Window_Type.cxx \
 	Fluid_Image.cxx \
+	about_panel.cxx \
+	align_widget.cxx \
+	alignment_panel.cxx \
 	code.cxx \
 	factory.cxx \
 	file.cxx \
 	fluid.cxx \
-	about_panel.cxx \
-	widget_panel.cxx \
-	alignment_panel.cxx \
 	function_panel.cxx \
-	gif.cxx
+	template_panel.cxx \
+	undo.cxx \
+	widget_panel.cxx
 
 ################################################################
 
@@ -49,35 +52,72 @@ OBJECTS = $(CPPFILES:.cxx=.o)
 
 include ../makeinclude
 
-.SUFFIXES : .cxx .c .o
+all:	$(FLUID) fluid$(EXEEXT)
 
-.cxx.o :
-	$(CXX) -I.. $(CXXFLAGS) -c $<
-.c.o :
-	$(CC) -I.. $(CFLAGS) -c $<
-.cxx :
-	$(CXX) -I.. $(CXXFLAGS) -o $@ $< -L../lib -lfltk $(LDLIBS)
+fluid$(EXEEXT):		$(OBJECTS) ../lib/$(LIBNAME) ../lib/$(FLLIBNAME) \
+			../lib/$(IMGLIBNAME)
+	echo Linking $@...
+	$(CXX) $(ARCHFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LINKFLTKFORMS) $(LINKFLTKIMG) $(LDLIBS)
+	$(INSTALL_BIN) fluid fluid.app/Contents/MacOS
+	$(POSTBUILD) $@ ../FL/mac.r
 
-$(PROGRAM) : $(OBJECTS) ../lib/$(LIBNAME)
-	$(CXX) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS) -L../lib -lfltk $(LDLIBS)
+fluid-shared$(EXEEXT):	$(OBJECTS) ../src/$(DSONAME) ../src/$(FLDSONAME) \
+			../src/$(IMGDSONAME)
+	echo Linking $@...
+	$(CXX) $(ARCHFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LINKSHARED) $(LDLIBS)
+	$(POSTBUILD) $@ ../FL/mac.r
 
-clean :
-	-@ rm -f *.o $(PROGRAM) $(CLEAN) core *~ makedepend
-	@touch makedepend
+clean:
+	-$(RM) *.o core.* *~ *.bck *.bck
+	-$(RM) core fluid$(EXEEXT) fluid-shared$(EXEEXT)
+	-$(RM) fluid.app/Contents/MacOS/fluid
 
-depend:
-	$(MAKEDEPEND) -I.. $(CXXFLAGS) $(CPPFILES) $(CFILES) > makedepend
+depend:	$(CPPFILES)
+	makedepend -Y -I.. -f makedepend $(CPPFILES)
+
+# Automatically generated dependencies...
 include makedepend
 
-install: $(PROGRAM)
-	@echo "Installing FLUID..."
-	@strip $(PROGRAM)
-	@-mkdir -p $(bindir)
-	@cp $(PROGRAM) $(bindir)/$(PROGRAM)
-	@chmod 755 $(bindir)/$(PROGRAM)
+install: all
+	echo "Installing FLUID in $(DESTDIR)$(bindir)..."
+	-$(INSTALL_DIR) $(DESTDIR)$(bindir)
+	$(INSTALL_BIN) $(FLUID) $(DESTDIR)$(bindir)/fluid$(EXEEXT)
+
+install-linux:
+	-$(INSTALL_DIR) $(DESTDIR)/usr/share/applnk/Development
+	$(INSTALL_DATA) fluid.desktop  $(DESTDIR)/usr/share/applnk/Development
+	for size in 16 32 48 64 128; do \
+		if test ! -d $(DESTDIR)/usr/share/icons/hicolor/$${size}x$${size}/apps; then \
+			$(INSTALL_DIR) $(DESTDIR)/usr/share/icons/hicolor/$${size}x$${size}/apps; \
+		fi; \
+		$(INSTALL_DATA) icons/fluid-$$size.png $(DESTDIR)/usr/share/icons/hicolor/$${size}x$${size}/apps/fluid.png; \
+	done
+	-$(INSTALL_DIR) $(DESTDIR)/usr/share/mimelnk/application
+	$(INSTALL_DATA) x-fluid.desktop  $(DESTDIR)/usr/share/mimelnk/application
+
+install-osx:
+	echo Installing Fluid in $(DESTDIR)/Applications...
+	-$(INSTALL_DIR) $(DESTDIR)/Applications/fluid.app
+	-$(INSTALL_DIR) $(DESTDIR)/Applications/fluid.app/Contents
+	$(INSTALL_DATA) fluid.app/Contents/Info.plist $(DESTDIR)/Applications/fluid.app/Contents/Info.plist
+	$(INSTALL_DATA) fluid.app/Contents/PkgInfo $(DESTDIR)/Applications/fluid.app/Contents/PkgInfo
+	-$(INSTALL_DIR) $(DESTDIR)/Applications/fluid.app/Contents/MacOS
+	$(RM) $(DESTDIR)/Applications/fluid.app/Contents/MacOS/fluid
+	$(LN) $(bindir)/fluid $(DESTDIR)/Applications/fluid.app/Contents/MacOS/fluid
+	-$(INSTALL_DIR) $(DESTDIR)/Applications/fluid.app/Contents/Resources
+	$(INSTALL_DATA) fluid.app/Contents/Resources/fluid.icns $(DESTDIR)/Applications/fluid.app/Contents/Resources
 
 uninstall:
-	-@ rm -f $(bindir)/$(PROGRAM)
+	$(RM) $(DESTDIR)$(bindir)/fluid$(EXEEXT)
+
+uninstall-linux:
+	$(RM) $(DESTDIR)/usr/share/applnk/Development/fluid.desktop
+	$(RM) $(DESTDIR)/usr/share/icons/hicolor/*/fluid.png
+	$(RM) $(DESTDIR)/usr/share/mimelnk/application/x-fluid.desktop
+
+uninstall-osx:
+	$(RM) -r $(DESTDIR)/Applications/fluid.app
+
 
 #
 # Note: The rebuild target can only be used if you have the original .fl
@@ -88,8 +128,10 @@ rebuild:
 	./fluid -c about_panel.fl
 	./fluid -c alignment_panel.fl
 	./fluid -c function_panel.fl
+	./fluid -c print_panel.fl
+	./fluid -c template_panel.fl
 	./fluid -c widget_panel.fl
 
 #
-# End of "$Id: Makefile,v 1.1.1.1 2003/08/07 21:18:39 jasonk Exp $".
+# End of "$Id: Makefile 5728 2007-03-06 17:03:25Z matt $".
 #

@@ -1,9 +1,9 @@
 //
-// "$Id: fonts.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $"
+// "$Id: fonts.cxx 5519 2006-10-11 03:12:15Z mike $"
 //
 // Font demo program for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-1999 by Bill Spitzak and others.
+// Copyright 1998-2005 by Bill Spitzak and others.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -20,7 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 // USA.
 //
-// Please report all bugs and problems to "fltk-bugs@easysw.com".
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
 //
 
 #include <FL/Fl.H>
@@ -52,8 +54,8 @@ FontDisplay *textobj;
 
 Fl_Hold_Browser *fontobj, *sizeobj;
 
-int *sizes[1000];
-int numsizes[1000];
+int **sizes;
+int *numsizes;
 int pickedsize = 14;
 
 void font_cb(Fl_Widget *, long) {
@@ -108,7 +110,11 @@ void create_the_forms() {
   strcpy(label, "Hello, world!\n");
   int i = strlen(label);
   uchar c;
-  for (c = ' '+1; c < 127; c++) {if (!(c&0x1f)) label[i++]='\n'; label[i++]=c;}
+  for (c = ' '+1; c < 127; c++) {
+    if (!(c&0x1f)) label[i++]='\n'; 
+    if (c=='@') label[i++]=c;
+    label[i++]=c;
+  }
   label[i++] = '\n';
   for (c = 0xA1; c; c++) {if (!(c&0x1f)) label[i++]='\n'; label[i++]=c;}
   label[i] = 0;
@@ -131,9 +137,18 @@ void create_the_forms() {
 #include <FL/fl_ask.H>
 
 int main(int argc, char **argv) {
+  Fl::scheme(NULL);
+  Fl::args(argc, argv);
+  Fl::get_system_colors();
   create_the_forms();
+#ifdef __APPLE__
+  int i = 0;
+#else
   int i = fl_choice("Which fonts:","-*","iso8859","All");
+#endif
   int k = Fl::set_fonts(i ? (i>1 ? "*" : 0) : "-*");
+  sizes = new int*[k];
+  numsizes = new int[k];
   for (i = 0; i < k; i++) {
     int t; const char *name = Fl::get_font_name((Fl_Font)i,&t);
     char buffer[128];
@@ -164,5 +179,5 @@ int main(int argc, char **argv) {
 }
 
 //
-// End of "$Id: fonts.cxx,v 1.1.1.1 2003/08/07 21:18:42 jasonk Exp $".
+// End of "$Id: fonts.cxx 5519 2006-10-11 03:12:15Z mike $".
 //

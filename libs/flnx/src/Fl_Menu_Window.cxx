@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Menu_Window.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: Fl_Menu_Window.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Menu window code for the Fast Light Tool Kit (FLTK).
 //
@@ -99,5 +99,5 @@ Fl_Menu_Window::~Fl_Menu_Window() {
 }
 
 //
-// End of "$Id: Fl_Menu_Window.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: Fl_Menu_Window.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

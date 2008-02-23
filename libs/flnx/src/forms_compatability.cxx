@@ -1,5 +1,5 @@
 //
-// "$Id: forms_compatability.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: forms_compatability.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Forms compatibility functions for the Fast Light Tool Kit (FLTK).
 //
@@ -207,5 +207,5 @@ char *fl_show_simple_input(const char *str1, const char *defstr) {
 }
 
 //
-// End of "$Id: forms_compatability.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: forms_compatability.cxx 5190 2006-06-09 16:16:34Z mike $".
 //
