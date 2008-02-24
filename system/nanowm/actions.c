@@ -38,7 +38,7 @@ void redraw_ncarea(win *window)
 		return;
 
 	active = (window->clientid == GrGetFocus());
-	nxPaintNCArea(window->wid, info.width, info.height, props.title,
+	wm_paint_statusarea(window->wid, info.width, info.height, props.title,
 		active, props.props);
 
 	/* free title returned from GrGetWMProperties*/
@@ -154,7 +154,7 @@ void container_buttondown(win *window, GR_EVENT_BUTTON *event)
 	r.x = cxborder;
 	r.y = cyborder;
 	r.width = info.width - cxborder*2;
-	r.height = CYCAPTION;
+	r.height = APPVIEW_STATUS_HEIGHT;
 
 	/* Check for mousedn in caption box*/
 	if (!PtInRect(&r, event->x, event->y))

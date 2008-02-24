@@ -10,6 +10,7 @@
 #include <ipc/colosseum.h>
 #include <ipc/phoneserver.h>
 #include <keys_nanox.h>
+#include <theme.h>
 
 #ifdef WMDEBUG
 #define Dprintf printf
@@ -207,6 +208,9 @@ extern int righthand_resize_hotx, righthand_resize_hoty;
  * Load wallpaper "filename" to the background of "wid" window
  */
 int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index);
+
+void wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR *title, GR_BOOL active,
+	GR_WM_PROPS props);
 
 extern struct SharedSystem *shdata; /* shared memory segment */
 

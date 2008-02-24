@@ -4,6 +4,11 @@
  * Copyright (C) 2000, 2003 Greg Haerr <greg@censoft.com>
  * Copyright (C) 2000 Alex Holden <alex@linuxhacker.org>
  */
+
+/* Vovan888: Assume that application window is already on its correct position so do not automove
+ * and autoresize
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #define MWINCLUDECOLORS
@@ -16,7 +21,8 @@
 
 /* default window style for GR_WM_PROPS_APPWINDOW*/
 #define DEFAULT_WINDOW_STYLE	(GR_WM_PROPS_APPFRAME | GR_WM_PROPS_CAPTION |\
-					GR_WM_PROPS_CLOSEBOX)
+				  GR_WM_PROPS_NOAUTOMOVE | GR_WM_PROPS_NOAUTORESIZE)
+//					GR_WM_PROPS_CLOSEBOX | \
 
 static GR_COORD lastx = FIRST_WINDOW_LOCATION;
 static GR_COORD lasty = FIRST_WINDOW_LOCATION;
@@ -42,7 +48,7 @@ int new_client_window(GR_WINDOW_ID wid)
 	if (winfo.parent != GR_ROOT_WINDOW_ID ||
 	    (style & GR_WM_PROPS_NODECORATE))
 		return 0;
-
+#if 0
 	/* deal with replacing borders with window decorations*/
 	if (winfo.bordersize) {
 		/*
@@ -68,7 +74,7 @@ int new_client_window(GR_WINDOW_ID wid)
 		GrMapWindow(wid);
 		return 0;
 	}
-	
+#endif	
 	/* if default decoration style asked for, set real draw bits*/
 	if ((style & GR_WM_PROPS_APPMASK) == GR_WM_PROPS_APPWINDOW) {
 		GR_WM_PROPERTIES pr;
@@ -81,10 +87,18 @@ int new_client_window(GR_WINDOW_ID wid)
 
 	/* determine container widths and client child window offsets*/
 	if (style & GR_WM_PROPS_APPFRAME) {
+#if 0
 		width = winfo.width + CXFRAME;
 		height = winfo.height + CYFRAME;
 		xoffset = CXBORDER;
 		yoffset = CYBORDER;
+#else
+		/* we have no border for APP window */
+		width = winfo.width;
+		height = winfo.height;
+		xoffset = 0;
+		yoffset = 0;
+#endif
 	} else if (style & GR_WM_PROPS_BORDER) {
 		width = winfo.width + 2;
 		height = winfo.height + 2;
@@ -97,15 +111,17 @@ int new_client_window(GR_WINDOW_ID wid)
 		yoffset = 0;
 	}
 	if (style & GR_WM_PROPS_CAPTION) {
-		height += CYCAPTION;
-		yoffset += CYCAPTION;
+		height += APPVIEW_STATUS_HEIGHT;
+		yoffset += APPVIEW_STATUS_HEIGHT;
+#if 0
 		if (style & GR_WM_PROPS_APPFRAME) {
 			/* extra line under caption with appframe*/
 			++height;
 			++yoffset;
 		}
+#endif
 	}
-
+#if 0
 	/* determine x,y window location*/
 	if (style & GR_WM_PROPS_NOAUTOMOVE) {
 		x = winfo.x;
@@ -121,7 +137,12 @@ int new_client_window(GR_WINDOW_ID wid)
 			y = FIRST_WINDOW_LOCATION;
 		lasty = y;
 	}
-
+#else
+	/* we assume that application window is already placed on the right location
+	here we set container window coords */
+	x = 0;
+	y = 0;
+#endif
 	/* create container window*/
 	pid = GrNewWindow(GR_ROOT_WINDOW_ID, x, y, width, height,
 		0, LTGRAY, BLACK);
@@ -407,7 +428,7 @@ client_window_resize(win *window)
 		height = winfo.height;
 	}
 	if (style & GR_WM_PROPS_CAPTION) {
-		height += CYCAPTION;
+		height += APPVIEW_STATUS_HEIGHT;
 		if (style & GR_WM_PROPS_APPFRAME) {
 			/* extra line under caption with appframe*/
 			++height;
