@@ -10,19 +10,19 @@
 #include <nano-X.h>
 
 /* 0..9 = 0..9 = 0..9 */
-#define JoyPress	MWKEY_ENTER
-#define JoyLeft		MWKEY_LEFT
-#define JoyRight	MWKEY_RIGHT
-#define JoyUp		MWKEY_UP
-#define JoyDown		MWKEY_DOWN
-#define Shift		MWKEY_LSHIFT
-#define Clear		MWKEY_BACKSPACE
-#define LeftSoft	MWKEY_F1
-#define RightSoft	MWKEY_F2
-#define Green		MWKEY_F3
-#define Red		MWKEY_F4
-#define Menu		MWKEY_F5
-#define Asterisk	MWKEY_F6	/* * */
-#define	NumberSign	MWKEY_F7	/* # */
-#define Camera		MWKEY_F8
-#define Dictaphone	MWKEY_F9
+#define Key_JoyPress	MWKEY_ENTER
+#define Key_JoyLeft	MWKEY_LEFT
+#define Key_JoyRight	MWKEY_RIGHT
+#define Key_JoyUp	MWKEY_UP
+#define Key_JoyDown	MWKEY_DOWN
+#define Key_Shift	MWKEY_LSHIFT
+#define Key_Clear	MWKEY_BACKSPACE
+#define Key_LeftSoft	MWKEY_F1
+#define Key_RightSoft	MWKEY_F2
+#define Key_Green	MWKEY_F3
+#define Key_Red		MWKEY_F4
+#define Key_Menu	MWKEY_F5
+#define Key_Asterisk	MWKEY_F6	/* * */
+#define	Key_NumberSign	MWKEY_F7	/* # */
+#define Key_Camera	MWKEY_F8
+#define Key_Dictaphone	MWKEY_F9

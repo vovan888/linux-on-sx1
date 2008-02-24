@@ -20,20 +20,30 @@
 #include <libini.h>
 #include <flphone_config.h>
 
-/* groups */
+/* Applications layout */
+#define APPVIEW_WIDTH           CONFIG_SCREEN_WIDTH
+
+#define APPVIEW_STATUS_HEIGHT   20
+#define APPVIEW_CONTROL_HEIGHT  20
+#define APPVIEW_AREA_HEIGHT     ( CONFIG_SCREEN_HEIGHT - APPVIEW_STATUS_HEIGHT - APPVIEW_CONTROL_HEIGHT )
+/* settings for the Icon grid */
+#define GRID_ICON_WIDTH         48
+#define GRID_ICON_HEIGHT        35
+
+/* Theme groups */
 #define THEME_GROUP_TITLE	0
 #define THEME_GROUP_MAINSCREEN	1
 #define THEME_GROUP_DIALER	2
 #define THEME_GROUP_CALLSCREEN	3
 
-/* "Title" */
+/* Title group */
 #define THEME_BATTERY		0
 #define THEME_SIGNAL		1
 #define THEME_WINDOWCAPTION	2
 #define THEME_TIME		3
 #define THEME_INDICATORS	4
 
-/* MainScreen */
+/* MainScreen group */
 #define THEME_MAINBATTERY	0
 #define THEME_MAINSIGNAL	1
 #define THEME_WALLPAPER		2
