@@ -179,9 +179,11 @@ int HandleRagbag(unsigned char *buf, unsigned char *res)
 	switch (cmd) {
 	case 0:		// CDsyIndicationHandler::NotifyAudioLinkOpenReq(TPtr8 &)
 		// CBtAudioStateMachine::ModemAudioOpenReq(void);
+		/*TODO*/
 		break;
 	case 1:		// CDsyIndicationHandler::NotifyAudioLinkCloseReq(TPtr8 &)
 		// CBtAudioStateMachine::ModemAudioCloseReq(void)
+		/*TODO*/
 		break;
 	case 5:		// CDsyIndicationHandler::SetLightSensorSettings(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);	// unused ???
@@ -193,26 +195,32 @@ int HandleRagbag(unsigned char *buf, unsigned char *res)
 	case 6:		// CDsyIndicationHandler::NotifyEmailMessage(TPtr8 &)
 		data32 = *(unsigned char *)(buf + 6);
 		// CDosEventManager::EmailMessage(int data32)
+		/*TODO*/
 		break;
 	case 7:		//CDsyIndicationHandler::NotifyFaxMessage(TPtr8 &)
 		data32 = *(unsigned char *)(buf + 6);
 		//  CDosEventManager::FaxMessage(int data32)
+		/*TODO*/
 		break;
 	case 8:		// CDsyIndicationHandler::NotifyVoiceMailStatus(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDosEventManager::VoiceMailStatus(TSAVoiceMailStatus)  data16
+		/*TODO*/
 		break;
 	case 11:		// CDsyIndicationHandler::NotifyCallsForwardingStatus(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDosEventManager::CallsForwardingStatus(TSACallsForwardingStatus)  data16
+		/*TODO*/
 		break;
 	case 0x13:		// CDsyIndicationHandler::BacklightTempHandle(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// RBusLogicalChannel::DoControl(int, void *) 8, &data16
+		/*TODO*/
 		break;
 	case 0x14:		// CDsyIndicationHandler::NotifyCarKitIgnition(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDsyFactory::CarKitIgnitionInd(unsigned short)  data16
+		/*TODO*/
 		break;
 	default:
 		return -1;
@@ -281,7 +289,8 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	case BAT_StatusRes:	// CDsyIndicationHandler::NotifyBatteryStatus(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDosEventManager::BatteryStatus(TDosBatteryStatus)  c1
-		 /*TODO*/ break;
+		/*FIXME maybe we dont need this*/
+		break;
 	case BAT_BarsRes:	// CCDsyIndicationHandler::NotifyBatteryBars(TPtr8 &)
 		c1 = *(unsigned char *)(buf + 6);
 		//CDosEventManager::BatteryBars(int)  c1
@@ -489,7 +498,6 @@ int main(int argc, char *argv[])
 {
 	fd_set active_fd_set, read_fd_set;
 	struct timeval timeout;
-	char *programName = argv[0];
 
 	dsy_init();
 
@@ -504,17 +512,9 @@ int main(int argc, char *argv[])
 	signal(SIGUSR1, signal_treatment);
 	signal(SIGTERM, signal_treatment);
 
-#ifdef DEBUG
-	openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0);
-	_priority = LOG_DEBUG;
-	INFOLOG("You can quit the ipc_dsy daemon with SIGKILL or SIGTERM");
-#else
-	openlog(programName, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
-	_priority = LOG_INFO;
-#endif
+	INITSYSLOG(argv[0]);
 
 //-----------------------------------------------------
-	dsy_init();
 	/* Initialize the timeout data structure. */
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;

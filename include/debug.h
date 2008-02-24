@@ -37,6 +37,7 @@
 
 
 #ifdef DEBUG
+#define INITSYSLOG(name) openlog(name, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0)
 #define DBGMSG(fmt, arg...)  DPRINT(fmt, ##arg)
 #define INFOLOG(fmt, arg...) do {										\
 		syslog(LOG_INFO, "[%d] INFO: %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
@@ -45,6 +46,7 @@
 		syslog(LOG_INFO, "[%d] DEBUG: %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
 		syslog(LOG_DEBUG, fmt, ##arg); } while(0)
 #else
+#define INITSYSLOG(name) openlog(name, LOG_NDELAY | LOG_PID, LOG_LOCAL0)
 #define DBGMSG(fmt, arg...)  do {;}while(0)
 #define INFOLOG(fmt, arg...) do {;}while(0)
 #define DBGLOG(fmt, arg...)  do {;}while(0)

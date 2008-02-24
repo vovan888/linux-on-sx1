@@ -17,7 +17,6 @@
 #include "indicators.h"
 
 static int client_fd = 0;
-static int val = 0;
 
 /* Register with IPC server */
 int ipc_start(char *servername)

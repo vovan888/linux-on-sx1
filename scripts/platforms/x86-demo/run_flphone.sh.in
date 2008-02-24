@@ -51,9 +51,11 @@ $BASE_DIR/sbin/alarmserver
 #sleep 100000
 
 ## Welcome back  Shut down pending daemons
-killall -TERM -q $BASE_DIR/sbin/clserver 
 killall -TERM -q $BASE_DIR/sbin/alarmserver
 killall -TERM -q $BASE_DIR/sbin/indicatord
+killall -TERM -q $BASE_DIR/sbin/nanowm
+killall -TERM -q $BASE_DIR/sbin/clserver 
 
 # press enter to exit
+echo Press Enter to exit
 read

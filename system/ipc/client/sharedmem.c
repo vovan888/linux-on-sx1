@@ -36,12 +36,12 @@ static int	shmids[SHARED_NUMSEGMENTS]; /* Shared memory segment IDs */
 /* semaphores stuff */
 static int	semid;
 static int	semids[SHARED_NUMSEGMENTS];
-const static struct sembuf oper_lock[1] = {{
+static struct sembuf oper_lock[1] = {{
 	.sem_num	= 0,
 	.sem_op		= -1,
 	.sem_flg	= SEM_UNDO,
 	}};
-const static struct sembuf oper_unlock[1] = {{
+static struct sembuf oper_unlock[1] = {{
 	.sem_num	= 0,
 	.sem_op		= 1,
 	.sem_flg	= SEM_UNDO,

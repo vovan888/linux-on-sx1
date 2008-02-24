@@ -80,6 +80,7 @@
 // cmd for IPC_GROUP_BAT
 #define BAT_ChargingStateRes		0
 #define BAT_StatusRes			1
+// returns battery bars - 0..7
 #define BAT_BarsRes			2
 #define BAT_LowWarningRes		3
 

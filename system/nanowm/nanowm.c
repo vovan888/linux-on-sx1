@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 	ipc_start("nanowm");
 	shdata = ShmMap(SHARED_SYSTEM);
 
-	GrGrabKey(GR_ROOT_WINDOW_ID, Menu ,GR_GRAB_EXCLUSIVE);
+/*	GrGrabKey(GR_ROOT_WINDOW_ID, Menu ,GR_GRAB_EXCLUSIVE); */
 
 	/* Set new root window background color*/
 	props.flags = GR_WM_FLAGS_BACKGROUND;

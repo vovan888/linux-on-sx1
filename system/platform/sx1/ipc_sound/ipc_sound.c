@@ -547,7 +547,6 @@ int main(int argc, char *argv[])
 	int on;
 	fd_set active_fd_set, read_fd_set;
 	struct timeval timeout;
-	char *programName = argv[0];
 
 	res = daemon(0, 0);
 
@@ -559,15 +558,7 @@ int main(int argc, char *argv[])
 	signal(SIGUSR1, signal_treatment);
 	signal(SIGTERM, signal_treatment);
 
-	// Open DBGMSG
-#ifdef DEBUG
-	openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0);
-	_priority = LOG_DEBUG;
-	DBGMSG("You can quit the ipc_sound daemon with SIGKILL or SIGTERM");
-#else
-	openlog(programName, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
-	_priority = LOG_INFO;
-#endif
+	INITSYSLOG(argv[0]);
 
 	// Init serial port
 	InitPort();

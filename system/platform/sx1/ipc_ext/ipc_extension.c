@@ -785,17 +785,12 @@ static int extension_init(void)
  */
 static int extension_set_rtc(void)
 {
-	int res = 0, rtc_ready = 1;
+	int res = 0;
 	struct tm modem_time;
 	time_t loc_time;
 
 	/* open RTC device */
 	rtc_fd = open(default_rtc, O_RDONLY);
-
-	if (rtc_fd == -1) {
-		perror(default_rtc);
-		rtc_ready = 0;
-	}
 
 	/* read RTC time from Egold and set local time */
 	startup.rtccheck = RtcCheck();	/* check RTC status */
@@ -803,22 +798,19 @@ static int extension_set_rtc(void)
 		res = RtcTransfer(&modem_time);
 		if (!res) {
 			loc_time = mktime(&modem_time);
-			if (loc_time == -1)
-				perror("mktime:");
-			else
-				/* set system time to localtime from modem */
-			if (stime(&loc_time) < 0)
-				perror("stime:");
-			syslog(LOG_DEBUG, "local time set = %s",
-			       asctime(&modem_time));
+			/* set system time to localtime from modem */
+			if ( (loc_time != -1) && (!stime(&loc_time)) ) {
+				DBGLOG("local time set = %s",
+					asctime(&modem_time));
+			}
 		}
 	}
 
 	/* set the RTC time */
-	if (rtc_ready) {
+	if (rtc_fd > 0) {
 		res = ioctl(rtc_fd, RTC_SET_TIME, modem_time);
 		if (res == -1) {
-			perror("RTC_SET_TIME ioctl");
+			DBGLOG("RTC_SET_TIME ioctl");
 		}
 		close(rtc_fd);
 	}
@@ -869,8 +861,6 @@ static int extension_powerup(void)
 
 /*-----------------------------------------------------------------*/
 /* Handle IPC message
- * This message only tells indicator that its value is changed
- * Actual value is stored in sharedmem
 */
 int ipc_handle(int fd)
 {
@@ -935,7 +925,6 @@ int main(int argc, char *argv[])
 {
 	fd_set active_fd_set, read_fd_set;
 	struct timeval timeout;
-	char *programName = argv[0];
 
 	daemon(0, 0);
 
@@ -946,14 +935,7 @@ int main(int argc, char *argv[])
 	signal(SIGUSR1, signal_treatment);
 	signal(SIGTERM, signal_treatment);
 
-#ifdef DEBUG
-	openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0);
-	_priority = LOG_DEBUG;
-	DBGMSG("You can quit the ipc_ext daemon with SIGKILL or SIGTERM");
-#else
-	openlog(programName, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
-	_priority = LOG_INFO;
-#endif
+	INITSYSLOG(argv[0]);
 
 /*-----------------------------------------------------------------*/
 	extension_init();

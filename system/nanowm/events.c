@@ -9,7 +9,7 @@
 #define MWINCLUDECOLORS
 #include <nano-X.h>
 /* Uncomment this if you want debugging output from this file */
-#define DEBUG
+#define WMDEBUG
 
 #include "nanowm.h"
 
@@ -162,7 +162,6 @@ void do_key_down(GR_EVENT_KEYSTROKE *event)
 
 	/* FIXME: Implement keyboard shortcuts */
 	/* DEBUG keys */
-	printf("key_down:\n");
 	if (event -> ch == Menu) {
 		int client;
 		int	ret;

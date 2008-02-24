@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 	//    signal(SIGCHLD, application_handler);
 
 	if (GrOpen() < 0) {
-		error("Couldn't connect to Nano-X server!\n");
+		perror("Couldn't connect to Nano-X server!\n");
 		unlink(lockfile);
 		exit(-1);
 	}

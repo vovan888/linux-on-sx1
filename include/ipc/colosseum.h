@@ -310,9 +310,9 @@ typedef union {
 /* Struct for all the flphone messages 
  it can be the header of some special messages*/
 struct msg_generic {
-	unsigned short	group; /* message group */
 	unsigned char id;	/* message ID */
-	unsigned char data	/* message data */
+	unsigned char data;	/* message data */
+	unsigned char data1;	/* message data 2*/
 };
 
     /* Register application with IPC server

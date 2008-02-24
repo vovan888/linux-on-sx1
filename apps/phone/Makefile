@@ -13,6 +13,7 @@ target-$(CONFIG_MESSAGES) += smsviewer
 #target-$() += 
 target-$(CONFIG_MENUPUSK) += menupusk
 target-$(CONFIG_MAINMENU) += menu
+target-$(CONFIG_MAINMENU) += menu2
 target-$(CONFIG_TEST) += test
 
 # This will ensure that we only build one target at a time

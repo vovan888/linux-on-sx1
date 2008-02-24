@@ -1016,7 +1016,6 @@ DLLEXPORT int ClSendMessageGeneric(int id, unsigned char message_id,
 				   unsigned char data)
 {
 	struct msg_generic msg;
-	msg.group = id;
 	msg.id = message_id;
 	msg.data = data;
 

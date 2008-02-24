@@ -15,9 +15,6 @@
 
 #include "alarmd_internal.h"
 
-static int client_fd = 0;
-static int val = 0;
-
 /* Handle IPC message
  * This message only tells indicator that its value is changed
  * Actual value is stored in sharedmem
@@ -39,4 +36,6 @@ int ipc_handle(int fd)
 
 	/*      if (IS_GROUP_MSG(src))
 	   ipc_group_message(src, msg_buf); */
+	
+	return 0;
 }

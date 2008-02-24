@@ -72,6 +72,7 @@ $(BASE_DIR)/libs/flnx/.configured:
 	--host=$(SYS) \
         --build=$(BUILD_SYS) \
 	--enable-shared \
+	--enable-gl=no \
 	--enable-debug=$(FLNX_DEBUG) \
 	--with-microwin=$(strip $(subst ",, $(MW_PREFIX))))
 	touch $(BASE_DIR)/libs/flnx/.configured
