@@ -28,6 +28,7 @@
 #include <gsmd/usock.h>
 
 #include <nano-X.h>
+#include <keys_nanox.h>
 
 #define STDIN_BUF_SIZE	1024
 
@@ -177,11 +178,11 @@ int main(int argc, char *argv[]){
                     	printf ( "!got keyboard event, event.keystroke.ch = %i\n", event.keystroke.ch ); 
 			int k;
 			switch(event.keystroke.ch) {
-			case  	MWKEY_F3:
+			case  	Key_Green:
 				printf("Answer\n");
 				lgsm_voice_in_accept(lgsmh);
                         	break;
-                	case  	MWKEY_F4:
+                	case  	Key_Red:
 				printf("Hangup\n");
 				lgsm_voice_hangup(lgsmh);
                 		break;

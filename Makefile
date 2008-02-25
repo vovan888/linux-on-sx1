@@ -22,16 +22,13 @@ SYSDEP_DIR  = $(BASE_DIR)/scripts/sysdep
 # The base directory for installing
 ROOT_DIR = $(strip $(subst ",, $(INSTALL_PREFIX)))
 
-# The basic PDA install dir
-
-INSTALL_DIR=$(ROOT_DIR)
+ifdef CONFIG_PLATFORM_X86DEMO
+INSTALL_DIR = $(ROOT_DIR)
+else
+INSTALL_DIR=$(ROOT_DIR)-target
+endif
 
 MAKEFILES = $(BASE_DIR)/config
-
-# The filenames for the PAR database files
-
-PAR_CONFIG=$(INSTALL_DIR)/share/par/defaults.xml
-PAR_DB=$(INSTALL_DIR)/share/par/pixil.db
 
 # The cross compiler 
 TARGET_CROSS=$(subst ",, $(strip $(CROSS_COMPILER_PREFIX)))
@@ -60,7 +57,6 @@ ifdef SUBDIRS
 DIRS-y=$(SUBDIRS)
 else
 DIRS-y=libs system apps
-DIRS-$(CONFIG_PIXILDT)+=pixilDT
 endif
 
 subdir-build = $(patsubst %,_subdir_%,$(DIRS-y))
@@ -106,13 +102,13 @@ dostrip:
 	done
 
 $(subdir-build): dummy
-	@ $(MAKE) -C $(patsubst _subdir_%,%,$@)
+	@ $(MAKE) -j2 -C $(patsubst _subdir_%,%,$@)
 
 $(subdir-clean): dummy
-	@ $(MAKE) -C $(patsubst _clean_%,%,$@) clean
+	@ $(MAKE) -j2 -C $(patsubst _clean_%,%,$@) clean
 
 $(subdir-install): dummy
-	@ $(MAKE) -C $(patsubst _install_%,%,$@) install
+	@ $(MAKE) -j2 -C $(patsubst _install_%,%,$@) install
 
 platform-build:
 	@ make -C scripts/platforms/ 

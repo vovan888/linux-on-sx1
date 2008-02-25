@@ -162,7 +162,7 @@ void do_key_down(GR_EVENT_KEYSTROKE *event)
 
 	/* FIXME: Implement keyboard shortcuts */
 	/* DEBUG keys */
-	if (event -> ch == Menu) {
+	if (event -> ch == Key_Menu) {
 		int client;
 		int	ret;
 //		client = ClFindApp ("indicatord");

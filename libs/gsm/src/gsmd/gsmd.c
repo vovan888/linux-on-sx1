@@ -125,7 +125,7 @@ static void alive_interval_tmr_cb(struct gsmd_timer *tmr, void *data)
 	gsmd_timer_register(tmr);
 }
 
-int gmsd_alive_start(struct gsmd *gsmd)
+int gsmd_alive_start(struct gsmd *gsmd)
 {
 	struct timeval tv;
 
@@ -152,7 +152,7 @@ static int gsmd_get_imsi_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	struct gsmd *g = ctx;
 
 	DEBUGP("imsi : %s\n", resp);
-	strcpy(g->imsi, resp);
+	strlcpy(g->imsi, resp, sizeof(g->imsi));
 
 	return 0;
 }
@@ -498,7 +498,7 @@ int main(int argc, char **argv)
 	if (g.interpreter_ready) {
 		gsmd_initsettings(&g);
 	
-		gmsd_alive_start(&g);
+		gsmd_alive_start(&g);
 	}
 
 	gsmd_opname_init(&g);

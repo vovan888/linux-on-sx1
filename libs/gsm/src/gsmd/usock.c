@@ -160,7 +160,7 @@ static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		gcs.stat = er->tokens[2].u.numeric;
 		gcs.mode = er->tokens[3].u.numeric;
 		gcs.mpty = er->tokens[4].u.numeric;
-		strcpy(gcs.number, er->tokens[5].u.string);
+		strlcpy(gcs.number, er->tokens[5].u.string, GSMD_ADDR_MAXLEN+1);
 		gcs.type = er->tokens[6].u.numeric;
 	}
 	else if ( er->num_tokens == 8 &&
@@ -186,9 +186,9 @@ static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		gcs.stat = er->tokens[2].u.numeric;
 		gcs.mode = er->tokens[3].u.numeric;
 		gcs.mpty = er->tokens[4].u.numeric;
-		strcpy(gcs.number, er->tokens[5].u.string);
+		strlcpy(gcs.number, er->tokens[5].u.string, GSMD_ADDR_MAXLEN+1);
 		gcs.type = er->tokens[6].u.numeric;
-		strncpy(gcs.alpha, er->tokens[7].u.string, 8+1);
+		strlcpy(gcs.alpha, er->tokens[7].u.string, GSMD_ALPHA_MAXLEN+1);
 	}
 	else {
 		DEBUGP("Invalid Input : Parse error\n");
@@ -257,7 +257,7 @@ static int voicecall_fwd_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		
 		gcfs.status = er->tokens[0].u.numeric;
 		gcfs.classx = er->tokens[1].u.numeric;
-		strcpy(gcfs.addr.number, er->tokens[2].u.string);
+		strlcpy(gcfs.addr.number, er->tokens[2].u.string, GSMD_ADDR_MAXLEN+1);
 		gcfs.addr.type = er->tokens[3].u.numeric;
 	}
 	else if ( er->num_tokens == 7 &&
@@ -271,7 +271,7 @@ static int voicecall_fwd_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		
 		gcfs.status = er->tokens[0].u.numeric;
 		gcfs.classx = er->tokens[1].u.numeric;
-		strcpy(gcfs.addr.number, er->tokens[2].u.string);
+		strlcpy(gcfs.addr.number, er->tokens[2].u.string, GSMD_ADDR_MAXLEN+1);
 		gcfs.addr.type = er->tokens[3].u.numeric;
 		gcfs.time = er->tokens[6].u.numeric;
 	}
@@ -560,18 +560,18 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 		if (!cmd)
 			return -ENOMEM;
 
-		strncat(cmd->buf, gp->pin, sizeof(gp->pin));
+		strlcat(cmd->buf, gp->pin, cmd->buflen);
 
 		switch (gp->type) {
 			case GSMD_PIN_SIM_PUK:
 			case GSMD_PIN_SIM_PUK2:
-				strcat(cmd->buf, "\",\"");
-				strncat(cmd->buf, gp->newpin, sizeof(gp->newpin));
+				strlcat(cmd->buf, "\",\"", cmd->buflen);
+				strlcat(cmd->buf, gp->newpin, cmd->buflen);
 			break;
 		default:
 			break;
 		}
-		strcat(cmd->buf, "\"");
+		strlcat(cmd->buf, "\"", cmd->buflen);
 		break;
 	case GSMD_PIN_GET_STATUS:
 		cmd = atcmd_fill("AT+CPIN?", 8 + 1, &get_cpin_cb, gu, 0, NULL);
@@ -613,12 +613,70 @@ static int phone_powerdown_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 			cmd->id, sizeof(ret), &ret);
 }
 
-static int get_imsi_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
+static int phone_get_manuf_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
-	DEBUGP("resp: %s\n", resp);
+	struct gsmd_user *gu = ctx;
 
-	return gsmd_ucmd_submit(ctx, GSMD_MSG_PHONE, GSMD_PHONE_GET_IMSI,
+	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
+	if (!strncmp(resp, "+CGMI: ", 7))
+		resp += 7;
+	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_MANUF,
 			cmd->id, strlen(resp) + 1, resp);
+}
+
+static int phone_get_model_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
+{
+	struct gsmd_user *gu = ctx;
+
+	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
+	if (!strncmp(resp, "+CGMM: ", 7))
+		resp += 7;
+	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_MODEL,
+			cmd->id, strlen(resp) + 1, resp);
+}
+
+static int phone_get_revision_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
+{
+	struct gsmd_user *gu = ctx;
+
+	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
+	if (!strncmp(resp, "+CGMR: ", 7))
+		resp += 7;
+	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_REVISION,
+			cmd->id, strlen(resp) + 1, resp);
+}
+
+static int phone_get_serial_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
+{
+	struct gsmd_user *gu = ctx;
+
+	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
+	if (!strncmp(resp, "+CGSN: ", 7))
+		resp += 7;
+	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_SERIAL,
+			cmd->id, strlen(resp) + 1, resp);
+}
+
+static int phone_get_battery_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
+{
+	struct gsmd_user *gu = ctx;
+	struct gsmd_battery_charge gbs;
+	struct gsm_extrsp *er;
+
+	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
+	er = extrsp_parse(gsmd_tallocs, resp);
+	if(!er)
+		return -ENOMEM;
+	/* +CBC: 0,0 */
+	if((er->num_tokens == 2) &&
+			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC ) {
+				gbs.bcs = er->tokens[0].u.numeric;
+				gbs.bcl = er->tokens[1].u.numeric;
+	}
+	talloc_free(er);
+	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_BATTERY,
+		cmd -> id, sizeof(gbs), &gbs);
 }
 
 static int usock_rcv_phone(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, 
@@ -629,19 +687,37 @@ static int usock_rcv_phone(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 	switch (gph->msg_subtype) {
 	case GSMD_PHONE_POWERUP:
 		cmd = atcmd_fill("AT+CFUN=1", 9+1,
-				 &phone_powerup_cb, gu, 0, NULL);
+				&phone_powerup_cb, gu, 0, NULL);
 		break;
 
 	case GSMD_PHONE_POWERDOWN:
 		cmd = atcmd_fill("AT+CFUN=0", 9+1,
-				 &phone_powerdown_cb, gu, 0, NULL);
+				&phone_powerdown_cb, gu, 0, NULL);
 		gu->gsmd->dev_state.on = 0;
 		break;
 	case GSMD_PHONE_GET_IMSI:
 		return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_IMSI,
-			0, strlen(gu->gsmd->imsi), gu->gsmd->imsi);
+			0, strlen(gu->gsmd->imsi) + 1, gu->gsmd->imsi);
 		break;
-
+	case GSMD_PHONE_GET_MANUF:
+		cmd = atcmd_fill("AT+CGMI", 7+1,
+				&phone_get_manuf_cb, gu, 0, NULL);
+		break;
+	case GSMD_PHONE_GET_MODEL:
+		cmd = atcmd_fill("AT+CGMM", 7+1,
+				&phone_get_model_cb, gu, 0, NULL);
+		break;
+	case GSMD_PHONE_GET_REVISION:
+		cmd = atcmd_fill("AT+CGMR", 7+1,
+				&phone_get_revision_cb, gu, 0, NULL);
+		break;
+	case GSMD_PHONE_GET_SERIAL:
+		cmd = atcmd_fill("AT+CGSN", 7+1,
+				&phone_get_serial_cb, gu, 0, NULL);
+		break;
+	case GSMD_PHONE_GET_BATTERY:
+		cmd = atcmd_fill("AT+CBC", 6+1, &phone_get_battery_cb, gu, 0, NULL);
+		break;
 	default:
 		return -EINVAL;
 	}
@@ -718,7 +794,7 @@ static int network_vmail_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 			er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
 			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC) {
 				vmail.enable = er->tokens[0].u.numeric;
-				strcpy(vmail.addr.number, er->tokens[1].u.string);
+				strlcpy(vmail.addr.number, er->tokens[1].u.string, GSMD_ADDR_MAXLEN+1);
 				vmail.addr.type = er->tokens[2].u.numeric;
 		}
 		rc = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_VMAIL_GET,
@@ -800,7 +876,6 @@ static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 static int network_oper_n_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
-	int format, s, ret;
 	char buf[16+1] = {'\0'};
 	struct gsm_extrsp *er;
 
@@ -808,7 +883,7 @@ static int network_oper_n_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	if ( !er )
 		return -ENOMEM;
-	
+
 	//extrsp_dump(er);	
 
 	/* Format: <mode>[,<format>,<oper>] */
@@ -818,13 +893,12 @@ static int network_oper_n_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		/* In case we're not registered, return an empty string */
 		buf[0] = '\0';
 	}
-	else if ( er->num_tokens == 3 &&
+	else if ( er->num_tokens >= 3 &&
 			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
 			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
 			er->tokens[2].type == GSMD_ECMD_RTT_STRING ) {
 
-		
-		strcpy(buf, er->tokens[2].u.string);
+		strlcpy(buf, er->tokens[2].u.string, sizeof(buf));
 	}
 	else {
 		DEBUGP("Invalid Input : Parse error\n");
@@ -847,8 +921,15 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 
 	if (strncmp(str, "+COPS: ", 7))
 		return -EINVAL;
+	/*
+	 * string ",," means the begginig of extended parameters and we
+	 * don't want to scan them for operators.
+	 */
+	ptr = strstr(str, ",,");
+	if(ptr)
+		ptr[0] = '\0';
 
-	ptr = str;
+	ptr = (char *) str;
 	while (*str) {
 		if ( *str == '(' && isdigit(*(str+1)) ) {
 			len++;	
@@ -868,9 +949,9 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 
 	while (*str) {
 		if ( *str == '(' )
-			head = str;
+			head = (char *) str;
 		else if ( *str == ')' ) {
-			tail = str;
+			tail = (char *) str;
 			
 			memset(buf, '\0', sizeof(buf));
 			strncpy(buf, head+1, (tail-head-1));
@@ -884,7 +965,7 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 
 			//extrsp_dump(er);	
 				
-			if ( er->num_tokens == 4 &&
+			if ( er->num_tokens >= 4 &&
 					er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
 					er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
 					er->tokens[2].type == GSMD_ECMD_RTT_STRING &&
@@ -896,9 +977,12 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 				 */
 				
 				out2->stat = er->tokens[0].u.numeric;
-				strcpy(out2->opname_longalpha, er->tokens[1].u.string);
-				strcpy(out2->opname_shortalpha, er->tokens[2].u.string);
-				strcpy(out2->opname_num, er->tokens[3].u.string);
+				strlcpy(out2->opname_longalpha, er->tokens[1].u.string,
+					sizeof(out2->opname_longalpha));
+				strlcpy(out2->opname_shortalpha, er->tokens[2].u.string,
+					sizeof(out2->opname_shortalpha));
+				strlcpy(out2->opname_num, er->tokens[3].u.string,
+					sizeof(out2->opname_num));
 			}
 			else {
 				DEBUGP("Invalid Input : Parse error\n");
@@ -925,6 +1009,8 @@ static int network_opers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	int len, ret;
 
 	len = network_opers_parse(resp, &buf);
+	if(len < 0)
+		return len;	/* error we got from network_opers_parse */
 
 	ret = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_OPER_LIST,
 			cmd->id, sizeof(*buf) * (len + 1), buf);
@@ -1131,9 +1217,9 @@ static int phonebook_find_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		 */
 
 		gps.pb.index = er->tokens[0].u.numeric;
-		strcpy(gps.pb.numb, er->tokens[1].u.string);
+		strlcpy(gps.pb.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN+1);
 		gps.pb.type = er->tokens[2].u.numeric;
-		strcpy(gps.pb.text, er->tokens[3].u.string);
+		strlcpy(gps.pb.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN+1);
 	}
 	else {
 		DEBUGP("Invalid Input : Parse error\n");
@@ -1180,9 +1266,9 @@ static int phonebook_read_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		 */
 
 		gp.index = er->tokens[0].u.numeric;
-		strcpy(gp.numb, er->tokens[1].u.string);
+		strlcpy(gp.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN+1);
 		gp.type = er->tokens[2].u.numeric;
-		strcpy(gp.text, er->tokens[3].u.string);
+		strlcpy(gp.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN+1);
 	}
 	else {
 		DEBUGP("Invalid Input : Parse error\n");
@@ -1231,9 +1317,9 @@ static int phonebook_readrg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		 */
 
 		gps.pb.index = er->tokens[0].u.numeric;
-		strcpy(gps.pb.numb, er->tokens[1].u.string);
+		strlcpy(gps.pb.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN+1);
 		gps.pb.type = er->tokens[2].u.numeric;
-		strcpy(gps.pb.text, er->tokens[3].u.string);
+		strlcpy(gps.pb.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN+1);
 	}
 	else {
 		DEBUGP("Invalid Input : Parse error\n");

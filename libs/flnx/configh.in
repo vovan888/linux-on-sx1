@@ -82,7 +82,7 @@
  * fl_draw_image), but FLTK will only work on TrueColor visuals.
  */
 
-#define USE_COLORMAP 1
+#define USE_COLORMAP 0
 
 /*
  * HAVE_XINERAMA

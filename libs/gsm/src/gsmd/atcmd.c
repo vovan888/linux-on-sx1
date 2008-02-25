@@ -270,7 +270,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	    !strcmp(buf, "AT-Command Interpreter ready")) {
 		g->interpreter_ready = 1;
 		gsmd_initsettings(g);
-		gmsd_alive_start(g);
+		gsmd_alive_start(g);
 		return 0;
 	}
 
@@ -620,7 +620,6 @@ struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 	atcmd->resp = NULL;
 	atcmd->timeout = NULL;
 	strncpy(atcmd->buf, cmd, buflen-1);
-
 	if (!ct)
 		atcmd->create_timer_func = discard_timer; 
 	else

@@ -2,7 +2,7 @@
 
 
 #local-target-y= platform
-target-y= platform
+target-y=
 #target-y= ipc daemons gsmmux nanowm platform
 
 #note! sequence dependent :), ipc should be listed first.
@@ -10,6 +10,8 @@ target-$(CONFIG_IPC) += ipc
 target-$(CONFIG_NANOWM) += nanowm
 target-$(CONFIG_DAEMONS) += daemons
 target-$(CONFIG_GSMMUX) += gsmmux
+
+target-y += platform
 
 DIRS=$(target-y)
 #DIRS=$(sort $(target-y))

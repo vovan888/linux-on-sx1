@@ -122,12 +122,8 @@ struct gsm_extrsp *extrsp_parse(const void *ctx, const char *input)
 			break;
 		case TOKEN_STRING:
 			if (*cur == '"') {
-				int len = strlen(buf);
-				if (len > sizeof(cur_token->u.string)-1)
-					len = sizeof(cur_token->u.string)-1;
-
 				/* end of string token */
-				strncpy(cur_token->u.string, buf, len);
+				strlcpy(cur_token->u.string, buf, GSM_EXTRSP_MAX_STRBUF);
 				er->num_tokens++;
 				state = TOKEN_STRING_LASTQUOTE;
 			} else {
@@ -206,13 +202,14 @@ void extrsp_dump(const struct gsm_extrsp *er)
 		case GSMD_ECMD_RTT_STRING:
 			DEBUGP("%s\n", tok->u.string);
 			break;
+		case GSMD_ECMD_RTT_NONE:
+			break;
 		case GSMD_ECMD_RTT_RANGE: {
 			int j;
 			for (j = 0; j < tok->u.range.num_items; j++)
 				DEBUGP("%d-%d, ", tok->u.range.item[j].min,
 					tok->u.range.item[j].max);
 			}
-			
 			break;
 		}
 	}

@@ -117,7 +117,7 @@ else
     DEBUGFLAG=""
 fi
 
-AC_ARG_ENABLE(gl, [  --enable-gl             turn on OpenGL support [default=yes]])
+AC_ARG_ENABLE(gl, [  --enable-gl             turn on OpenGL support [default=no]])
 
 AC_ARG_ENABLE(shared, [  --enable-shared         turn on shared libraries [default=no]])
 if test x$enable_shared = xyes; then
@@ -624,7 +624,7 @@ case $uname in
 	    with_optim="-O3"
 	fi
 
-	if test x$enable_gl != xno; then
+	if test x$enable_gl = xyes; then
 	    AC_CHECK_HEADER(GL/gl.h,
 	        AC_DEFINE(HAVE_GL)
 		GLLIB="-lopengl32")
@@ -726,37 +726,10 @@ case $uname in
 	   NANOX=0
 	])
 
-	dnl# If we have already asked for NanoX, then we
-	dnl# should be able to skip over this
-
-     if [ test $NANOX = 0 ]; then
-	echo "No MicroWindows specified, checking for X libraries..."
-
-	dnl Check for X11...
-	AC_PATH_XTRA
-
-	if test x$no_x = xyes; then
-	    AC_MSG_ERROR(Configure could not find required X11 libraries, aborting.)
-	fi
-
-	if test "x$X_PRE_LIBS" != x; then
-	    AC_MSG_WARN(Ignoring libraries \"$X_PRE_LIBS\" requested by configure.)
-	fi
-
-	LIBS="$LIBS -lXext -lX11 $X_EXTRA_LIBS"
-	CFLAGS="$CFLAGS $X_CFLAGS"
-	CXXFLAGS="$CXXFLAGS $X_CFLAGS"
-	LDFLAGS="$X_LIBS $LDFLAGS"
-	DSOFLAGS="$X_LIBS $DSOFLAGS"
-
-	if test "x$x_includes" != x; then
-	    ac_cpp="$ac_cpp -I$x_includes"
-	fi
-
 	dnl Check for OpenGL unless disabled...
 	GLLIB=
 
-	if test x$enable_gl != xno; then
+	if test x$enable_gl = xyes; then
 	    AC_SEARCH_LIBS(dlopen, dl)
 	    AC_CHECK_HEADER(GL/gl.h,
 		AC_CHECK_LIB(GL, glXMakeCurrent, AC_DEFINE(HAVE_GL) GLLIB="-lGL",
@@ -788,6 +761,33 @@ case $uname in
 	    GLDSONAME=""
 	    GLDEMOS=""
 	fi
+	dnl# If we have already asked for NanoX, then we
+	dnl# should be able to skip over this
+
+     if [ test $NANOX = 0 ]; then
+	echo "No MicroWindows specified, checking for X libraries..."
+
+	dnl Check for X11...
+	AC_PATH_XTRA
+
+	if test x$no_x = xyes; then
+	    AC_MSG_ERROR(Configure could not find required X11 libraries, aborting.)
+	fi
+
+	if test "x$X_PRE_LIBS" != x; then
+	    AC_MSG_WARN(Ignoring libraries \"$X_PRE_LIBS\" requested by configure.)
+	fi
+
+	LIBS="$LIBS -lXext -lX11 $X_EXTRA_LIBS"
+	CFLAGS="$CFLAGS $X_CFLAGS"
+	CXXFLAGS="$CXXFLAGS $X_CFLAGS"
+	LDFLAGS="$X_LIBS $LDFLAGS"
+	DSOFLAGS="$X_LIBS $DSOFLAGS"
+
+	if test "x$x_includes" != x; then
+	    ac_cpp="$ac_cpp -I$x_includes"
+	fi
+
 
 	dnl Check for Xinerama support unless disabled...
         AC_ARG_ENABLE(xinerama, [  --enable-xinerama       turn on Xinerama support [default=no]])

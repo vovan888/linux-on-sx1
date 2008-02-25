@@ -392,13 +392,26 @@ static int net_msghandler(struct lgsm_handle *lh, struct gsmd_msg_hdr *gmh)
 
 static int phone_msghandler(struct lgsm_handle *lh, struct gsmd_msg_hdr *gmh)
 {
-	char *payload;
+	char *payload  = (char *)gmh + sizeof(*gmh);
 	int *intresult = (void *)gmh + sizeof(*gmh);
+	const struct gsmd_battery_charge *bc = (struct gsmd_battery_charge *)
+		((void *) gmh + sizeof(*gmh));
 
 	switch (gmh->msg_subtype) {
 	case GSMD_PHONE_GET_IMSI:
-		payload = (char *)gmh + sizeof(*gmh);
 		printf("imsi <%s>\n", payload);
+		break;
+	case GSMD_PHONE_GET_MANUF:
+		printf("manufacturer: %s\n", payload);
+		break;
+	case GSMD_PHONE_GET_MODEL:
+		printf("model: %s\n", payload);
+		break;
+	case GSMD_PHONE_GET_REVISION:
+		printf("revision: %s\n", payload);
+		break;
+	case GSMD_PHONE_GET_SERIAL:
+		printf("serial: %s\n", payload);
 		break;
 	case GSMD_PHONE_POWERUP:
 		if (*intresult)
@@ -412,6 +425,9 @@ static int phone_msghandler(struct lgsm_handle *lh, struct gsmd_msg_hdr *gmh)
 		else
 			printf("Modem down\n");
 		break;
+	case GSMD_PHONE_GET_BATTERY:
+		printf("<BCS>: %d <BCL>: %d \n", bc->bcs, bc->bcl);
+		break;		
 	default:
 		return -EINVAL;
 	}
@@ -551,8 +567,13 @@ static void shell_help(void)
 		"\tgvm\tGet Voicemail number\n"
 		"\tsvm\tSet Voicemail number(svm=number)\n"
 		"\tim\tGet imsi\n"
+		"\tmf\tGet manufacturer\n"
+		"\tml\tGet model\n"
+		"\trv\tGet revision\n"
+		"\tsn\tGet serial number\n"
 		"\tcs\tGet Call status\n"
 		"\tgp\tGet PIN status\n"
+		"\tcbc\tGet Battery status\n"
 		"\tRh\tRelease all held calls (+CHLD=0)\n"
 		"\tUDUB\tUser Determined User Busy (+CHLD=0)\n"
 		"\tRa\tRelease all active calls (+CHLD=1)\n"
@@ -605,6 +626,8 @@ int shell_main(struct lgsm_handle *lgsmh, int sync)
 				break;
 			}
 			rc = lgsm_handle_packet(lgsmh, buf, rc);
+			if (rc < 0)
+				printf("ERROR processing packet: %d(%s)\n", rc, strerror(-rc));
 		}
 		if (FD_ISSET(0, &readset)) {
 			/* we've received something on stdin.  */
@@ -862,6 +885,22 @@ int shell_main(struct lgsm_handle *lgsmh, int sync)
 				printf("Get imsi\n");
 				lgsm_get_imsi(lgsmh);
 				pending_responses ++;
+			} else if (!strncmp(buf, "mf", 2)) {
+				printf("Get manufacturer\n");
+				lgsm_get_manufacturer(lgsmh);
+				pending_responses ++;
+			} else if (!strncmp(buf, "ml", 2)) {
+				printf("Get model\n");
+				lgsm_get_model(lgsmh);
+				pending_responses ++;
+			} else if (!strncmp(buf, "rv", 2)) {
+				printf("Get revision\n");
+				lgsm_get_revision(lgsmh);
+				pending_responses ++;
+			} else if (!strncmp(buf, "sn", 2)) {
+				printf("Get serial number\n");
+				lgsm_get_serial(lgsmh);
+				pending_responses ++;
 			} else if ( strlen(buf)==1 && !strncmp(buf, "M", 1)) {
 				printf("Modem Power On\n");
 				lgsm_modem_power(lgsmh, 1);
@@ -954,6 +993,10 @@ int shell_main(struct lgsm_handle *lgsmh, int sync)
 				ptr = strchr(buf, '=');
 				lgsm_voice_fwd_erase(lgsmh, atoi(ptr+1));
 				pending_responses ++;
+			}else if ( !strncmp(buf, "cbc", 3)) {
+				printf("Battery Connection status and Battery Charge Level\n");
+				lgsm_get_battery(lgsmh);
+				pending_responses++;
 			}else {
 				printf("Unknown command `%s'\n", buf);
 			}
