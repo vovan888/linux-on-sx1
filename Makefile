@@ -20,12 +20,15 @@ MCONFIG_DIR = $(BASE_DIR)/scripts/config
 SYSDEP_DIR  = $(BASE_DIR)/scripts/sysdep
 
 # The base directory for installing
-ROOT_DIR = $(strip $(subst ",, $(INSTALL_PREFIX)))
+#ROOT_DIR = $(strip $(subst ",, $(INSTALL_PREFIX)))
+
+# install flfphone to the build/image
+ROOT_DIR = $(BASE_DIR)/build/image
 
 ifdef CONFIG_PLATFORM_X86DEMO
 INSTALL_DIR = $(ROOT_DIR)
 else
-INSTALL_DIR=$(ROOT_DIR)-target
+INSTALL_DIR = $(ROOT_DIR)-target
 endif
 
 MAKEFILES = $(BASE_DIR)/config

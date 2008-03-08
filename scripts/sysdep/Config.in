@@ -7,7 +7,6 @@ mainmenu "Phone Configuration"
 
 menu "Flphone Settings"
 
-
 choice
 	prompt "Graphical Engine"
 	default "Nano-X"
@@ -23,6 +22,9 @@ config CONFIG_NANOX
 
 endchoice
 
+
+menu "Interface layout"
+
 config CONFIG_SCREEN_WIDTH
         int "Screen X size (width)"
         default 176
@@ -34,6 +36,9 @@ config CONFIG_SCREEN_HEIGHT
         default 220
         help
 	    Screen Y size
+
+
+endmenu
 
 config CONFIG_PM
        bool "Enable power management support"
@@ -80,11 +85,11 @@ config MW_PREFIX
 	  the Microwindows libraries are located.  Remember to specify
 	  the right tree for the compiler you are building for.
 
-config INSTALL_PREFIX
-       string "Install prefix"
-       default "/usr/local/flphone"
-       help
-         Indicate where flphone should be installed when it is built
+#config INSTALL_PREFIX
+#       string "Install prefix"
+#       default "/usr/local/flphone"
+#       help
+#         Indicate where flphone should be installed when it is built
 
 config CONFIG_SAMPLES
 	bool "Install sample data?"

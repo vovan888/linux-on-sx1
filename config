@@ -7,6 +7,10 @@
 #
 # CONFIG_X11 is not set
 CONFIG_NANOX=y
+
+#
+# Interface layout
+#
 CONFIG_SCREEN_WIDTH=176
 CONFIG_SCREEN_HEIGHT=220
 # CONFIG_PM is not set
@@ -22,8 +26,7 @@ CONFIG_CPU_INTEL=y
 # Build Options
 #
 # CROSS_COMPILE is not set
-MW_PREFIX="/home/vovan/work/project/linux-on-sx1/trunk/target/src/microwin/src"
-INSTALL_PREFIX="/home/vovan/build/flphone"
+MW_PREFIX="/home/vovan/linux-on-sx1-dev/microwin/src"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set
 CONFIG_DEBUG=y
@@ -38,7 +41,7 @@ CONFIG_DEBUG=y
 #
 CONFIG_PHONEAPPS=y
 # CONFIG_DIALER is not set
-# CONFIG_INCOMING_CALL is not set
+CONFIG_INCOMING_CALL=y
 # CONFIG_CALL_LOGS is not set
 # CONFIG_MESSAGES is not set
 # CONFIG_MENUPUSK is not set
