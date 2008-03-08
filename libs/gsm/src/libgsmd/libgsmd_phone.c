@@ -45,6 +45,11 @@ int lgsm_phone_power(struct lgsm_handle *lh, int power)
 	return lgsm_send_simple(lh, GSMD_MSG_PHONE, type);
 }
 
+int lgsm_get_power_status(struct lgsm_handle *lh)
+{
+	return lgsm_send_simple(lh, GSMD_MSG_PHONE, GSMD_PHONE_POWER_STATUS);
+}
+
 int lgsm_get_imsi(struct lgsm_handle *lh)
 {
 	return lgsm_send_simple(lh, GSMD_MSG_PHONE, GSMD_PHONE_GET_IMSI);
@@ -74,3 +79,15 @@ int lgsm_get_battery(struct lgsm_handle *lh)
 {
 	return lgsm_send_simple(lh, GSMD_MSG_PHONE, GSMD_PHONE_GET_BATTERY);
 }
+
+int lgsm_phone_vibrator(struct lgsm_handle *lh, int enable)
+{
+	int type;
+	if(enable)
+		type = GSMD_PHONE_VIB_ENABLE;
+	else
+		type = GSMD_PHONE_VIB_DISABLE;
+	
+	return lgsm_send_simple(lh, GSMD_MSG_PHONE, type);
+}
+		

@@ -140,6 +140,9 @@ enum gsmd_msg_phone {
 	GSMD_PHONE_GET_REVISION	= 6,
 	GSMD_PHONE_GET_SERIAL	= 7,
 	GSMD_PHONE_GET_BATTERY  = 8,
+	GSMD_PHONE_VIB_ENABLE   = 9,
+	GSMD_PHONE_VIB_DISABLE  = 10,
+	GSMD_PHONE_POWER_STATUS = 11,
 };
 
 enum gsmd_msg_modem {
@@ -535,7 +538,7 @@ struct gsmd_sms {
 	int is_voicemail;
 	struct gsmd_sms_datacodingscheme dcs;
 	enum gsmd_sms_tp_mti tp_mti;
-	char data[GSMD_SMS_DATA_MAXLEN+1];	
+	u_int8_t data[GSMD_SMS_DATA_MAXLEN+1];	
 } __attribute__ ((packed));
 
 /* Refer to GSM 03.40 subclause 9.2.2.2 */
