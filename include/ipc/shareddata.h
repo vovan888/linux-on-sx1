@@ -27,6 +27,8 @@ struct SharedSystem {
 		char selftest;
 		char swreason;
 		char temp;
+		char hiddenreset;
+		char rtccheck;
 	} powerup;
 /* nanowm data */
 	struct {

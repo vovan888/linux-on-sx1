@@ -69,16 +69,6 @@ static int ipc_fd;		/* IPC file descriptor */
 static const char default_rtc[] = "/dev/rtc";
 static int rtc_fd;		/* RTC file descriptor */
 
-static struct {
-	int pingok;
-	int rtccheck;
-	int reason;
-	int sw_reason;
-	int selftest;
-	unsigned char hiddenreset;
-	unsigned char devmenuenabled;
-	unsigned char sim_domestic_lang;
-} startup;			// saves current state
 /*-----------------------------------------------------------------*/
 static int extension_init_serial(void)
 {
@@ -87,6 +77,7 @@ static int extension_init_serial(void)
 	fd_mux = open(MODEMDEVICE, O_RDWR | O_NOCTTY);
 	if (fd_mux < 0) {
 		perror("Error: open " MODEMDEVICE " failed!");
+		/*FIXME we should not exit on real device*/
 		exit(-1);
 	}
 	/* set port settings */
@@ -793,8 +784,8 @@ static int extension_set_rtc(void)
 	rtc_fd = open(default_rtc, O_RDONLY);
 
 	/* read RTC time from Egold and set local time */
-	startup.rtccheck = RtcCheck();	/* check RTC status */
-	if (!startup.rtccheck) {
+	shdata->powerup.rtccheck = RtcCheck();	/* check RTC status */
+	if (!shdata->powerup.rtccheck) {
 		res = RtcTransfer(&modem_time);
 		if (!res) {
 			loc_time = mktime(&modem_time);
@@ -835,17 +826,17 @@ static int extension_powerup(void)
 		DBGMSG("SimSetDomesticLanguage = %d", cc);
 	}
 
-	startup.hiddenreset = PowerUpHiddenReset();
-	DBGMSG("PowerUpHiddenReset = %d", startup.hiddenreset);
+	shdata->powerup.hiddenreset = PowerUpHiddenReset();
+	DBGMSG("PowerUpHiddenReset = %d", shdata->powerup.hiddenreset);
 
 	shdata->powerup.swreason = SWStartupReason();	//PowerUpGetSwStartupReasonReq;
-	DBGMSG("SWStartupReason = %d", startup.sw_reason);
+	DBGMSG("SWStartupReason = %d", shdata->powerup.swreason);
 
 	/* PowerUpIndicationObserverOkReq, enable indication observer */
 	IndicationObserverOk();
 
 	shdata->powerup.selftest = SelfTest(0x0B);	/* 0x0B = unknown constant */
-	DBGMSG("SelfTest = %d", startup.selftest);
+	DBGMSG("SelfTest = %d", shdata->powerup.selftest);
 
 	/*TODO RagbagSetDosAlarmReq(00000); */
 

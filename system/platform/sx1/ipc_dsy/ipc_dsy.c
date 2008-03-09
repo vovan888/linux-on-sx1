@@ -63,7 +63,7 @@ int _priority;
 struct SharedSystem *shdata;	/* shared memory segment */
 static int ipc_fd;		/* IPC file descriptor */
 
-static int fd_mux;		// file descriptor for /dev/mux4, should be opened blocking
+static int fd_mux;		/* file descriptor for /dev/mux4, should be opened blocking */
 
 //-----------------------------------------------------------------
 static int InitPort(void)
@@ -73,6 +73,7 @@ static int InitPort(void)
 	fd_mux = open(MODEMDEVICE, O_RDWR | O_NOCTTY);
 	if (fd_mux < 0) {
 		ERRLOG("Error: open /dev/mux4 failed!");
+		/*FIXME we should not exit on real device*/
 		exit(-1);
 	}
 	/* set port settings */
@@ -464,7 +465,7 @@ static int dsy_init(void)
 	/* Subscribe to different groups */
 	 /*TODO*/
 	    /* ClSubscribeToGroup(MSG_GROUP_PHONE); */
-	    return 0;
+	return 0;
 }
 
 /*-----------------------------------------------------------------*/
