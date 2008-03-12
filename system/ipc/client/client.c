@@ -384,34 +384,30 @@ static int local_Register(char *name, int inflags, int *outflags)
 	if (g_socket)
 		return (CL_CLIENT_CONNECTED);
 
-	/* First, create a socket and try to connect */
-
-	g_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (!g_socket) {
-		perror("Socket Error: ");
-		return (CL_CLIENT_SOCK_ERROR);
-	}
-
-	/* Try to connect to the named socket */
-
-	saddr.sun_family = AF_UNIX;
-	strncpy(saddr.sun_path, CL_NAMED_SOCKET, sizeof(saddr.sun_path));
-
-	/* Try to connect.  If the connection is refused, then we will */
-	/* assume that no server is available */
-	int tries = 0;
-	struct timespec req_time, elapsed_time;
-	req_time.tv_sec = 0;
-	req_time.tv_nsec = 100000000;	/*0.1 seconds */
 	do {
+		/* First, create a socket and try to connect */
+		g_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+		if (!g_socket) {
+			perror("Socket Error: ");
+			return (CL_CLIENT_SOCK_ERROR);
+		}
+
+		/* Try to connect to the named socket */
+
+		saddr.sun_family = AF_UNIX;
+		strncpy(saddr.sun_path, CL_NAMED_SOCKET, sizeof(saddr.sun_path));
+
+		/* Try to connect.  If the connection is refused, then we will */
+		/* assume that no server is available */
+		int tries = 0;
 		if (connect(g_socket, (struct sockaddr *)&saddr, sizeof(saddr))
 		    == -1) {
 			close(g_socket);
 			g_socket = 0;
 			if ((errno != ECONNREFUSED) && (errno != ENOENT))
 				return (CL_CLIENT_SOCK_ERROR);
-			nanosleep(&req_time, &elapsed_time);
 			DPRINT("Waiting for IPC server\n");
+			sleep(1); /* 1 second */
 		} else
 			break;
 		if (tries++ == 5) {

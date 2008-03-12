@@ -66,7 +66,7 @@ static int ipc_fd;		/* IPC file descriptor */
 static int fd_mux;		/* file descriptor for /dev/mux4, should be opened blocking */
 
 //-----------------------------------------------------------------
-static int InitPort(void)
+static int dsy_init_serial(void)
 {
 	struct termios options;
 
@@ -456,7 +456,7 @@ static int dsy_init(void)
 	int cl_flags;
 
 	/* TODO handle errors here */
-	InitPort();		// Init serial port
+	dsy_init_serial();		// Init serial port
 
 	ipc_fd = ClRegister("sx1_dsy", &cl_flags);
 
@@ -500,8 +500,6 @@ int main(int argc, char *argv[])
 	fd_set active_fd_set, read_fd_set;
 	struct timeval timeout;
 
-	dsy_init();
-
 #ifndef DEBUG
 	daemon(0, 0);
 #endif
@@ -514,6 +512,8 @@ int main(int argc, char *argv[])
 	signal(SIGTERM, signal_treatment);
 
 	INITSYSLOG(argv[0]);
+
+	dsy_init();
 
 //-----------------------------------------------------
 	/* Initialize the timeout data structure. */

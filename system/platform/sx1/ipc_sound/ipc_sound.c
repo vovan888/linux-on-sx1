@@ -78,7 +78,7 @@ static int ipc_fd;		/* IPC file descriptor */
 
 static int fd_mux;		// file descriptor for /dev/mux6, should be opened blocking
 //-----------------------------------------------------------------
-int InitPort(void)
+int sound_init_serial(void)
 {
 	struct termios options;
 
@@ -501,6 +501,30 @@ int process_client(int fd)
 	}
 }
 
+/*-----------------------------------------------------------------*/
+/* Handle IPC message
+*/
+int ipc_handle(int fd)
+{
+	int ack = 0, size = 64;
+	unsigned short src = 0;
+	unsigned char msg_buf[64];
+
+	DBGMSG("ipc_sound: ipc_handle\n");
+
+	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
+		return ack;
+
+	if (ack == CL_CLIENT_BROADCAST) {
+		/* handle broadcast message */
+	}
+
+	/*      if (IS_GROUP_MSG(src))
+	   ipc_group_message(src, msg_buf); */
+
+	return 0;
+}
+
 /*
  * Function responsible by all signal handlers treatment
  * any new signal must be added here
@@ -537,6 +561,25 @@ void signal_treatment(int param)
 }
 
 //-----------------------------------------------------------------
+int	sound_init()
+{
+	int cl_flags;
+	/* TODO handle errors here */
+
+	sound_init_serial();
+
+	ipc_fd = ClRegister("sx1_sound", &cl_flags);
+
+	shdata = ShmMap(SHARED_SYSTEM);
+
+	/* Subscribe to different groups */
+	 /*TODO*/
+	    /* ClSubscribeToGroup(MSG_GROUP_PHONE); */
+	    return 0;
+
+}
+
+//-----------------------------------------------------------------
 int main(int argc, char *argv[])
 {
 	int sock_nl, sock_loc;	// File handlers
@@ -548,8 +591,9 @@ int main(int argc, char *argv[])
 	fd_set active_fd_set, read_fd_set;
 	struct timeval timeout;
 
+#ifndef DEBUG
 	res = daemon(0, 0);
-
+#endif
 	/* SIGNALS treatment */
 	signal(SIGHUP, signal_treatment);
 	signal(SIGPIPE, signal_treatment);
@@ -560,8 +604,7 @@ int main(int argc, char *argv[])
 
 	INITSYSLOG(argv[0]);
 
-	// Init serial port
-	InitPort();
+	sound_init();
 
 //------------------------
 	/* -- Netlink socket -- */
@@ -583,7 +626,7 @@ int main(int argc, char *argv[])
 	on = sa_netlink.nl_groups;
 	setsockopt(sock_nl, SOL_NETLINK, NETLINK_ADD_MEMBERSHIP, &on,
 		   sizeof(on));
-	fcntl(sock_nl, F_SETFL, O_NONBLOCK);
+//	fcntl(sock_nl, F_SETFL, O_NONBLOCK);
 
 //------------------------
 
@@ -613,9 +656,8 @@ int main(int argc, char *argv[])
 		}
 		/* Service IPC message */
 		if (FD_ISSET(ipc_fd, &read_fd_set)) {
-			/* Data arriving on an already-connected socket. */
-			if (process_client(ipc_fd) < 0) {
-				DBGMSG("error in process_client");
+			if (ipc_handle(ipc_fd) < 0) {
+				DBGMSG("error in ipc_handle");
 			}
 		}
 	}

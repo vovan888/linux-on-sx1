@@ -917,8 +917,9 @@ int main(int argc, char *argv[])
 	fd_set active_fd_set, read_fd_set;
 	struct timeval timeout;
 
+#ifndef DEBUG
 	daemon(0, 0);
-
+#endif
 	signal(SIGHUP, signal_treatment);
 	signal(SIGPIPE, signal_treatment);
 	signal(SIGKILL, signal_treatment);
