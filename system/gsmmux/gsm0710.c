@@ -54,7 +54,7 @@
 *
 * Modified March 2006 by Vladimir Ananiev
 *  - Added Siemens SX1 support for mux driver, wakeup messages supported
-*
+* FIXME faultTolerant seems to not work on SX1
 * New Usage:
 * gsmMuxd [options] <pty1> <pty2> ...
 *
@@ -1041,7 +1041,7 @@ int openDevicesAndMuxMode() {
 	//End Modem Init
 
 	terminateCount = numOfPorts;
-	syslog(LOG_INFO, "Waiting for mux-mode.\n");
+//	syslog(LOG_INFO, "Waiting for mux-mode.\n");
 //	sleep(1);
 	syslog(LOG_INFO, "Opening control channel.\n");
 	write_frame(0, NULL, 0, SABM | PF);

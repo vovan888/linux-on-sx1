@@ -115,12 +115,12 @@ static int Read(unsigned char *frame, int length, int readtimeout)
 		read_set = all_set;
 		retval = select(FD_SETSIZE, &read_set, NULL, NULL, &timeoutz);
 		if (retval < 0) {
-			syslog(LOG_DEBUG, "read select error = %d", errno);
+			DBGLOG("read select error = %d\n", errno);
 			return -1;
 			/* exit (EXIT_FAILURE); */
 		}
 		if (retval == 0) {
-			syslog(LOG_DEBUG, "read timeout!");
+			DBGLOG("read timeout!\n");
 			return -1;
 		}
 
@@ -168,12 +168,12 @@ static int Request(unsigned char *request_frame, unsigned char *reply_frame)
 
 	length = 6 + *(unsigned short *)(request_frame + 4);
 	len_write = Write(request_frame, length);
-	DBGLOG("written to serial : %d", len_write);
+	DBGLOG("written to serial : %d\n", len_write);
 	if (len_write != length)
 		return -1;
 
 	len_read = Read(reply_frame, 6, IPC_TIMEOUT);	// read header
-	DBGLOG("read from serial port : %d", len_read);
+	DBGLOG("read from serial port : %d\n", len_read);
 	if (len_read != 6)
 		return -1;	// Error
 
@@ -181,7 +181,7 @@ static int Request(unsigned char *request_frame, unsigned char *reply_frame)
 	if (length) {
 		/* read the rest of data (if there) */
 		len_read = Read(reply_frame + 6, length, IPC_TIMEOUT);
-		DBGLOG("=read from serial port : %d", len_read);
+		DBGLOG("=read from serial port : %d\n", len_read);
 		if (len_read != length)
 			return -1;	// Error
 	}
@@ -655,7 +655,7 @@ int decode_message(unsigned char *msg, unsigned char *answer)
 	cmd = *(unsigned char *)(msg + 1);
 	data = msg + 2;
 
-	DBGMSG(" got message: %02X %02X", group, cmd);
+	DBGMSG(" got message: %02X %02X\n", group, cmd);
 
 	switch (group) {
 	case IPC_GROUP_CCMON:
@@ -763,6 +763,7 @@ static int extension_init(void)
 	ipc_fd = ClRegister("sx1_ext", &cl_flags);
 
 	shdata = ShmMap(SHARED_SYSTEM);
+	DBGLOG("Shdata = %x\n",shdata);
 
 	/* Subscribe to different groups */
 	 /*TODO*/
@@ -780,30 +781,40 @@ static int extension_set_rtc(void)
 	struct tm modem_time;
 	time_t loc_time;
 
-	/* open RTC device */
-	rtc_fd = open(default_rtc, O_RDONLY);
+	/* Startup Init IPC */
+	shdata->powerup.egold_ping_ok = PingIpcL();	/* ping connection with EGold */
+	DBGLOG("PingIpcL : %d\n", shdata->powerup.egold_ping_ok);
+
+	shdata->powerup.reason = StartupReason();	/* Get startup reason */
+	DBGLOG("StartupReason : %d\n", shdata->powerup.reason);
 
 	/* read RTC time from Egold and set local time */
 	shdata->powerup.rtccheck = RtcCheck();	/* check RTC status */
-	if (!shdata->powerup.rtccheck) {
-		res = RtcTransfer(&modem_time);
-		if (!res) {
-			loc_time = mktime(&modem_time);
-			/* set system time to localtime from modem */
-			if ( (loc_time != -1) && (!stime(&loc_time)) ) {
-				DBGLOG("local time set = %s",
-					asctime(&modem_time));
-			}
-		}
-	}
 
-	/* set the RTC time */
-	if (rtc_fd > 0) {
-		res = ioctl(rtc_fd, RTC_SET_TIME, modem_time);
-		if (res == -1) {
-			DBGLOG("RTC_SET_TIME ioctl");
+	if (shdata->powerup.rtccheck) {
+		DBGLOG("RtcCheck error: %d\n", shdata->powerup.rtccheck);
+		return -1;
+	}
+	
+	res = RtcTransfer(&modem_time);
+	if (!res) {
+		loc_time = mktime(&modem_time);
+		/* set system time to localtime from modem */
+		if ( (loc_time != -1) && (!stime(&loc_time)) ) {
+			DBGLOG("local time set = %s\n",
+				asctime(&modem_time));
 		}
-		close(rtc_fd);
+		
+		/* open RTC device and set it to localtime*/
+		rtc_fd = open(default_rtc, O_RDONLY);
+		/* set the RTC time */
+		if (rtc_fd > 0) {
+			res = ioctl(rtc_fd, RTC_SET_TIME, modem_time);
+			if (res == -1) {
+				DBGLOG("RTC_SET_TIME ioctl error\n");
+			}
+			close(rtc_fd);
+		}
 	}
 
 	return 0;
@@ -815,33 +826,28 @@ static int extension_powerup(void)
 	unsigned char cc;
 	int res;
 
-	/* Startup Init IPC */
-	shdata->powerup.egold_ping_ok = PingIpcL();	/* ping connection with EGold */
-
-	shdata->powerup.reason = StartupReason();	/* Get startup reason */
-
 	if (SimGetDomesticLanguage(&cc) >= 0) {
 		shdata->sim.domesticlang = cc;
 		SimSetDomesticLanguage(cc);
-		DBGMSG("SimSetDomesticLanguage = %d", cc);
+		DBGMSG("SimSetDomesticLanguage = %d\n", cc);
 	}
 
 	shdata->powerup.hiddenreset = PowerUpHiddenReset();
-	DBGMSG("PowerUpHiddenReset = %d", shdata->powerup.hiddenreset);
+	DBGMSG("PowerUpHiddenReset = %d\n", shdata->powerup.hiddenreset);
 
 	shdata->powerup.swreason = SWStartupReason();	//PowerUpGetSwStartupReasonReq;
-	DBGMSG("SWStartupReason = %d", shdata->powerup.swreason);
+	DBGMSG("SWStartupReason = %d\n", shdata->powerup.swreason);
 
 	/* PowerUpIndicationObserverOkReq, enable indication observer */
 	IndicationObserverOk();
 
 	shdata->powerup.selftest = SelfTest(0x0B);	/* 0x0B = unknown constant */
-	DBGMSG("SelfTest = %d", shdata->powerup.selftest);
+	DBGMSG("SelfTest = %d\n", shdata->powerup.selftest);
 
 	/*TODO RagbagSetDosAlarmReq(00000); */
 
 	TransitionToNormalMode();	// PowerOffTransitionToNormalReq
-	DBGMSG("TransitionToNormalMode");
+	DBGMSG("TransitionToNormalMode\n");
 
 	/*RagbagSetStateReq(3) */
 	/* 5069A8EC ; CDsyMtc::PowerOnL(void) */
@@ -948,7 +954,7 @@ int main(int argc, char *argv[])
 		/* Block until input arrives on one or more active sockets. */
 		read_fd_set = active_fd_set;
 		if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
-			DBGMSG("select error = %d", errno);
+			DBGMSG("select error = %d\n", errno);
 			exit(EXIT_FAILURE);
 		}
 

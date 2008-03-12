@@ -72,7 +72,7 @@ static int dsy_init_serial(void)
 
 	fd_mux = open(MODEMDEVICE, O_RDWR | O_NOCTTY);
 	if (fd_mux < 0) {
-		ERRLOG("Error: open /dev/mux4 failed!");
+		ERRLOG("Error: open /dev/mux4 failed!\n");
 		/*FIXME we should not exit on real device*/
 		exit(-1);
 	}
@@ -114,12 +114,12 @@ static int Read(unsigned char *frame, int length, int readtimeout)
 		if ((retval =
 		     select(FD_SETSIZE, &read_set, NULL, NULL,
 			    &timeoutz)) < 0) {
-			DBGLOG("read select error = %d", errno);
+			DBGLOG("read select error = %d\n", errno);
 			return -1;
 		}
 
 		if (retval == 0) {
-			DBGLOG("read timeout!");
+			DBGLOG("read timeout!\n");
 			return -1;
 		}
 
@@ -377,7 +377,7 @@ int process_modem(int fd)
 	int length;		// message length
 	int len_read, len_write;
 
-	DBGLOG("process_modem");
+	DBGLOG("process_modem\n");
 	/* read first 6 bytes of message (header) */
 	len_read = Read(buffer_in, 6, IPC_TIMEOUT);
 	if (len_read != 6)
@@ -392,7 +392,7 @@ int process_modem(int fd)
 	}
 	group = buffer_in[1];
 	cmd = buffer_in[2];
-	DBGLOG("got message: %02X %02X %02X", group, cmd, buffer_in[6]);
+	DBGLOG("got message: %02X %02X %02X\n", group, cmd, buffer_in[6]);
 
 	if (buffer_in[0] != IPC_DEST_DSY)
 		return -1;	/* Error - packet is not for us */
@@ -529,14 +529,14 @@ int main(int argc, char *argv[])
 		/* Block until input arrives on one or more active sockets. */
 		read_fd_set = active_fd_set;
 		if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
-			DBGLOG("select error = %d", errno);
+			DBGLOG("select error = %d\n", errno);
 			exit(EXIT_FAILURE);
 		}
 
 		if (FD_ISSET(fd_mux, &read_fd_set)) {
 			/* Message from modem */
 			if (process_modem(fd_mux)) {
-				DBGLOG("error in process_modem");
+				DBGLOG("error in process_modem\n");
 			}
 		}
 		if (FD_ISSET(ipc_fd, &read_fd_set)) {
