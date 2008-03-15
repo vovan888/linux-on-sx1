@@ -22,7 +22,7 @@ export MWFONTDIR=/usr/flphone/share/fonts/
 
 sleep 1
 # Start GSMD
-/usr/flphone/sbin/gsmd -p /dev/mux1 -s 38400  &
+/usr/flphone/sbin/gsmd -p /dev/mux1 -s 38400 -v siemens -m sx1 &
 
 sleep 10
 

@@ -27,8 +27,8 @@
 		printf(fmt, ##arg); } while(0)
 
 #define DPRINT(fmt, arg...) do{											\
-		printf("[%d] %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
-		printf(fmt, ##arg); } while(0)
+		printf("[%d] %s-%s:%d, " fmt, getpid(), __BASE_FILE__, __FUNCTION__, __LINE__, ##arg); \
+		} while(0)
 
 #define FATAL(fmt, arg...) do {											\
 		printf("[%d] %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
@@ -40,11 +40,11 @@
 #define INITSYSLOG(name) openlog(name, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0)
 #define DBGMSG(fmt, arg...)  DPRINT(fmt, ##arg)
 #define INFOLOG(fmt, arg...) do {										\
-		syslog(LOG_INFO, "[%d] INFO: %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
+		syslog(LOG_INFO, "[%d] INFO: %s-%s:%d: ", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
 		syslog(LOG_INFO, fmt, ##arg); } while(0)
 #define DBGLOG(fmt, arg...)  do { DBGMSG(fmt, ##arg);					\
-		syslog(LOG_INFO, "[%d] DEBUG: %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
-		syslog(LOG_DEBUG, fmt, ##arg); } while(0)
+		syslog(LOG_INFO, "[%d] DEBUG: %s-%s: %d, " fmt, getpid(), __BASE_FILE__, __FUNCTION__, __LINE__, ##arg); \
+		} while(0)
 #else
 #define INITSYSLOG(name) openlog(name, LOG_NDELAY | LOG_PID, LOG_LOCAL0)
 #define DBGMSG(fmt, arg...)  do {;}while(0)

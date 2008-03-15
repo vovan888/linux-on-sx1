@@ -26,11 +26,13 @@ plugin_LTLIBRARIES = libgsmd-machine_generic.la \
 		     libgsmd-machine_tihtc.la \
 		     libgsmd-machine_gta01.la \
 		     libgsmd-machine_telit.la \
+		     libgsmd-machine_sx1.la \
 		     libgsmd-vendor_ti.la \
 		     libgsmd-vendor_tihtc.la \
 		     libgsmd-vendor_qc.la \
 		     libgsmd-vendor_bcm.la \
-		     libgsmd-vendor_telit.la
+		     libgsmd-vendor_telit.la \
+		     libgsmd-vendor_siemens.la
 
 libgsmd_machine_generic_la_SOURCES = machine_generic.c
 libgsmd_machine_generic_la_LDFLAGS = -module
@@ -40,6 +42,8 @@ libgsmd_machine_gta01_la_SOURCES = machine_gta01.c
 libgsmd_machine_gta01_la_LDFLAGS = -module
 libgsmd_machine_telit_la_SOURCES = machine_telit.c
 libgsmd_machine_telit_la_LDFLAGS = -module
+libgsmd_machine_sx1_la_SOURCES = machine_sx1.c
+libgsmd_machine_sx1_la_LDFLAGS = -module
 
 libgsmd_vendor_ti_la_SOURCES = vendor_ti.c
 libgsmd_vendor_ti_la_LDFLAGS = -module
@@ -51,6 +55,8 @@ libgsmd_vendor_bcm_la_SOURCES = vendor_bcm.c
 libgsmd_vendor_bcm_la_LDFLAGS = -module
 libgsmd_vendor_telit_la_SOURCES = vendor_telit.c
 libgsmd_vendor_telit_la_LDFLAGS = -module
+libgsmd_vendor_siemens_la_SOURCES = vendor_siemens.c
+libgsmd_vendor_siemens_la_LDFLAGS = -module
 
 
 noinst_HEADERS = gsmd.h
