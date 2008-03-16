@@ -27,9 +27,12 @@ static int mainsignal_show(int frame);
 
 static void mainsignal_changed_callback(int new_value)
 {
-	signal_current = shdata->network.signal;
+	DBGMSG("mainsignal_changed_callback, %d\n", shdata->network.bars);
 
-	mainsignal_show(signal_current);
+	if (signal_current != shdata->network.bars) {
+		signal_current = shdata->network.bars;
+		mainsignal_show(signal_current);
+	}
 }
 
 static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
@@ -71,17 +74,20 @@ static int mainsignal_show(int frame)
 {
 	/*TODO - check if the root window is displayed, or not */
 
+	if (frame >= MAINSIGNAL_NUMFRAMES)
+		frame = MAINSIGNAL_NUMFRAMES - 1;
+	else  if (frame < 0)
+		frame = 0;
+	
 	/* draw frame (part) of the image */
-	if (frame < MAINSIGNAL_NUMFRAMES) {
-		/* clear the area under the indicator to background pixmap */
-		GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
-			    signal_frame_width, signal_frame_height, 0);
-		/* Draw the indicator */
-		GrDrawImagePartToFit(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord,
-				     signal_frame_width, signal_frame_height,
-				     signal_frame_width * frame, 0,
-				     signal_frame_width, signal_frame_height,
-				     signal_image);
-	}
+	/* clear the area under the indicator to background pixmap */
+	GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
+			signal_frame_width, signal_frame_height, 0);
+	/* Draw the indicator */
+	GrDrawImagePartToFit(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord,
+				signal_frame_width, signal_frame_height,
+				signal_frame_width * frame, 0,
+				signal_frame_width, signal_frame_height,
+				signal_image);
 	return 0;
 }

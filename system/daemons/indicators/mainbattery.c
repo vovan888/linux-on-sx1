@@ -27,11 +27,12 @@ static int mainbattery_show(int frame);
 
 static void mainbattery_changed_callback(int new_value)
 {
-	DBGMSG("mainbattery_changed_callback\n");
+	DBGMSG("mainbattery_changed_callback, %d\n", shdata->battery.bars);
 
-	battery_current = shdata->battery.bars;
-
-	mainbattery_show(battery_current);
+	if (battery_current != shdata->battery.bars) {
+		battery_current = shdata->battery.bars;
+		mainbattery_show(battery_current);
+	}
 }
 
 static void mainbattery_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
@@ -73,17 +74,20 @@ static int mainbattery_show(int frame)
 {
 	/*TODO - check if the root window is displayed, or not */
 
+	if (frame >= MAINBATTERY_NUMFRAMES)
+		frame = MAINBATTERY_NUMFRAMES - 1;
+	else  if (frame < 0)
+		frame = 0;
+
 	/* draw frame (part) of the image */
-	if (frame < MAINBATTERY_NUMFRAMES) {
-		/* clear the area under the indicator to background pixmap */
-		GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
-			    battery_frame_width, battery_frame_height, 0);
-		/* Draw the indicator */
-		GrDrawImagePartToFit(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord,
-				     battery_frame_width, battery_frame_height,
-				     battery_frame_width * frame, 0,
-				     battery_frame_width, battery_frame_height,
-				     battery_image);
-	}
+	/* clear the area under the indicator to background pixmap */
+	GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
+			battery_frame_width, battery_frame_height, 0);
+	/* Draw the indicator */
+	GrDrawImagePartToFit(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord,
+				battery_frame_width, battery_frame_height,
+				battery_frame_width * frame, 0,
+				battery_frame_width, battery_frame_height,
+				battery_image);
 	return 0;
 }

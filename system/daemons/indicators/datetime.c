@@ -29,6 +29,7 @@ static int maindatetime_show(void);
 static void maindatetime_changed_callback(int new_value)
 {
 	//      datetime_current = shdata -> datetime.capacity;
+	DBGMSG("maindatetime_changed_callback\n");
 
 	maindatetime_show();
 }

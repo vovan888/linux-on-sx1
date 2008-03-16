@@ -48,7 +48,7 @@ int ipc_group_message(unsigned short src, unsigned char *msg_buf)
 		       src, message->id);
 		switch (message->id) {
 		case MSG_PHONE_NETWORK_BARS:
-
+			indicators[THEME_MAINSIGNAL].changed(0);
 			break;
 		case MSG_PHONE_BATTERY_STATUS:
 			break;
