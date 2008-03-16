@@ -137,7 +137,7 @@ int gsmd_machine_plugin_init(struct gsmd *g, char *machine_name, char *vendor_na
 					machine_name = machines[i].machine;
 
 				if (vendor_name)
-					DEBUGP("wanring: auto-detected vendor '%s', "
+					DEBUGP("warning: auto-detected vendor '%s', "
 						"but user override to '%s'\n",
 						machines[i].vendor, vendor_name);
 				else

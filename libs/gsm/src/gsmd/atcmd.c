@@ -651,7 +651,7 @@ int atcmd_submit(struct gsmd *g, struct gsmd_atcmd *cmd)
 		DEBUGP("extra-submiting command\n");
 		g->machinepl->ex_submit(g);
 	}
-	DEBUGP("submitting command `%s'\n", cmd->buf);
+	DEBUGP("submitting command '%s'\n", cmd->buf);
 
 	llist_add_tail(&cmd->list, &g->pending_atcmds);
 	if (llist_empty(&g->busy_atcmds) && !llist_empty(&g->pending_atcmds)) {

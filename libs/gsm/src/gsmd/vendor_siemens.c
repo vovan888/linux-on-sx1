@@ -90,7 +90,7 @@ static int sacd_parse(const char *buf, int len, const char *param, struct gsmd *
 	
 	tok2 = strtok(NULL, ",");
 	if (!tok2) {
-		switch (atoi(tok1)) {
+		switch (atoi(tok2)) {
 		case 1:	/* COM cable (x55 serial cable)*/
 			/*TODO*/
 			break;
@@ -123,9 +123,13 @@ static int siemens_initsettings(struct gsmd *g)
 	struct gsmd_atcmd *cmd;
 
 	/* reset the second mux channel to factory defaults */
-	rc |= gsmd_simplecmd(g, "AT&F2");
-	/* ignore DTR line */
-	rc |= gsmd_simplecmd(g, "AT&D0");
+//	rc |= gsmd_simplecmd(g, "AT&F2");
+	/* ignore DTR line (on mux1)*/
+//	rc |= gsmd_simplecmd(g, "AT&D0");
+	/* setup Mobile error reporting, mode=3,
+	 indicator event reporting using result code +CIEV:
+	*/
+	rc |= gsmd_simplecmd(g, "AT+CMER=3,0,0,1,0");
 	/* enable ^SACD: Accessory Indicators */
 	rc |= gsmd_simplecmd(g, "AT^SACD=3");
 	

@@ -498,6 +498,12 @@ static int pin_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	struct gsmd_user *gu = ctx;
 	int ret = cmd->ret;
 
+	/* Siemens modems return `+CPIN: TRUE` after valid PIN entry 
+	  and CME 16 if PIN is incorrect */
+	if (!strncmp(resp, "+CPIN: TRUE", 11)) {
+		ret = 0;
+	}
+
 	/* Pass a GSM07.07 CME code directly, don't issue a new PIN
 	 * request because the client waits for a response to her
 	 * PIN submission rather than an event.  */
