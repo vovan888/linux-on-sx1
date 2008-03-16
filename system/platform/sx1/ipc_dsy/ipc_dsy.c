@@ -189,10 +189,6 @@ int HandleRagbag(unsigned char *buf, unsigned char *res)
 	case 5:		// CDsyIndicationHandler::SetLightSensorSettings(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);	// unused ???
 		break;
-	case 9:		// CDsyIndicationHandler::SetTempSensorValues(TPtr8 &)
-		c1 = buf[6];	// unused ???
-		c2 = buf[7];	// unused ???
-		break;
 	case 6:		// CDsyIndicationHandler::NotifyEmailMessage(TPtr8 &)
 		data32 = *(unsigned char *)(buf + 6);
 		// CDosEventManager::EmailMessage(int data32)
@@ -208,7 +204,11 @@ int HandleRagbag(unsigned char *buf, unsigned char *res)
 		// CDosEventManager::VoiceMailStatus(TSAVoiceMailStatus)  data16
 		/*TODO*/
 		break;
-	case 11:		// CDsyIndicationHandler::NotifyCallsForwardingStatus(TPtr8 &)
+	case 9:		// CDsyIndicationHandler::SetTempSensorValues(TPtr8 &)
+		c1 = buf[6];	// unused ???
+		c2 = buf[7];	// unused ???
+		break;
+	case 0x0B:		// CDsyIndicationHandler::NotifyCallsForwardingStatus(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDosEventManager::CallsForwardingStatus(TSACallsForwardingStatus)  data16
 		/*TODO*/
@@ -327,6 +327,9 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 	err = buf[3];
 	if ((err != 0x30) && (err != 0xFF))
 		return -1;
+
+	cmd = buf[2];
+
 	switch (IPC_Group) {
 	case IPC_GROUP_RAGBAG:	// CDsyIndicationHandler::HandleRagbag(TIpcMsgHdr *, TPtr8 &)
 		return HandleRagbag(buf, res);
@@ -335,27 +338,24 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 	case IPC_GROUP_BAT:	// CDsyIndicationHandler::HandleBattery(TIpcMsgHdr *, TPtr8 &)
 		return HandleBattery(buf, res);
 	case IPC_GROUP_RSSI:	// CDsyIndicationHandler::HandleRssi(TIpcMsgHdr *, TPtr8 &)
-		cmd = buf[2];
 		if (cmd == 0) {	// CDsyIndicationHandler::NotifyNetworkBars(TPtr8 &)
 			data16 = *(unsigned short *)(buf + 6);
 			// CDosEventManager::NetworkBars(int)  data16
 			msg.id = MSG_PHONE_NETWORK_BARS;
-			msg.bars = shdata->battery.bars = (unsigned char)data16;
+			msg.bars = shdata->network.bars = (unsigned char)data16;
 			ClSendMessage(MSG_GROUP_PHONE, &msg,
 				      sizeof(struct msg_phone));
 			return 0;
 		}
 		return -1;
 	case IPC_GROUP_POWERUP:	// CDsyIndicationHandler::HandlePowerup(TIpcMsgHdr *, TPtr8 &)
-		cmd = buf[2];
 		if (cmd == 1) {	// CDsyIndicationHandler::SendPingResponse(void)
 			return 0;
 		}
 		return -1;
 		//  CDsyIndicationHandler::HandlePowerdown(TIpcMsgHdr *, TPtr8 &)
 	case IPC_GROUP_POWEROFF:
-		cmd = buf[2];
-		if (cmd == PWROFF_SWITCHOFF) {	// CDsyIndicationHandler::NotifyShutdown(void)
+		if (cmd == PWROFF_SEXITSHUTDOWN) {	// CDsyIndicationHandler::NotifyShutdown(void)
 			 /*TODO*/
 			    // many things...
 			    // many things...
