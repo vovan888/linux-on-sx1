@@ -106,9 +106,9 @@ endif
 # Compile with copious debug information
 
 ifeq ($(CONFIG_DEBUG),y)
-CFLAGS += -O0 -g -DDEBUG
+CFLAGS += -pipe -g -DDEBUG
 else
-CFLAGS += -O2
+CFLAGS += -pipe -Os -fomit-frame-pointer
 endif
 
 
