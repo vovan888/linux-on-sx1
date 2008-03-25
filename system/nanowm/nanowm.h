@@ -60,9 +60,10 @@ struct windowlist {
 	GR_WINDOW_ID pid;	/* The ID of this window's parent */
 	GR_WINDOW_ID clientid;	/* clientid for container window*/
 	int type;		/* What kind of window this is */
-  int sizing;                   /* True if in the middle of a sizing request */
-  int active;		/* Whether this window is active or not */
+	int sizing;		/* True if in the middle of a sizing request */
+	int active;		/* Whether this window is active or not */
 	void *data;		/* Data associated with this window */
+
 	struct windowlist *next; /* The next window in the list */
 };
 typedef struct windowlist win;

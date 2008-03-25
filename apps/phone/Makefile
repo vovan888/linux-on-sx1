@@ -2,6 +2,7 @@
 
 target-y=
 
+target-$(CONFIG_PHONE) += phone
 target-$(CONFIG_DIALER) += dialer
 target-$(CONFIG_INCOMING_CALL) += incoming
 target-$(CONFIG_CALL_LOGS) += logs

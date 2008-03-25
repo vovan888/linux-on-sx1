@@ -18,14 +18,15 @@ CONFIG_SCREEN_HEIGHT=220
 #
 # Platform Configuration
 #
-# CONFIG_PLATFORM_SX1 is not set
-CONFIG_PLATFORM_X86DEMO=y
-CONFIG_CPU_INTEL=y
+CONFIG_PLATFORM_SX1=y
+# CONFIG_PLATFORM_X86DEMO is not set
+CONFIG_CPU_ARM=y
 
 #
 # Build Options
 #
-# CROSS_COMPILE is not set
+CROSS_COMPILE=y
+CROSS_COMPILER_PREFIX="arm-linux-"
 MW_PREFIX="/home/vovan/linux-on-sx1-dev/microwin/src"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set
@@ -40,6 +41,7 @@ CONFIG_DEBUG=y
 # Phone Applications
 #
 CONFIG_PHONEAPPS=y
+CONFIG_PHONE=y
 # CONFIG_DIALER is not set
 CONFIG_INCOMING_CALL=y
 # CONFIG_CALL_LOGS is not set

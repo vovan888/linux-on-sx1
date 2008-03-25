@@ -37,8 +37,8 @@ int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index)
 	return 0;
 }
 
-/* Paint the Status Area of every Application window
-  taken from nxdraw.c */
+/* Paint the Status Area of every Application window.
+   Taken from nxdraw.c */
 void
 wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR *title, GR_BOOL active,
 	GR_WM_PROPS props)
@@ -126,3 +126,51 @@ wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR *title, GR_BOOL active,
 out:
 	GrDestroyGC(gc);
 }
+
+/*
+ * GR_WM_PROPS_NOBACKGROUND
+ * GR_WM_PROPS_NOFOCUS
+ * GR_WM_PROPS_NOMOVE
+ * GR_WM_PROPS_NORAISE
+ * GR_WM_PROPS_NODECORATE
+ * GR_WM_PROPS_NOAUTOMOVE
+ * GR_WM_PROPS_NOAUTORESIZE
+ *
+ * GR_WM_PROPS_BORDER
+ * GR_WM_PROPS_APPFRAME
+ * GR_WM_PROPS_CAPTION
+ * GR_WM_PROPS_CLOSEBOX
+ * GR_WM_PROPS_MAXIMIZE
+ * GR_WM_PROPS_APPWINDOW
+ *
+ */
+
+/*	Bring application to top
+ */
+void container_raise(win *window)
+{
+	struct pos_size *pos;
+	GR_RECT		r;
+	GR_COORD	cxborder = 0, cyborder = 0;
+	GR_WINDOW_INFO	info;
+	GR_GC_ID        gc;
+	Dprintf("container_raise window %d\n", window->wid);
+
+	if(window->active) return;
+
+	/* Set focus on button down*/
+	GrSetFocus(window->clientid);
+
+	/* Raise window */
+	GrRaiseWindow(window->wid);
+
+	/* Map window */
+	GrMapWindow(window->wid);
+
+	window->active = GR_TRUE;
+}
+/*	Hide application
+ */
+
+/*	Show application switcher
+ */
