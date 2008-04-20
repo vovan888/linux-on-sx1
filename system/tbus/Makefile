@@ -1,26 +1,14 @@
-# system/Makefile
+# tbus/Makefile
 
-target-y=
-
-#note! sequence dependent :), ipc should be listed first.
-target-$(CONFIG_IPC) += ipc
-target-$(CONFIG_TBUS) += tbus
-target-$(CONFIG_NANOWM) += nanowm
-target-$(CONFIG_DAEMONS) += daemons
-target-$(CONFIG_GSMMUX) += gsmmux
-
-target-y += platform
-
-DIRS=$(target-y)
-#DIRS=$(sort $(target-y))
+DIRS=bus libtbus
 
 subdir-build = $(patsubst %,_subdir_%,$(DIRS))
 subdir-clean = $(patsubst %,_clean_%,$(DIRS))
 subdir-install = $(patsubst %,_install_%,$(DIRS))
 
-all: $(subdir-build) 
+all: $(subdir-build)
 clean: $(subdir-clean)
-install: $(subdir-install) 
+install: $(subdir-install)
 
 $(subdir-build): dummy
 	@ $(MAKE) -C $(patsubst _subdir_%,%,$@)

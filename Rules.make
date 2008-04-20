@@ -99,8 +99,10 @@ endif
 #  -fvisibility=hidden support
 
 ifdef CONFIG_GCC_HIDDEN_VISIBILITY
-CFLAGS += -fvisibility=hidden
+CFLAGS += -fvisibility=hidden -D'DLLEXPORT=__attribute__ ((visibility("default")))' -D'DLLLOCAL=__attribute__ ((visibility("hidden")))'
 CPPFLAGS += -fvisibility=hidden -fvisibility-inlines-hidden
+else
+CFLAGS += -DDLLEXPORT="" -DDLLLOCAL=""
 endif
 
 # Compile with copious debug information

@@ -31,7 +31,7 @@
 #include "server.h"
 
 struct subscription {
-        struct llist_head list;
+	struct llist_head list;
 
 	unsigned short	group_id;
 	cl_app_struct	*client;

@@ -10,29 +10,16 @@ export NM=$(TARGET_CROSS)nm
 export RANLIB=$(TARGET_CROSS)ranlib
 export LD=$(TARGET_CROSS)ld
 
-# FLNX, libini, libgsm are always built
-local-target-y=libini gsmd
-local-target-$(CONFIG_FLNX) += flnx
+local-target-y=
+local-target-$(CONFIG_LIBINI)	+= libini
+local-target-$(CONFIG_FLNX)	+= flnx
+local-target-$(CONFIG_GSM)	+= gsmd
 
-target-y=libflphone libtheme
-
-target-$(CONFIG_PIM_ADDRESS) += pim
-target-$(CONFIG_PIM_NOTEPAD) += pim
-target-$(CONFIG_PIM_TODO) += pim
-target-$(CONFIG_PIM_SCHEDULE) += pim
-
-target-$(CONFIG_APP_ALARM) += pim
-target-$(CONFIG_APP_CALC) += pim
-target-$(CONFIG_APP_MAIL) += pim
-target-$(CONFIG_APP_SYSCONFIG) += pixlib pim
-target-$(CONFIG_SYNC) += pim sync
-
-ifeq ($(CONFIG_NANOX),y)
-target-$(CONFIG_APP_ALARM) += wm
-target-$(CONFIG_PIXILWM) += pixlib wm xml
-target-$(CONFIG_APP_NETCONFIG) += pixlib wm
-target-$(CONFIG_NANOX_PIXCAL) += pixlib
-endif
+target-y=
+target-$(CONFIG_FLGUI)		+= flgui
+target-$(CONFIG_LIBFLPHONE)	+= libflphone
+target-$(CONFIG_LIBTHEME)	+= libtheme
+target-$(CONFIG_LIBTPL)		+= libtpl
 
 # This will ensure that we only build one target at a time
 DIRS=$(sort $(target-y))
@@ -70,7 +57,7 @@ endif
 $(BASE_DIR)/libs/flnx/.configured: 
 	(cd $(BASE_DIR)/libs/flnx; ./configure \
 	--host=$(SYS) \
-        --build=$(BUILD_SYS) \
+	--build=$(BUILD_SYS) \
 	--enable-shared \
 	--enable-gl=no \
 	--enable-debug=$(FLNX_DEBUG) \

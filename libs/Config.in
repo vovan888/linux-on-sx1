@@ -1,9 +1,49 @@
 menu 'Libraries'
 
+config CONFIG_FLGUI
+       bool "FLGUI - fltk widgets for flphone"
+       default y
+       help
+	Say yes here to build FLGUI
+
 config CONFIG_FLNX
-       bool "Build FLNX"
+       bool "FLNX - FLTK for Nano-X"
        default y
        help
 	Say yes here to build FLNX for Microwindows
+
+config CONFIG_GSM
+       bool "gsmd - OpenMoko`s gsmd and libgsmd"
+       default y
+       help
+	Say yes here to build libgsmd
+
+config CONFIG_LIBFLPHONE
+       bool "libflphone - common lib for flphone"
+       default y
+       help
+	Say yes here to build libflphone
+
+config CONFIG_LIBINI
+       bool "libini - library to handle INI files"
+       default y
+       help
+	Say yes here to build libini.
+	
+	http://sourceforge.net/projects/libini
+
+config CONFIG_LIBTHEME
+       bool "libtheme - common lib for theme handling"
+       default y
+       help
+	Say yes here to build libtheme
+
+config CONFIG_LIBTPL
+       bool "libtpl - Fast, easy serialization in C"
+       default y
+       help
+	Say yes here to build libtpl
+	
+	http://tpl.sourceforge.net
 
 endmenu

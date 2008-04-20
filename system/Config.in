@@ -16,6 +16,14 @@ config CONFIG_IPC
 
           Most people should answer Y.
 
+config CONFIG_TBUS
+        bool "Build TBUS ipc server and lib"
+        default n
+        help
+          Say Y here if you want to use TBUS IPC
+
+          Most people should answer Y.
+
 source "system/daemons/Config.in"
 
 config CONFIG_GSMMUX
@@ -24,6 +32,7 @@ config CONFIG_GSMMUX
         help
           Say Y here if you want to use GSM mux
 
+	  http://developer.berlios.de/projects/gsmmux/
           Most people should answer Y.
 
 

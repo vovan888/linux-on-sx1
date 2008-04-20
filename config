@@ -18,19 +18,18 @@ CONFIG_SCREEN_HEIGHT=220
 #
 # Platform Configuration
 #
-CONFIG_PLATFORM_SX1=y
-# CONFIG_PLATFORM_X86DEMO is not set
-CONFIG_CPU_ARM=y
+# CONFIG_PLATFORM_SX1 is not set
+CONFIG_PLATFORM_X86DEMO=y
+CONFIG_CPU_INTEL=y
 
 #
 # Build Options
 #
-CROSS_COMPILE=y
-CROSS_COMPILER_PREFIX="arm-linux-"
+# CROSS_COMPILE is not set
 MW_PREFIX="/home/vovan/linux-on-sx1-dev/microwin/src"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set
-CONFIG_DEBUG=y
+# CONFIG_DEBUG is not set
 # WERROR is not set
 
 #
@@ -41,20 +40,19 @@ CONFIG_DEBUG=y
 # Phone Applications
 #
 CONFIG_PHONEAPPS=y
-CONFIG_PHONE=y
+# CONFIG_PHONE is not set
 # CONFIG_DIALER is not set
-CONFIG_INCOMING_CALL=y
+# CONFIG_INCOMING_CALL is not set
 # CONFIG_CALL_LOGS is not set
 # CONFIG_MESSAGES is not set
 # CONFIG_MENUPUSK is not set
-CONFIG_MAINMENU=y
+# CONFIG_MAINMENU is not set
 # CONFIG_TEST is not set
 
 #
 # Media Applications
 #
-CONFIG_MEDIA=y
-# MEDIA_MP3_PLAYER is not set
+# CONFIG_MEDIA is not set
 
 #
 # PIM Applications
@@ -64,13 +62,20 @@ CONFIG_MEDIA=y
 #
 # Libraries
 #
+# CONFIG_FLGUI is not set
 CONFIG_FLNX=y
+CONFIG_GSM=y
+CONFIG_LIBFLPHONE=y
+CONFIG_LIBINI=y
+CONFIG_LIBTHEME=y
+# CONFIG_LIBTPL is not set
 
 #
 # System applications
 #
 CONFIG_NANOWM=y
 CONFIG_IPC=y
+CONFIG_TBUS=y
 
 #
 # System daemons

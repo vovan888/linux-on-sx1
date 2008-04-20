@@ -298,15 +298,6 @@ typedef union {
 
 #define CL_MAX_PKT_SIZE  (sizeof(cl_packet) + CL_MAX_MSG_LEN)
 
-/* -fvisibility=hidden support macro */
-#ifdef CONFIG_GCC_HIDDEN_VISIBILITY
-    #define DLLEXPORT __attribute__ ((visibility("default")))
-    #define DLLLOCAL __attribute__ ((visibility("hidden")))
-#else
-    #define DLLEXPORT
-    #define DLLLOCAL
-#endif
-
 /* Struct for all the flphone messages 
  it can be the header of some special messages*/
 struct msg_generic {

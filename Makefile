@@ -166,14 +166,11 @@ defconfig: $(BASE_DIR)/config
 $(BASE_DIR)/config:
 	@ cp $(SYSDEP_DIR)/defconfig $(BASE_DIR)/config
 
-defconfig_ipaq:
-	@ cp $(SYSDEP_DIR)/defconfig.ipaq $(BASE_DIR)/config
+defconfig_host:
+	@ cp -f $(SYSDEP_DIR)/defconfig.host $(BASE_DIR)/config
 
-defconfig_zaurus:
-	@ cp $(SYSDEP_DIR)/defconfig.zaurus $(BASE_DIR)/config
-
-defconfig_tuxscreen:
-	@ cp $(SYSDEP_DIR)/defconfig.tuxscreen $(BASE_DIR)/config
+defconfig_sx1:
+	@ cp -f $(SYSDEP_DIR)/defconfig.sx1 $(BASE_DIR)/config
 
 dummy:
 
