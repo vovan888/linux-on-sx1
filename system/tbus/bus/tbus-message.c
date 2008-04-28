@@ -15,7 +15,7 @@
  * @param len pointer to the variable, containing length of buffer
  * @return 0 - OK, -1 - error
  */
-int tbus_write(int fd, char *buf, int *len)
+static int tbus_write(int fd, char *buf, int *len)
 {
 	int total = 0;		/* how many bytes we've sent */
 	int bytesleft = *len;	/* how many we have left to send */
@@ -45,7 +45,8 @@ int tbus_write(int fd, char *buf, int *len)
  */
 int tbus_write_message(int fd, struct tbus_message *msg, char *args)
 {
-	int len, ret;
+	int len;
+	int ret;
 
 	/* send the message body */
 	len = sizeof(struct tbus_message);

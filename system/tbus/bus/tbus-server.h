@@ -5,7 +5,6 @@
  *
  * Licensed under GPLv2, see file License in this tarball for details.
  */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -15,10 +14,10 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#include <ipc/tbus.h>
-
 #include <common/uthash.h>
 #include <common/linux_list.h>
+
+#include <ipc/tbus.h>
 
 /* clients list struct */
 struct tbus_client {
@@ -43,7 +42,6 @@ struct tbus_signal_conn {
 
 	int	num_of_clients;		/* number of connected clients */
 	struct subscription clients;	/* connected clients list */
-//	struct tbus_client * client;	/* connected clients list */
 
 	UT_hash_handle hh;	/* makes this structure hashable by service_dest+object */
 };

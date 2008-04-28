@@ -31,7 +31,7 @@ static int tbus_init_socket(char *socket_path)
 	saddr.sun_family = AF_UNIX;
 	strncpy(saddr.sun_path, socket_path, sizeof(saddr.sun_path));
 
-	if (bind(sock, (struct sockaddr *)&saddr, SUN_LEN(&saddr)) < 0)
+	if (bind(sock, (struct sockaddr *)&saddr, (socklen_t)SUN_LEN(&saddr)) < 0)
 		goto init_socket_error;
 
 	if (listen(sock, 10) == -1)
@@ -42,10 +42,8 @@ static int tbus_init_socket(char *socket_path)
 init_socket_error:
 
 	perror("tbus_init_socket");
-	if (sock)
+	if (sock >=0)
 		close(sock);
-	exit(-1);
-
 	return -1;
 }
 
@@ -58,9 +56,9 @@ static void signal_handler(int signr)
 	switch (signr) {
 	case SIGTERM:
 		terminate = 1;
-	case SIGINT:
-		exit(0);
 		break;
+	case SIGINT:
+		exit(EXIT_SUCCESS);
 	case SIGUSR1:
 	case SIGALRM:
 		/*gsmd_timer_check_n_run(); */
@@ -71,13 +69,13 @@ static void signal_handler(int signr)
 /**
  * Init TBUS server
  */
-static void tbus_init()
+static int tbus_init()
 {
 	int ret;
 	/* become daemon */
 	ret = daemon(0, 0);
-	if (ret)
-		exit(-1);
+	if (ret < 0)
+		return -1;
 
 	terminate = 0;
 
@@ -88,16 +86,15 @@ static void tbus_init()
 	tbus_socket_app = tbus_init_socket(TBUS_SOCKET_APP);
 
 	if ((tbus_socket_sys < 0) || (tbus_socket_app < 0))
-		exit(-1);
-
+		return -1;
 
 	/* setup signals handlers */
 	signal(SIGTERM, signal_handler);
 	signal(SIGINT, signal_handler);
 	signal(SIGUSR1, signal_handler);
 	signal(SIGALRM, signal_handler);
-
-	tbus_init_clients();
+	
+	return 0;
 }
 
 /**
@@ -107,7 +104,7 @@ static void tbus_mainloop()
 {
 	int maxfd, ret, i, newfd;
 	struct sockaddr_un saddr;
-	socklen_t sadrlen = sizeof(saddr);
+	socklen_t sadrlen = (socklen_t)sizeof(saddr);
 
 	/* max value for socket */
 	maxfd =
@@ -181,7 +178,11 @@ static void tbus_exit()
  */
 int main(int argc, char **argv)
 {
-	tbus_init();
+	int ret;
+	
+	ret = tbus_init();
+	if(ret < 0)
+		exit(EXIT_FAILURE);
 
 	tbus_mainloop();
 

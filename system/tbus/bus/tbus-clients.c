@@ -11,14 +11,6 @@
 struct tbus_client *clients_by_service;
 
 /**
- * Init clients list
- */
-void tbus_init_clients()
-{
-	clients_by_service = NULL;
-}
-
-/**
  * Add a client struct to the hashed list
  * @param socket_fd client socket file descriptor
  * @param bus_id id of the connected bus

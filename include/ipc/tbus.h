@@ -34,17 +34,17 @@ extern "C" {
 
 #define TBUS_MAX_NAME		23
 #define TBUS_MAX_MESSAGE	4000
-#define TBUS_MAGIC		0x88800888
+#define TBUS_MAGIC		0x08880888
 
 /* internal message struct */
 struct tbus_message {
-	unsigned int magic;	/* magic constant */
-	unsigned int length;	/* length of the message data (can be zero) */
-	unsigned int type;	/* type of message */
-	unsigned int serial;	/* serial number for the method call and return */
+	int magic;	/* magic constant */
+	int length;	/* length of the message data (can be zero) */
+	int type;	/* type of message */
+	int serial;	/* serial number for the method call and return */
 	char service_sender[TBUS_MAX_NAME+1];	/* sender */
 	char service_dest[TBUS_MAX_NAME+1];	/* destination */
-//	char interface[TBUS_MAX_NAME+1];	/* interface */
+/*	char interface[TBUS_MAX_NAME+1];*/	/* interface */
 	char object[TBUS_MAX_NAME+1];		/* method name to call or emitted signal name */
 };
 
