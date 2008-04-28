@@ -65,7 +65,7 @@ $(BASE_DIR)/libs/flnx/.configured:
 	touch $(BASE_DIR)/libs/flnx/.configured
 
 _build_flnx: $(BASE_DIR)/libs/flnx/.configured
-	make -C $(BASE_DIR)/libs/flnx/src -e 
+	make -C $(BASE_DIR)/libs/flnx/src -e -j3
 
 	rm -f $(STAGE_DIR)/lib/libfltk.a $(STAGE_DIR)/lib/libfltk.so*
 	ln -s $(BASE_DIR)/libs/flnx/lib/libfltk.a $(STAGE_DIR)/lib/libfltk.a
@@ -89,7 +89,7 @@ $(BASE_DIR)/libs/libini/.configured:
 	touch $(BASE_DIR)/libs/libini/.configured
 
 _build_libini: $(BASE_DIR)/libs/libini/.configured
-	make -C $(BASE_DIR)/libs/libini -e 
+	make -C $(BASE_DIR)/libs/libini -e -j3
 
 	rm -f $(STAGE_DIR)/lib/libini.a $(STAGE_DIR)/lib/libini.so*
 	ln -s $(BASE_DIR)/libs/libini/src/.libs/libini.a $(STAGE_DIR)/lib
@@ -113,7 +113,7 @@ $(BASE_DIR)/libs/gsm/.configured:
 	touch $(BASE_DIR)/libs/gsm/.configured
 
 _build_gsmd: $(BASE_DIR)/libs/gsm/.configured
-	make -C $(BASE_DIR)/libs/gsm/src -e 
+	make -C $(BASE_DIR)/libs/gsm/src -e -j3
 
 	rm -f $(STAGE_DIR)/lib/libgsmd.a $(STAGE_DIR)/lib/libgsmd.so*
 	ln -s $(BASE_DIR)/libs/gsm/src/libgsmd/.libs/libgsmd.a $(STAGE_DIR)/lib
