@@ -49,7 +49,7 @@ static const char id[]="$Id: tpl.c 121 2007-04-27 05:53:31Z thanson $";
 #include <sys/mman.h>   /* mmap */
 #endif
 
-#include "tpl.h"
+#include <common/tpl.h>
 
 #define TPL_GATHER_BUFLEN 8192
 
