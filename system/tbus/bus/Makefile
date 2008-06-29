@@ -1,6 +1,6 @@
-#bus/Makefile
+#tbus/Makefile
 
-TARGET=tbus
+TARGET=tbus-daemon
 INSTALL_BINDIR=$(INSTALL_DIR)/sbin
 
 SRC=${shell ls *.c} 

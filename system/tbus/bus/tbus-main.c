@@ -71,12 +71,13 @@ static void signal_handler(int signr)
  */
 static int tbus_init()
 {
+#ifndef DEBUG
 	int ret;
 	/* become daemon */
 	ret = daemon(0, 0);
 	if (ret < 0)
 		return -1;
-
+#endif
 	terminate = 0;
 
 	unlink(TBUS_SOCKET_SYS);

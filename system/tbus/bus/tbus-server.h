@@ -55,7 +55,7 @@ void tbus_client_del(struct tbus_client *client);
 
 /* from tbus-message.c */
 int tbus_client_message(int socket_fd, int bus_id);
-int tbus_write_message(int fd, struct tbus_message *msg, char *args);
+int tbus_write_message(int fd, struct tbus_message *msg);
 
 /* from tbus-signal.c */
 int tbus_client_connect_signal(struct tbus_client *sender_client, struct tbus_message *msg);

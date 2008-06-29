@@ -9,106 +9,74 @@
 #include "tbus-server.h"
 
 /**
- * Write the buf to the file
- * @param fd file descriptor
- * @param buf source buffer
- * @param len pointer to the variable, containing length of buffer
- * @return 0 - OK, -1 - error
+ * Free all the parts of the message
+ * @param msg pointer to the message
  */
-static int tbus_write(int fd, char *buf, int *len)
+static void tbus_msg_free(struct tbus_message *msg)
 {
-	int total = 0;		/* how many bytes we've sent */
-	int bytesleft = *len;	/* how many we have left to send */
-	int n = 0;
-
-	while (total < *len) {
-		n = write(fd, buf + total, bytesleft);
-		if (n == -1) {
-			if (errno == EAGAIN || errno == EINTR)
-				continue;
-			break;
-		}
-		total += n;
-		bytesleft -= n;
-	}
-
-	*len = total;	/* return number actually sent here */
-
-	return n == -1 ? -1 : 0; /* return -1 on failure, 0 on success */
+	free(msg->service_sender);
+	free(msg->service_dest);
+	free(msg->object);
+	free(msg->data);
 }
 
 /**
- * Read client message, msg and arg buffer are allocated automatically
+ * Write message to the client
  * @param fd file descriptor of destination
  * @param msg message struct
  * @param args message arguments
  */
-int tbus_write_message(int fd, struct tbus_message *msg, char *args)
+static int tbus_write_message(int fd, struct tbus_message *msg)
 {
-	int len;
-	int ret;
+	int err;
+	tpl_node *tn;
 
-	/* send the message body */
-	len = sizeof(struct tbus_message);
-	ret = tbus_write(fd, (char *)msg, &len);
+	tn = tpl_map(TBUS_MESSAGE_FORMAT, &msg->magic, &msg->type,
+		      &msg->service_sender, &msg->service_dest, &msg->object, &msg->data);
+	tpl_pack(tn,0);  /* copies message data into the tpl */
+	err = tpl_dump(tn, TPL_FD, fd);	/* write the tpl image to file descriptor */
+	tpl_free(tn);
 
-	/* send the argument */
-	len = msg->length;
-	ret = tbus_write(fd, args, &len);
+	if(err < 0) {
+		/* error while writing means we lost connection to server */
+		tbus_socket_sys = 0;
+		/*FIXME*/
+	}
 
-	/*FIXME check all the 'ret' values*/
-	return 0;
+	return err;
 }
 
 /**
- * Read client message, msg and arg buffer are allocated automatically
+ * Read client message, msg buffer is allocated automatically
  * @param fd file descriptor to read from
- * @param msg_p pointer to the struct tbus_message address
- * @param arg_p pointer to the arg buffer address
+ * @param msg pointer to the struct tbus_message
+ *
+ * Buffers for the data in the structure are allocated automatically!
  */
-static int tbus_read_message(int fd, struct tbus_message **msg_p, char **arg_p)
+static int tbus_read_message(int fd, struct tbus_message *msg)
 {
-	int len_read;
-	struct tbus_message *msg;
-	char *arg = NULL;
+	tpl_node *tn;
 
-	/* read the header of the message */
-	msg = calloc(1, sizeof(struct tbus_message));
-	if (msg == NULL)
-		/*out of memory error */
-		goto error;
-
-	len_read = read(fd, (void *)msg, sizeof(struct tbus_message));
-	if ((len_read <= 0) || (len_read < sizeof(struct tbus_message)))
-		/* EOF or client closed socket */
+	tn = tpl_map(TBUS_MESSAGE_FORMAT, &msg->magic, &msg->type,
+		      &msg->service_sender, &msg->service_dest, &msg->object, &msg->data);
+	if (tpl_load(tn, TPL_FD, fd))
 		goto error_msg;
+	tpl_unpack(tn,0);   /* allocates space and unpacks data */
+
+	tpl_free(tn);
 
 	if (msg->magic != TBUS_MAGIC) {
 		/* it is not TBUS message */
 		/*FIXME what to do here ? */
-		goto error_msg;
+		goto error_tpl;
 	}
-
-	if (msg->length > 0) {
-		/* read the rest of message */
-		arg = calloc(1, msg->length);
-		if (arg == NULL)
-			/*out of memory error */
-			goto error_msg;
-		len_read = read(fd, (void *)arg, msg->length);
-		if (len_read < msg->length)
-			goto error_arg;
-	}
-
-	*msg_p = msg;
-	*arg_p = arg;
 
 	return 0;
-error_arg:
-	free(arg);
+error_tpl:
+	tbus_msg_free(msg);
 error_msg:
 	free(msg);
-error:
+	tpl_free(tn);
 	return -1;
 }
 
@@ -120,11 +88,11 @@ error:
 int tbus_client_message(int socket_fd, int bus_id)
 {
 	int ret;
-	struct tbus_message *msg;
+	struct tbus_message msg;
 	char *args;
 	struct tbus_client *dest_client, *sender_client;
 
-	ret = tbus_read_message(socket_fd, &msg, &args);
+	ret = tbus_read_message(socket_fd, &msg);
 	if (ret < 0)
 		return -1;
 
