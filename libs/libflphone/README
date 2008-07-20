@@ -3,4 +3,5 @@ README
 
 This lib contains different, non-graphic functions:
 - configuration
+- shared memory segment
 - 

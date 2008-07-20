@@ -15,27 +15,42 @@
 
 #include "alarmd_internal.h"
 
+struct TBusConnection bus;	/* TBUS connection */
+
+/* Register with IPC server */
+int ipc_start(char *servername)
+{
+	int ret;
+	ret = tbus_register_service(&bus, servername);
+
+	if (ret < 0)
+		fprintf(stderr,"%s : Unable to locate the IPC server.\n", servername);
+	else 
+		ret = bus.socket_fd;
+	return ret;
+}
+
 /* Handle IPC message
  * This message only tells indicator that its value is changed
  * Actual value is stored in sharedmem
 */
 int ipc_handle(int fd)
 {
-	int ack = 0, size = 64;
-	unsigned short src = 0;
-	unsigned char msg_buf[64];
+	int ret;
+	struct tbus_message msg;
 
 	DBGMSG("alarmserver: ipc_handle\n");
 
-	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
-		return ack;
-
-	if (ack == CL_CLIENT_BROADCAST) {
-		/* handle broadcast message */
+	ret = tbus_get_message(&bus, &msg);
+	if (ret < 0)
+		return -1;
+	switch(msg.type) {
+		case TBUS_MSG_EMIT_SIGNAL:
+			/* we received a signal */
+//			ipc_signal(&msg);
+			break;
 	}
 
-	/*      if (IS_GROUP_MSG(src))
-	   ipc_group_message(src, msg_buf); */
-	
+	tbus_msg_free(&msg);
 	return 0;
 }

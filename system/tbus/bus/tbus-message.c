@@ -7,6 +7,7 @@
  */
 
 #include "tbus-server.h"
+#include <debug.h>
 
 /**
  * Free all the parts of the message
@@ -14,6 +15,8 @@
  */
 static void tbus_msg_free(struct tbus_message *msg)
 {
+//	DPRINT("%d, %s/%s %s\n",msg->type, msg->service_dest, msg->object, msg->data);
+	
 	free(msg->service_sender);
 	free(msg->service_dest);
 	free(msg->object);
@@ -26,8 +29,10 @@ static void tbus_msg_free(struct tbus_message *msg)
  * @param msg message struct
  * @param args message arguments
  */
-static int tbus_write_message(int fd, struct tbus_message *msg)
+int tbus_write_message(int fd, struct tbus_message *msg)
 {
+	DPRINT("%d, %s/%s %s\n",msg->type, msg->service_dest, msg->object, msg->data);
+
 	int err;
 	tpl_node *tn;
 
@@ -38,8 +43,7 @@ static int tbus_write_message(int fd, struct tbus_message *msg)
 	tpl_free(tn);
 
 	if(err < 0) {
-		/* error while writing means we lost connection to server */
-		tbus_socket_sys = 0;
+		/* error while writing means we lost connection to client */
 		/*FIXME*/
 	}
 
@@ -51,7 +55,7 @@ static int tbus_write_message(int fd, struct tbus_message *msg)
  * @param fd file descriptor to read from
  * @param msg pointer to the struct tbus_message
  *
- * Buffers for the data in the structure are allocated automatically!
+ * Buffers for the data in the structure msg are allocated automatically!
  */
 static int tbus_read_message(int fd, struct tbus_message *msg)
 {
@@ -65,6 +69,8 @@ static int tbus_read_message(int fd, struct tbus_message *msg)
 
 	tpl_free(tn);
 
+	DPRINT("%d,%s->%s/%s (%s)\n",msg->type, msg->service_sender, msg->service_dest, msg->object, msg->data);
+
 	if (msg->magic != TBUS_MAGIC) {
 		/* it is not TBUS message */
 		/*FIXME what to do here ? */
@@ -75,7 +81,6 @@ static int tbus_read_message(int fd, struct tbus_message *msg)
 error_tpl:
 	tbus_msg_free(msg);
 error_msg:
-	free(msg);
 	tpl_free(tn);
 	return -1;
 }
@@ -89,7 +94,6 @@ int tbus_client_message(int socket_fd, int bus_id)
 {
 	int ret;
 	struct tbus_message msg;
-	char *args;
 	struct tbus_client *dest_client, *sender_client;
 
 	ret = tbus_read_message(socket_fd, &msg);
@@ -97,52 +101,57 @@ int tbus_client_message(int socket_fd, int bus_id)
 		return -1;
 
 	/* try to find the target and source services in clients list */
-	sender_client = tbus_client_find_by_service(msg->service_sender);
+//	sender_client = tbus_client_find_by_service(msg.service_sender);
+	/* for some security - find the client by socket fd */
+	sender_client = tbus_client_find_by_socket(socket_fd);
 
 	/* we have a message, decode it */
 	if (sender_client == NULL) {
 		/* client is not registered, so only REGISTER allowed */
-		if (msg->type == TBUS_MSG_REGISTER) {
-			ret =
-			    tbus_client_add(socket_fd, bus_id,
-					    msg->service_sender);
-			msg->type = TBUS_MSG_REGISTERED;
-			msg->length = 0;
-			ret |= tbus_write_message(socket_fd, msg, args);
+		if (msg.type == TBUS_MSG_REGISTER) {
+			ret = tbus_client_add(socket_fd, msg.service_sender);
+			msg.type = TBUS_MSG_REGISTERED;
+			ret |= tbus_write_message(socket_fd, &msg);
+			free(msg.service_dest);
+			free(msg.object);
+			free(msg.data);
 		} else {
 			/* error - not connected */
-			msg->type = TBUS_MSG_ERROR;
-			msg->length = 0;
-			ret = tbus_write_message(socket_fd, msg, args);
+			msg.type = TBUS_MSG_ERROR;
+			ret = tbus_write_message(socket_fd, &msg);
+			tbus_msg_free(&msg);
 		}
-	} else {		
-		switch (msg->type) {
+	} else {	
+		switch (msg.type) {
 		case TBUS_MSG_REGISTER:
 			/* error - already connected */
-			msg->type = TBUS_MSG_ERROR;
-			msg->length = 0;
-			ret = tbus_write_message(socket_fd, msg, args);
+			msg.type = TBUS_MSG_ERROR;
+			ret = tbus_write_message(socket_fd, &msg);
+			tbus_msg_free(&msg);
 			break;
 		case TBUS_MSG_CALL_METHOD:
-			dest_client = tbus_client_find_by_service(msg->service_dest);
+			dest_client = tbus_client_find_by_service(msg.service_dest);
 			ret =
-			    tbus_client_method(sender_client, dest_client, msg,
-					       args);
+			    tbus_client_method(sender_client, dest_client, &msg);
+			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
 			break;
-		case TBUS_MSG_RETURN_METHOD:
-			dest_client = tbus_client_find_by_service(msg->service_dest);
+/*		case TBUS_MSG_RETURN_METHOD:
+			dest_client = tbus_client_find_by_service(msg.service_dest);
 			ret =
 			    tbus_client_method_return(sender_client,
-						      dest_client, msg, args);
+						      dest_client, &msg);
 			break;
-		case TBUS_MSG_CONNECT_SIGNAL:
-			ret = tbus_client_connect_signal(sender_client, msg);
+*/		case TBUS_MSG_CONNECT_SIGNAL:
+			ret = tbus_client_connect_signal(sender_client, &msg);
+			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
 			break;
 		case TBUS_MSG_DISCON_SIGNAL:
-			ret = tbus_client_disconnect_signal(sender_client, msg);
+			ret = tbus_client_disconnect_signal(sender_client, &msg);
+			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
 			break;
 		case TBUS_MSG_EMIT_SIGNAL:
-			ret = tbus_client_emit_signal(sender_client, msg, args);
+			ret = tbus_client_emit_signal(sender_client, &msg);
+			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
 			break;
 		default:
 			/*goto error;*/
@@ -152,8 +161,7 @@ int tbus_client_message(int socket_fd, int bus_id)
 	/* check ret */
 
 	 /**/
-	free(msg);
-	free(args);
+//	free(msg);
 
 	return 0;
 }

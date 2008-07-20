@@ -13,9 +13,10 @@
 #include <debug.h>
 #include <theme.h>
 #include <ipc/shareddata.h>
-#include <ipc/colosseum.h>
+//#include <ipc/colosseum.h>
 #include <ipc/phoneserver.h>
 #include <ipc/alarmd.h>
+#include <ipc/tbus.h>
 
 typedef void (*event_callback_p) (GR_WINDOW_ID, GR_EVENT *);
 typedef void (*changed_callback_p) (int);
@@ -35,6 +36,7 @@ extern GR_GC_ID gc;		/* current graphic context */
 int ipc_active(void);
 int ipc_start(char *servername);
 int ipc_handle(GR_EVENT * e);
+extern struct TBusConnection bus;	/* TBUS connection */
 
 /* from mainbattery.c */
 int mainbattery_create(struct indicator *ind);

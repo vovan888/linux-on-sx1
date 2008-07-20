@@ -29,7 +29,7 @@ CONFIG_CPU_INTEL=y
 MW_PREFIX="/home/vovan/linux-on-sx1-dev/microwin/src"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set
-# CONFIG_DEBUG is not set
+CONFIG_DEBUG=y
 # WERROR is not set
 
 #
@@ -68,13 +68,13 @@ CONFIG_GSM=y
 CONFIG_LIBFLPHONE=y
 CONFIG_LIBINI=y
 CONFIG_LIBTHEME=y
-# CONFIG_LIBTPL is not set
+CONFIG_LIBTPL=y
 
 #
 # System applications
 #
 CONFIG_NANOWM=y
-CONFIG_IPC=y
+# CONFIG_IPC is not set
 CONFIG_TBUS=y
 
 #

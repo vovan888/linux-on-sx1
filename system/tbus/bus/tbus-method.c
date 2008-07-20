@@ -7,13 +7,14 @@
  */
 
 #include "tbus-server.h"
+#include <debug.h>
 
-int tbus_client_method(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg, char *args)
+int tbus_client_method(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg)
 {
 	return 0;
 }
 
-int tbus_client_method_return(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg, char *args)
+int tbus_client_method_return(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg)
 {
 	return 0;
 }

@@ -15,58 +15,52 @@
 
 #include <nano-X.h>
 #include "indicators.h"
+#include <ipc/tbus.h>
 
-static int client_fd = 0;
+struct TBusConnection bus;	/* TBUS connection */
 
 /* Register with IPC server */
 int ipc_start(char *servername)
 {
-	int cl_flags;
+	int ret;
+	ret = tbus_register_service(&bus, servername);
 
-	client_fd = ClRegister(servername, &cl_flags);
-
-	if (client_fd <= 0)
-		fprintf(stderr, "%s: Unable to locate the IPC server.\n",
-			servername);
+	if (ret < 0)
+		fprintf(stderr,"%s : Unable to locate the IPC server.\n", servername);
 	else
-		GrRegisterInput(client_fd);
+		GrRegisterInput(bus.socket_fd);
 
-	/* Subscribe to different groups */
-	ClSubscribeToGroup(MSG_GROUP_PHONE);
+	/* Subscribe to different signals */
+	tbus_connect_signal(&bus, "PhoneServer", "NetworkBars");
+	tbus_connect_signal(&bus, "PhoneServer", "BatteryBars");
 
-	ClSubscribeToGroup(MSG_GROUP_ALARM);
+	tbus_connect_signal(&bus, "AlarmServer", "PPM");
+
+	tbus_connect_signal(&bus, "nanowm", "debugkey");
 
 	return 0;
 }
 
-/* handle group messages */
-int ipc_group_message(unsigned short src, unsigned char *msg_buf)
+/* handle signals */
+static int ipc_signal(struct tbus_message *msg)
 {
-	if (src == MSG_GROUP_PHONE) {
-		struct msg_phone *message = (struct msg_phone *)msg_buf;
-		DBGMSG("indicatord: MSG_GROUP_PHONE message from %x, id=%d\n",
-		       src, message->id);
-		switch (message->id) {
-		case MSG_PHONE_NETWORK_BARS:
+	DPRINT("%d,%s->%s/%s (%s)\n",msg->type, msg->service_sender, msg->service_dest, msg->object, msg->data);
+	
+	if(!strcmp(msg->service_dest, "PhoneServer")) {
+		if(!strcmp(msg->object,"NetworkBars"))
 			indicators[THEME_MAINSIGNAL].changed(0);
-			break;
-		case MSG_PHONE_BATTERY_STATUS:
-			break;
-		case MSG_PHONE_BATTERY_BARS:
+		else if(!strcmp(msg->object,"BatteryBars"))
 			indicators[THEME_MAINBATTERY].changed(0);
-			break;
-		}
 	}
 
-	if (src == MSG_GROUP_ALARM) {
-		struct msg_phone *message = (struct msg_phone *)msg_buf;
-		DBGMSG("indicatord: MSG_GROUP_ALARM message from %x, id=%d\n",
-		       src, message->id);
-		switch (message->id) {
-		case MSG_ALARM_PPM:
-			indicators[THEME_DATETIME].changed(0);			
-			break;
-		}	
+	if(!strcmp(msg->service_dest, "AlarmServer")) {
+		if(!strcmp(msg->object,"PPM"))
+			indicators[THEME_DATETIME].changed(0);
+	}
+
+	if(!strcmp(msg->service_dest, "nanowm")) {
+		if(!strcmp(msg->object,"debugkey"))
+			indicators[THEME_MAINBATTERY].changed(3);
 	}
 
 	return 0;
@@ -78,21 +72,21 @@ int ipc_group_message(unsigned short src, unsigned char *msg_buf)
 */
 int ipc_handle(GR_EVENT * e)
 {
-	int ack = 0, size = 64;
-	unsigned short src = 0;
-	unsigned char msg_buf[64];
-
+	int ret;
+	struct tbus_message msg;
+	
 	DBGMSG("indicatord: ipc_handle\n");
 
-	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
-		return ack;
-
-	if (ack == CL_CLIENT_BROADCAST) {
-		/* handle broadcast message */
+	ret = tbus_get_message(&bus, &msg);
+	if (ret < 0)
+		return -1;
+	switch(msg.type) {
+		case TBUS_MSG_EMIT_SIGNAL:
+			/* we received a signal */
+			ipc_signal(&msg);
+			break;
 	}
 
-	if (IS_GROUP_MSG(src))
-		ipc_group_message(src, msg_buf);
-
+	tbus_msg_free(&msg);
 	return 0;
 }

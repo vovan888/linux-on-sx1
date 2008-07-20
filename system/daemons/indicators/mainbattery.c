@@ -27,7 +27,7 @@ static int mainbattery_show(int frame);
 
 static void mainbattery_changed_callback(int new_value)
 {
-	DBGMSG("mainbattery_changed_callback, %d\n", shdata->battery.bars);
+	DBGMSG("%d\n", shdata->battery.bars);
 
 	if (battery_current != shdata->battery.bars) {
 		battery_current = shdata->battery.bars;
@@ -37,7 +37,7 @@ static void mainbattery_changed_callback(int new_value)
 
 static void mainbattery_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
 {
-	DBGMSG("mainbattery_event_callback\n");
+	DBGMSG("\n");
 
 	mainbattery_show(battery_current);
 }

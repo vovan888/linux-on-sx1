@@ -26,9 +26,6 @@
 		printf("[%d] WARNING: %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
 		printf(fmt, ##arg); } while(0)
 
-#define DPRINT(fmt, arg...) do{											\
-		printf("[%d] %s-%s:%d, " fmt, getpid(), __BASE_FILE__, __FUNCTION__, __LINE__, ##arg); \
-		} while(0)
 
 #define FATAL(fmt, arg...) do {											\
 		printf("[%d] %s--%s: %d\n", getpid(), __BASE_FILE__, __FUNCTION__, __LINE__); \
@@ -37,6 +34,9 @@
 
 
 #ifdef DEBUG
+#define DPRINT(fmt, arg...) do{											\
+		printf("[%d] %s-%s:%d, " fmt, getpid(), __BASE_FILE__, __FUNCTION__, __LINE__, ##arg); \
+		} while(0)
 #define INITSYSLOG(name) openlog(name, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0)
 #define DBGMSG(fmt, arg...)  DPRINT(fmt, ##arg)
 #define INFOLOG(fmt, arg...) do {										\
@@ -46,6 +46,7 @@
 		syslog(LOG_INFO, "[%d] DEBUG: %s-%s: %d, " fmt, getpid(), __BASE_FILE__, __FUNCTION__, __LINE__, ##arg); \
 		} while(0)
 #else
+#define DPRINT(fmt, arg...) do {;}while(0)
 #define INITSYSLOG(name) openlog(name, LOG_NDELAY | LOG_PID, LOG_LOCAL0)
 #define DBGMSG(fmt, arg...)  do {;}while(0)
 #define INFOLOG(fmt, arg...) do {;}while(0)

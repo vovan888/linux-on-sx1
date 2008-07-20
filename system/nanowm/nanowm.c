@@ -15,36 +15,37 @@
 /*#define DEBUG*/
 
 #include "nanowm.h"
+#include <ipc/tbus.h>
 
 GR_SCREEN_INFO si;
 
 struct SharedSystem *shdata; /* shared memory segment */
+struct TBusConnection bus;	/* TBUS connection */
 
 /* Register with IPC server */
 int ipc_start(char * servername)
 {
-	int cl_flags, client_fd;
+	int ret;
 
-	client_fd = ClRegister(servername, &cl_flags);
+	ret = tbus_register_service(&bus, servername);
 
-	if (client_fd <= 0)
+	if (ret < 0)
 		fprintf(stderr,"%s : Unable to locate the IPC server.\n", servername);
 	else
-		GrRegisterInput(client_fd);
+		GrRegisterInput(bus.socket_fd);
 
-	return client_fd;
+	return bus.socket_fd;
 }
 
 /* Handle IPC message */
 int ipc_handle (GR_EVENT * e)
 {
-	int ack = 0, size = 32;
-	unsigned short src = 0;
-	unsigned char msg[32];
+	struct tbus_message msg;
+	int	ret;
 
-	ack = ClGetMessage(&msg, &size, &src);
+	ret = tbus_get_message(&bus, &msg);
 
-	if (ack < 0)
+	if (ret < 0)
 		return -1;
 
 	return 0;

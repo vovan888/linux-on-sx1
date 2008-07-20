@@ -12,6 +12,7 @@
 #define WMDEBUG
 
 #include "nanowm.h"
+#include <ipc/tbus.h>
 
 void do_exposure(GR_EVENT_EXPOSURE *event)
 {
@@ -163,20 +164,10 @@ void do_key_down(GR_EVENT_KEYSTROKE *event)
 	/* FIXME: Implement keyboard shortcuts */
 	/* DEBUG keys */
 	if (event -> ch == Key_Menu) {
-		int client;
-		int	ret;
-//		client = ClFindApp ("indicatord");
-//		ClSendMessage(client,"0", 1);
-		struct msg_phone	msg;
+		int ret;
 
-		msg.group = MSG_GROUP_PHONE;
-		msg.id = MSG_PHONE_BATTERY_BARS;
-		msg.bars = 3;
+		ret = tbus_emit_signal(&bus, "debugkey", "Key_Menu");
 
-		shdata -> battery.bars = 3;
-		
-//		ret = ClSendMessage(client, &msg, sizeof(struct msg_phone));
-		ret = ClSendMessage(MSG_GROUP_PHONE, &msg, sizeof(struct msg_phone));
 		printf("key_down: %d\n",ret);
 	}
 }

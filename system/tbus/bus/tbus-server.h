@@ -15,33 +15,31 @@
 #include <errno.h>
 
 #include <common/uthash.h>
-#include <common/linux_list.h>
 
 #include <ipc/tbus.h>
 
 /* clients list struct */
 struct tbus_client {
 	int socket_fd;		/* fd for server connection */
-	int bus_id;		/* ID of the connected bus (SYS or APP) */
-	char service[TBUS_MAX_NAME + 1];	/* service name (hash key) */
+//	int bus_id;		/* ID of the connected bus (SYS or APP) */
+	char *service;		/* service name (hash key) */
 
-	UT_hash_handle hh;	/* makes this structure hashable by service[] */
+	UT_hash_handle hh1, hh2;	/* makes this structure hashable by socket_fd and *service */
 };
 
 /* clients list for the connection struct */
 struct subscription {
-        struct llist_head list;
-
 	struct tbus_client *client;
+
+	struct subscription *next;
 };
 
 /* signal connection struct */
 struct tbus_signal_conn {
-	char service_dest[TBUS_MAX_NAME+1];	/* emitter service name */
-	char object[TBUS_MAX_NAME+1];		/* signal name */
+	char *service_signal;		/* emitter service name + signal name*/
 
-	int	num_of_clients;		/* number of connected clients */
-	struct subscription clients;	/* connected clients list */
+	struct subscription *clients_head;	/* connected clients list head */
+//	struct subscription *clients_tail;	/* connected clients list tail */
 
 	UT_hash_handle hh;	/* makes this structure hashable by service_dest+object */
 };
@@ -49,7 +47,7 @@ struct tbus_signal_conn {
 
 /* from tbus-clients.c */
 void tbus_init_clients();
-int tbus_client_add(int socket_fd, int bus_id, char *service);
+int tbus_client_add(int socket_fd, char *service);
 struct tbus_client *tbus_client_find_by_service(char *service);
 void tbus_client_del(struct tbus_client *client);
 
@@ -60,4 +58,8 @@ int tbus_write_message(int fd, struct tbus_message *msg);
 /* from tbus-signal.c */
 int tbus_client_connect_signal(struct tbus_client *sender_client, struct tbus_message *msg);
 int tbus_client_disconnect_signal(struct tbus_client *sender_client, struct tbus_message *msg);
-int tbus_client_emit_signal(struct tbus_client *sender_client, struct tbus_message *msg, char *args);
+int tbus_client_emit_signal(struct tbus_client *sender_client, struct tbus_message *msg);
+
+/* from tbus-method.c */
+int tbus_client_method(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg);
+int tbus_client_method_return(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg);

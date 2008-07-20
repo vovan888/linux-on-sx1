@@ -27,7 +27,7 @@ static int mainsignal_show(int frame);
 
 static void mainsignal_changed_callback(int new_value)
 {
-	DBGMSG("mainsignal_changed_callback, %d\n", shdata->network.bars);
+	DBGMSG("%d\n", shdata->network.bars);
 
 	if (signal_current != shdata->network.bars) {
 		signal_current = shdata->network.bars;
@@ -37,7 +37,7 @@ static void mainsignal_changed_callback(int new_value)
 
 static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
 {
-	DBGMSG("mainsignal_event_callback\n");
+	DBGMSG("\n");
 
 	mainsignal_show(signal_current);
 }

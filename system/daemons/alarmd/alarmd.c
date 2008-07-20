@@ -1,4 +1,4 @@
-/* main.c
+/* alarmd.c
 *
 *  main module utils
 *
@@ -89,8 +89,7 @@ static void handle_rtc(int fd)
 	   (syncronized with time) */
 	if ((irq_count % 60) == 0) {
 		DBGMSG("ALARMD: minute message sent\n");
-		msg.id = MSG_ALARM_PPM;
-		retval = ClSendMessage(MSG_GROUP_ALARM, &msg, sizeof(struct msg_alarm));
+		tbus_emit_signal(&bus, "PPM","1");
 
 		minutes_count++;
 	}
@@ -100,8 +99,7 @@ static void handle_rtc(int fd)
 	   (syncronized with time) */
 	if (((minutes_count % 60) == 0) && minutes_sync) {
 		DBGMSG("ALARMD: hour message sent\n");
-		msg.id = MSG_ALARM_PPH;
-		retval = ClSendMessage(MSG_GROUP_ALARM, &msg, sizeof(struct msg_alarm));
+		tbus_emit_signal(&bus, "PPH","1");
 	}
 }
 
@@ -161,12 +159,12 @@ static void alarmd_init(void)
 	}
 
 	/* IPC init */
-	ipc_fd = ClRegisterServer(MSG_GROUP_ALARM);
-	/*TODO handle error from ClRegisterServer */
+	ipc_fd = ipc_start("AlarmServer");
+	/*TODO handle error from ipc_start */
 
-	/* Subscribe to different groups */
 	/*TODO*/
-	/*      ClSubscribeToGroup(MSG_GROUP_PHONE); */
+	/* Subscribe to different signals */
+	tbus_connect_signal(&bus, "nanowm", "debugkey");
 
 	shdata = ShmMap(SHARED_SYSTEM);
 }

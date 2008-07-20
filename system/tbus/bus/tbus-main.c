@@ -7,10 +7,10 @@
  */
 
 #include "tbus-server.h"
+#include <debug.h>
 
-/* socket fds for two buses */
+/* socket fds for the bus */
 static int tbus_socket_sys;
-static int tbus_socket_app;
 
 static int terminate;
 
@@ -81,12 +81,10 @@ static int tbus_init()
 	terminate = 0;
 
 	unlink(TBUS_SOCKET_SYS);
-	unlink(TBUS_SOCKET_APP);
 
 	tbus_socket_sys = tbus_init_socket(TBUS_SOCKET_SYS);
-	tbus_socket_app = tbus_init_socket(TBUS_SOCKET_APP);
 
-	if ((tbus_socket_sys < 0) || (tbus_socket_app < 0))
+	if (tbus_socket_sys < 0)
 		return -1;
 
 	/* setup signals handlers */
@@ -108,16 +106,13 @@ static void tbus_mainloop()
 	socklen_t sadrlen = (socklen_t)sizeof(saddr);
 
 	/* max value for socket */
-	maxfd =
-	    (tbus_socket_app >
-	     tbus_socket_sys) ? tbus_socket_app : tbus_socket_sys;
+	maxfd = tbus_socket_sys;
 	fd_set active_fd_set;	/* stores all the sockets to listen */
 	fd_set read_fd_set;	/* used in "select" call */
 
 	/* Initialize the file descriptor set. */
 	FD_ZERO(&active_fd_set);
 	FD_SET(tbus_socket_sys, &active_fd_set);
-	FD_SET(tbus_socket_app, &active_fd_set);
 
 	while (!terminate) {
 		/* process sockets */
@@ -138,7 +133,7 @@ static void tbus_mainloop()
 			if (!FD_ISSET(i, &read_fd_set))
 				continue;
 			/* we have ready-to-read socket */
-			if ((i == tbus_socket_sys) || (i == tbus_socket_app)) {
+			if (i == tbus_socket_sys) {
 				/*handle client connection to the bus */
 				newfd = accept(i, (struct sockaddr *)&saddr, &sadrlen);
 				if (newfd == -1) {

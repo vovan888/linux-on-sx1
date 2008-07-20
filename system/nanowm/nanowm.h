@@ -11,6 +11,7 @@
 #include <ipc/phoneserver.h>
 #include <keys_nanox.h>
 #include <theme.h>
+#include <ipc/tbus.h>
 
 #ifdef WMDEBUG
 #define Dprintf printf
@@ -214,6 +215,6 @@ void wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR *title, GR_BOOL ac
 	GR_WM_PROPS props);
 
 extern struct SharedSystem *shdata; /* shared memory segment */
-
+extern struct TBusConnection bus;	/* TBUS connection */
 
 #endif
