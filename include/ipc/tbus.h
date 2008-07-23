@@ -33,6 +33,7 @@ extern "C" {
 #define TBUS_MSG_DISCON_SIGNAL		5
 #define TBUS_MSG_EMIT_SIGNAL		6
 #define TBUS_MSG_ERROR			7
+#define TBUS_MSG_CLOSE			8
 
 //#define TBUS_MAX_NAME		23
 //#define TBUS_MAX_MESSAGE	4000
@@ -51,11 +52,6 @@ struct tbus_message {
 /* TPL format string for the internal message */
 #define TBUS_MESSAGE_FORMAT	"iissss"
 
-struct TBusConnection {
-	int    socket_fd; /* fd for server connection */
-	int    bus_id;    /* ID of the connected bus (SYS or APP) */
-};
-
 /* -fvisibility=hidden support macro */
 #ifdef CONFIG_GCC_HIDDEN_VISIBILITY
     #define DLLEXPORT __attribute__ ((visibility("default")))
@@ -65,19 +61,23 @@ struct TBusConnection {
     #define DLLLOCAL
 #endif
 
-DLLEXPORT int tbus_register_service ( struct TBusConnection * bus, char * service );
+DLLEXPORT int tbus_register_service ( char * service );
 
-DLLEXPORT int tbus_get_message( struct TBusConnection * bus, struct tbus_message * msg );
+DLLEXPORT int tbus_close (void);
 
-DLLEXPORT int tbus_call_method(struct TBusConnection * bus, char * service, char * method, char * args);
+DLLEXPORT int tbus_get_message( struct tbus_message * msg );
 
-//DLLEXPORT void tbus_method_return(struct TBusConnection * bus, char * service, char * object, char * outvalue);
+DLLEXPORT int tbus_call_method( char * service, char * method, char * args);
 
-DLLEXPORT int tbus_connect_signal(struct TBusConnection * bus, char * service, char * object);
+//DLLEXPORT void tbus_method_return( char * service, char * object, char * outvalue);
 
-DLLEXPORT int tbus_disconnect_signal(struct TBusConnection * bus, char * service, char * object);
+DLLEXPORT int tbus_connect_signal( char * service, char * object);
 
-DLLEXPORT int tbus_emit_signal(struct TBusConnection * bus, char * object, char * value);
+DLLEXPORT int tbus_disconnect_signal( char * service, char * object);
+
+DLLEXPORT int tbus_emit_signal( char * object, char * value);
+
+DLLEXPORT void tbus_msg_free(struct tbus_message *msg);
 
 #ifdef __cplusplus
 }

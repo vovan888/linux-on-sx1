@@ -71,7 +71,7 @@ struct tbus_client *tbus_client_find_by_service(char *service)
 }
 
 /**
- * Delete client from client lists
+ * Delete client from clients list
  * @param client pointer to the struct tbus_client
  */
 void tbus_client_del(struct tbus_client *client)

@@ -53,8 +53,8 @@
 #include <syslog.h>
 
 #include <arch/sx1/ipc_sound.h>
-#include <ipc/colosseum.h>
 #include <ipc/shareddata.h>
+#include <ipc/tbus.h>
 #include <debug.h>
 
 // timeout in seconds
@@ -363,7 +363,7 @@ int decode_message(unsigned char *msg)
 	arg1 = *(unsigned short *)(msg + 2);
 	arg2 = *(unsigned short *)(msg + 4);
 
-	DBGMSG("ipc_sound: got message: %02X %02X %02X", cmd, arg1, arg2);
+	DBGMSG("ipc_sound: message: %02X %02X %02X", cmd, arg1, arg2);
 
 	switch (cmd) {
 	case 0:
@@ -506,22 +506,22 @@ int process_client(int fd)
 */
 int ipc_handle(int fd)
 {
-	int ack = 0, size = 64;
-	unsigned short src = 0;
-	unsigned char msg_buf[64];
+	int ret;
+	struct tbus_message msg;
 
-	DBGMSG("ipc_sound: ipc_handle\n");
+	DBGMSG("ipc_handle\n");
 
-	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
-		return ack;
-
-	if (ack == CL_CLIENT_BROADCAST) {
-		/* handle broadcast message */
+	ret = tbus_get_message(&msg);
+	if (ret < 0)
+		return -1;
+	switch(msg.type) {
+		case TBUS_MSG_EMIT_SIGNAL:
+			/* we received a signal */
+//			ipc_signal(&msg);
+			break;
 	}
 
-	/*      if (IS_GROUP_MSG(src))
-	   ipc_group_message(src, msg_buf); */
-
+	tbus_msg_free(&msg);
 	return 0;
 }
 
@@ -563,20 +563,17 @@ void signal_treatment(int param)
 //-----------------------------------------------------------------
 int	sound_init()
 {
-	int cl_flags;
+	int ret;
 	/* TODO handle errors here */
 
 	sound_init_serial();
 
-	ipc_fd = ClRegister("sx1_sound", &cl_flags);
+	ipc_fd = tbus_register_service("sx1_sound");
 
 	shdata = ShmMap(SHARED_SYSTEM);
 
-	/* Subscribe to different groups */
-	 /*TODO*/
-	    /* ClSubscribeToGroup(MSG_GROUP_PHONE); */
-	    return 0;
-
+	/* Subscribe to different signals */
+	return 0;
 }
 
 //-----------------------------------------------------------------
@@ -665,5 +662,6 @@ int main(int argc, char *argv[])
 	close(fd_mux);
 	close(sock_nl);
 	close(sock_loc);
+	tbus_close();
 	return 0;
 }

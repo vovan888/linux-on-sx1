@@ -17,7 +17,6 @@
 #include <ipc/tbus.h>
 
 extern struct SharedSystem *shdata;	/* shared memory segment */
-extern struct TBusConnection bus;	/* TBUS connection */
 
 /* from ipc.c */
 int ipc_handle(int fd);

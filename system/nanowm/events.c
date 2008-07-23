@@ -166,7 +166,7 @@ void do_key_down(GR_EVENT_KEYSTROKE *event)
 	if (event -> ch == Key_Menu) {
 		int ret;
 
-		ret = tbus_emit_signal(&bus, "debugkey", "Key_Menu");
+		ret = tbus_emit_signal("debugkey", "Key_Menu");
 
 		printf("key_down: %d\n",ret);
 	}

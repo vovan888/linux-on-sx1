@@ -142,14 +142,13 @@ init_socket_error:
 
 /**
  * Register service to the message bus
- * @param bus pointer to the TBusConnection structure
  * @param service name of the service to register
  */
-DLLEXPORT int tbus_register_service ( struct TBusConnection * bus, char * service )
+DLLEXPORT int tbus_register_service ( char * service )
 {
 	struct tbus_message msg;
 
-	if (!bus || !service )
+	if ( !service )
 		return -1;
 
 	tbus_socket_sys = tbus_connect_socket(TBUS_SOCKET_SYS);
@@ -170,27 +169,46 @@ DLLEXPORT int tbus_register_service ( struct TBusConnection * bus, char * servic
 
 	tbus_msg_free(&msg);
 
-	bus -> socket_fd = tbus_socket_sys;
-	bus -> bus_id = TBUS_SYSTEM;
-	
 	if(msg.type == TBUS_MSG_REGISTERED)
-		return 0;
+		return tbus_socket_sys;
 	else
 		return -1;
 }
 
 /**
+ * Close connection to the TBUS server
+ */
+DLLEXPORT int tbus_close (void)
+{
+	int	err;
+	struct tbus_message msg;
+
+	if(tbus_socket_sys == -1)
+		return -1;
+
+	msg.magic = TBUS_MAGIC;
+	msg.type  = TBUS_MSG_CLOSE;
+	msg.service_sender = "";
+	msg.service_dest = "";
+	msg.object = "";
+	msg.data = "";
+
+	err = tbus_write_message(tbus_socket_sys, &msg);
+
+	return err;
+}
+
+/**
  * Read message from server
- * @param bus pointer to the TBusConnection structure
  * @param msg pointer to the message structure
  *
  * returns msg->type, or -1 if error
  */
-DLLEXPORT int tbus_get_message( struct TBusConnection * bus, struct tbus_message * msg )
+DLLEXPORT int tbus_get_message( struct tbus_message * msg )
 {
 	int	err;
 	
-	if(!bus || !msg || (tbus_socket_sys == -1))
+	if(!msg || (tbus_socket_sys == -1))
 		return -1;
 
 	err = tbus_read_message(tbus_socket_sys, msg);
@@ -205,17 +223,16 @@ DLLEXPORT int tbus_get_message( struct TBusConnection * bus, struct tbus_message
 }
 
 /**Call the method on the remote service
- * @param bus TBusConnection structure
  * @param service service name of the method
  * @param method called method
  * @param args arguments to path to the method
  */
-DLLEXPORT int tbus_call_method(struct TBusConnection * bus, char * service, char * method, char * args)
+DLLEXPORT int tbus_call_method( char * service, char * method, char * args)
 {
 	int	err;
 	struct tbus_message msg;
 
-	if(!bus || (tbus_socket_sys == -1) || !service || !method || !args)
+	if((tbus_socket_sys == -1) || !service || !method || !args)
 		return -1;
 
 	msg.magic = TBUS_MAGIC;
@@ -230,23 +247,22 @@ DLLEXPORT int tbus_call_method(struct TBusConnection * bus, char * service, char
 	return err;
 }
 
-/*DLLEXPORT void tbus_method_return(struct TBusConnection * bus, char * service, char * interface, char * object, char * outvalue)
+/*DLLEXPORT void tbus_method_return(  char * service, char * interface, char * object, char * outvalue)
 {
 }
 */
 
 /**
  * Connect to the remote signal
- * @param bus TBusConnection structure
  * @param service service name of the method
  * @param object signal name to connect
  */
-DLLEXPORT int tbus_connect_signal(struct TBusConnection * bus, char * service, char * object)
+DLLEXPORT int tbus_connect_signal( char * service, char * object)
 {
 	int	err;
 	struct tbus_message msg;
 
-	if(!bus || (tbus_socket_sys == -1) || !service || !object)
+	if((tbus_socket_sys == -1) || !service || !object)
 		return -1;
 
 	msg.magic = TBUS_MAGIC;
@@ -254,7 +270,7 @@ DLLEXPORT int tbus_connect_signal(struct TBusConnection * bus, char * service, c
 	msg.service_sender = ""; /*FIXME*/
 	msg.service_dest = service;
 	msg.object = object;
-	msg.data = "conn";
+	msg.data = "connect";
 
 	err = tbus_write_message(tbus_socket_sys, &msg);
 
@@ -263,16 +279,15 @@ DLLEXPORT int tbus_connect_signal(struct TBusConnection * bus, char * service, c
 
 /**
  * Disconnect from the remote signal
- * @param bus TBusConnection structure
  * @param service service name of the method
  * @param object signal name to connect
  */
-DLLEXPORT int tbus_disconnect_signal(struct TBusConnection * bus, char * service, char * object)
+DLLEXPORT int tbus_disconnect_signal( char * service, char * object)
 {
 	int	err;
 	struct tbus_message msg;
 
-	if(!bus || (tbus_socket_sys == -1) || !service || !object)
+	if((tbus_socket_sys == -1) || !service || !object)
 		return -1;
 
 	msg.magic = TBUS_MAGIC;
@@ -280,7 +295,7 @@ DLLEXPORT int tbus_disconnect_signal(struct TBusConnection * bus, char * service
 	msg.service_sender = ""; /*FIXME*/
 	msg.service_dest = service;
 	msg.object = object;
-	msg.data = "discon";
+	msg.data = "disconnect";
 
 	err = tbus_write_message(tbus_socket_sys, &msg);
 
@@ -289,16 +304,15 @@ DLLEXPORT int tbus_disconnect_signal(struct TBusConnection * bus, char * service
 
 /**
  * Emit the signal so the connected clients receive notification
- * @param bus TBusConnection structure
  * @param object signal name to connect
  * @param value arguments to path to the method
  */
-DLLEXPORT int tbus_emit_signal(struct TBusConnection * bus, char * object, char * value)
+DLLEXPORT int tbus_emit_signal( char * object, char * value)
 {
 	int	err;
 	struct tbus_message msg;
 
-	if(!bus || (tbus_socket_sys == -1) || !object || !value)
+	if((tbus_socket_sys == -1) || !object || !value)
 		return -1;
 
 	msg.magic = TBUS_MAGIC;

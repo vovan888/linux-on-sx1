@@ -131,7 +131,7 @@ int tbus_client_disconnect_signal(struct tbus_client *sender_client, struct tbus
 		while(cur != NULL) {
 			if (cur->client == sender_client ) {
 				/* delete from the list of subscriptions */
-				if(cur = connection->clients_head)
+				if(cur == connection->clients_head)
 					/* shift the header */
 					connection->clients_head = cur->next;
 				else
@@ -181,8 +181,13 @@ int tbus_client_emit_signal(struct tbus_client *sender_client, struct tbus_messa
 
 		cur = connection->clients_head;
  		while(cur != NULL) {
-			ret = tbus_write_message(cur->client->socket_fd, msg);
-			DPRINT("sent to %s ,ret = %d\n",cur->client->service, ret);
+			int sock = cur->client->socket_fd;
+			if (sock > 0) {
+				ret = tbus_write_message(sock, msg);
+				DPRINT("sent to %s ,ret = %d\n",cur->client->service, ret);
+			}else {
+				DPRINT("empty client!\n");
+			}
 			cur = cur->next;
 		}
 		msg->service_dest = tmp;

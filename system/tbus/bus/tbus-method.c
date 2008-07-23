@@ -11,6 +11,17 @@
 
 int tbus_client_method(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg)
 {
+	int sock, ret;
+	if (!dest_client) {
+		return -1;
+	}
+	sock = dest_client->socket_fd;
+	if (sock > 0) {
+		ret = tbus_write_message(sock, msg);
+		DPRINT("sent to %s ,ret = %d\n",dest_client->service, ret);
+	}else {
+		DPRINT("empty client!\n");
+	}
 	return 0;
 }
 

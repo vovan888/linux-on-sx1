@@ -45,7 +45,7 @@
 #include <linux/rtc.h>
 #include <sys/ioctl.h>
 
-#include <ipc/colosseum.h>
+#include <ipc/tbus.h>
 #include <ipc/shareddata.h>
 #include <arch/sx1/ipc_dsy.h>
 #include <debug.h>
@@ -168,12 +168,12 @@ static int Request(unsigned char *request_frame, unsigned char *reply_frame)
 
 	length = 6 + *(unsigned short *)(request_frame + 4);
 	len_write = Write(request_frame, length);
-	DBGLOG("written to serial : %d\n", len_write);
+//	DBGLOG("written to serial : %d\n", len_write);
 	if (len_write != length)
 		return -1;
 
 	len_read = Read(reply_frame, 6, IPC_TIMEOUT);	// read header
-	DBGLOG("read from serial port : %d\n", len_read);
+//	DBGLOG("read from serial port : %d\n", len_read);
 	if (len_read != 6)
 		return -1;	// Error
 
@@ -181,7 +181,7 @@ static int Request(unsigned char *request_frame, unsigned char *reply_frame)
 	if (length) {
 		/* read the rest of data (if there) */
 		len_read = Read(reply_frame + 6, length, IPC_TIMEOUT);
-		DBGLOG("=read from serial port : %d\n", len_read);
+//		DBGLOG("=read from serial port : %d\n", len_read);
 		if (len_read != length)
 			return -1;	// Error
 	}
@@ -568,6 +568,15 @@ int ipc_message_char(unsigned char group, unsigned char cmd, unsigned char arg)
 	buf[6] = arg;
 	return Request(buf, reply);
 }
+// Send general message with 1 short arg and no results
+int ipc_message_short(unsigned char group, unsigned char cmd, unsigned short arg)
+{
+	unsigned char buf[8], reply[6];
+	PutHeader(buf, group, cmd, 8);
+	buf[6] = arg & 0xFF;
+	buf[7] = (arg >> 8) & 0xFF;
+	return Request(buf, reply);
+}
 
 /*-----------------------------------------------------------------*/
 // Handles RAGBAG messages
@@ -655,7 +664,7 @@ int decode_message(unsigned char *msg, unsigned char *answer)
 	cmd = *(unsigned char *)(msg + 1);
 	data = msg + 2;
 
-	DBGMSG(" got message: %02X %02X\n", group, cmd);
+	DBGMSG("got message: %02X %02X\n", group, cmd);
 
 	switch (group) {
 	case IPC_GROUP_CCMON:
@@ -704,71 +713,42 @@ int decode_message(unsigned char *msg, unsigned char *answer)
  * message is (ushort group)(ushort cmd)[char data...]
  * response is the same
  */
-int process_client(const int fd)
+int process_client(struct tbus_message *msg)
 {
-	unsigned char buffer_in[MAXMSG];
-	unsigned char buffer_out[0x1006];
-	int nbytes;
-	int length;		/* message length */
-	int answer_length;
+	int	ret;
+	int	reason = 100;
 
-	/* read message length */
-	if ((nbytes = read(fd, &length, sizeof(length))) == 0) {
-		DBGMSG(" socket closed");
-		return 0;	/* connection closed */
+	if(!strcmp(msg->object, "RagbagSetDosAlarm")) {
+		//
+	} else if(!strcmp(msg->object, "PowerOff")) {
+		ret = ipc_message(IPC_GROUP_POWERUP, PWRUP_SYNCREQ);
+		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_PREWARNING);
+		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_SWITCHOFF);
+	} else if(!strcmp(msg->object, "Reboot")) {
+		ret = ipc_message(IPC_GROUP_POWERUP, PWRUP_SYNCREQ);
+		ret = ipc_message_short(IPC_GROUP_POWERUP, PWROFF_SETSWSTARTUPREASON, reason);/*TODO*/
+		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_SETSWSTARTUPREASON);
+		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_HIDDENRESET);
+		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_SWITCHOFF);
 	}
-	if (length > MAXMSG) {
-		DBGMSG("message too big");
-		return -1;
-	}
-	/* read the message body */
-	nbytes = read(fd, buffer_in, length);
-	if (nbytes <= 0) {
-		/* Read error. */
-		DBGMSG("message read error");
-		return -1;
-	} else {
-		/* Data read. */
-		if (nbytes >= 2)
-			answer_length = decode_message(buffer_in, buffer_out);
-		else {
-			DBGMSG(" message size is < 2");
-			return -1;
-		}
-	}
-	if (answer_length < 0)
-		DBGMSG(" error decoding message= %d", answer_length);
-	else {
-		/* send response */
-		answer_length += 2;	// add header
-		/* send size of message */
-		nbytes = write(fd, &answer_length, sizeof(answer_length));
-		/* send header back */
-		nbytes = write(fd, buffer_in, 2);
-		/* send the rest of message */
-		if (answer_length > 2)
-			nbytes = write(fd, buffer_out, answer_length - 2);
-	}
+
 	return 0;
 }
 
 /*-----------------------------------------------------------------*/
 static int extension_init(void)
 {
-	int cl_flags;
 	/* TODO handle errors here */
 
 	extension_init_serial();
 
-	ipc_fd = ClRegister("sx1_ext", &cl_flags);
+	ipc_fd = tbus_register_service("sx1_ext");
 
 	shdata = ShmMap(SHARED_SYSTEM);
 	DBGLOG("Shdata = %x\n",shdata);
 
-	/* Subscribe to different groups */
-	 /*TODO*/
-	    /* ClSubscribeToGroup(MSG_GROUP_PHONE); */
-	    return 0;
+	/* Subscribe to different signals */
+	return 0;
 }
 
 /*-----------------------------------------------------------------*/
@@ -861,22 +841,26 @@ static int extension_powerup(void)
 */
 int ipc_handle(int fd)
 {
-	int ack = 0, size = 64;
-	unsigned short src = 0;
-	unsigned char msg_buf[64];
+	int ret;
+	struct tbus_message msg;
 
-	DBGMSG("ipc_ext: ipc_handle\n");
+	DBGMSG("\n");
 
-	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
-		return ack;
-
-	if (ack == CL_CLIENT_BROADCAST) {
-		/* handle broadcast message */
+	ret = tbus_get_message(&msg);
+	if (ret < 0) {
+		tbus_msg_free(&msg);
+		return -1;
+	}
+	switch(msg.type) {
+		case TBUS_MSG_EMIT_SIGNAL:
+			/* we received a signal */
+//			ipc_signal(&msg);
+		case TBUS_MSG_CALL_METHOD:
+			process_client(&msg);
+			break;
 	}
 
-	/*      if (IS_GROUP_MSG(src))
-	   ipc_group_message(src, msg_buf); */
-
+	tbus_msg_free(&msg);
 	return 0;
 }
 
@@ -965,7 +949,7 @@ int main(int argc, char *argv[])
 
 	closelog();
 	close(fd_mux);
-	ClClose();
+	tbus_close();
 
 	return 0;
 }

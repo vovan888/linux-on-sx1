@@ -5,36 +5,31 @@
 
 export LD_LIBRARY_PATH=/usr/flphone/lib:/usr/lib
 export MWFONTDIR=/usr/flphone/share/fonts/
+export PATH=/usr/flphone/sbin:/usr/flphone/bin:$PATH
 
-# Start the colosseum server
-/usr/flphone/sbin/clserver &
+# Start the TBUS server
+tbus-daemon >/tmp/logtbus 2>/tmp/logtbus2 &
 
 # start multiplexer daemon
 # -r options is not working....
-/usr/flphone/sbin/gsmMuxd -p /dev/ttyS1 -w -s /dev/mux  /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx
+gsmMuxd -p /dev/ttyS1 -w -s /dev/mux  /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx
 
 # start indication server daemon
-/usr/flphone/sbin/ipc_dsy  2>/tmp/logdsy1 &
+ipc_dsy  2>/tmp/logdsy1 &
 # start extension server
-/usr/flphone/sbin/ipc_ext  2>/tmp/logext1 &
+ipc_ext  2>/tmp/logext1 &
 # start sound server daemon
-/usr/flphone/sbin/ipc_sound  2>/tmp/logsnd1 &
+ipc_sound  2>/tmp/logsnd1 &
 
-sleep 1
 # Start GSMD
-/usr/flphone/sbin/gsmd -p /dev/mux1 -s 38400 -v siemens -m sx1 &
-
-sleep 10
+gsmd -p /dev/mux1 -s 38400 -v siemens -m sx1 >/tmp/loggsmd 2>/tmp/loggsmd2 &
 
 # Start the Nano-X server
-/usr/bin/nano-X &
-sleep 1
+nano-X &
 # Start up the Nano-X window manager
-/usr/flphone/sbin/nanowm &
-
-sleep 1
+nanowm &
 
 # Start Indicator daemon
-/usr/flphone/sbin/indicatord &
+indicatord &
 
-/usr/flphone/sbin/alarmserver
+alarmserver

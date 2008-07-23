@@ -43,7 +43,7 @@
 #include <signal.h>
 #include <syslog.h>
 
-#include <ipc/colosseum.h>
+#include <ipc/tbus.h>
 #include <ipc/shareddata.h>
 #include <ipc/phoneserver.h>
 #include <arch/sx1/ipc_dsy.h>
@@ -269,8 +269,7 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	unsigned char cmd;
 	unsigned char c1;
 	unsigned short data16;
-	struct msg_phone msg;
-	msg.group = MSG_GROUP_PHONE;
+	char str[6];
 
 	cmd = buf[2];
 	switch (cmd) {
@@ -278,13 +277,11 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDosEventManager::ChargingState(TDosChargingState)  data16
 		if (data16 == 1) {
-			msg.id = MSG_PHONE_BATTERY_STATUS;
-			msg.status = shdata->battery.status =
-			    BATTERY_STATUS_CHARGING;
+			shdata->battery.status = BATTERY_STATUS_CHARGING;
+			tbus_emit_signal("BatteryStatus","Charging");
 		} else {
-			msg.id = MSG_PHONE_BATTERY_STATUS;
-			msg.status = shdata->battery.status =
-			    BATTERY_STATUS_POWERED;
+			shdata->battery.status = BATTERY_STATUS_POWERED;
+			tbus_emit_signal("BatteryStatus","Powered");
 		}
 		break;
 	case BAT_StatusRes:	// CDsyIndicationHandler::NotifyBatteryStatus(TPtr8 &)
@@ -295,20 +292,21 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	case BAT_BarsRes:	// CCDsyIndicationHandler::NotifyBatteryBars(TPtr8 &)
 		c1 = *(unsigned char *)(buf + 6);
 		//CDosEventManager::BatteryBars(int)  c1
-		msg.id = MSG_PHONE_BATTERY_BARS;
-		msg.bars = shdata->battery.bars = c1;
+		snprintf(str, 5, "%d", c1);
+		shdata->battery.bars = c1;
+		tbus_emit_signal("BatteryBars",str);
 		break;
 	case BAT_LowWarningRes:	// CDsyIndicationHandler::NotifyBatteryLowWarning(TPtr8 &)
 		c1 = *(unsigned char *)(buf + 6);
 		// CDosEventManager::BatteryLowWarning(int)  c1
-		msg.id = MSG_PHONE_BATTERY_STATUS;
-		msg.status = shdata->battery.status = BATTERY_STATUS_LOW;
+		shdata->battery.status = BATTERY_STATUS_LOW;
+		tbus_emit_signal("BatteryStatus","Low");
 		break;
 	default:
 		return -1;
 	}
 
-	return ClSendMessage(MSG_GROUP_PHONE, &msg, sizeof(struct msg_phone));
+	return 0;
 }
 
 // 50699AC0             ; CDsyIndicationHandler::HandleIndication(TIpcMsgHdr *, TPtr8 &, TPtr8 &)
@@ -319,8 +317,7 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 	unsigned char cmd;
 	unsigned char err = 0;
 	unsigned short data16;
-	struct msg_phone msg;
-	msg.group = MSG_GROUP_PHONE;
+	char	str[5];
 
 	if (IPC_Group > 10)
 		return -2;	// error
@@ -341,10 +338,9 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 		if (cmd == 0) {	// CDsyIndicationHandler::NotifyNetworkBars(TPtr8 &)
 			data16 = *(unsigned short *)(buf + 6);
 			// CDosEventManager::NetworkBars(int)  data16
-			msg.id = MSG_PHONE_NETWORK_BARS;
-			msg.bars = shdata->network.bars = (unsigned char)data16;
-			ClSendMessage(MSG_GROUP_PHONE, &msg,
-				      sizeof(struct msg_phone));
+			shdata->network.bars = (unsigned char)data16;
+			snprintf(str, 5, "%d", data16);
+			tbus_emit_signal("NetworkBars", str);
 			return 0;
 		}
 		return -1;
@@ -377,7 +373,7 @@ int process_modem(int fd)
 	int length;		// message length
 	int len_read, len_write;
 
-	DBGLOG("process_modem\n");
+/*	DBGLOG("process_modem\n");*/
 	/* read first 6 bytes of message (header) */
 	len_read = Read(buffer_in, 6, IPC_TIMEOUT);
 	if (len_read != 6)
@@ -392,7 +388,7 @@ int process_modem(int fd)
 	}
 	group = buffer_in[1];
 	cmd = buffer_in[2];
-	DBGLOG("got message: %02X %02X %02X\n", group, cmd, buffer_in[6]);
+	DBGLOG("%02X %02X %02X\n", group, cmd, buffer_in[6]);
 
 	if (buffer_in[0] != IPC_DEST_DSY)
 		return -1;	/* Error - packet is not for us */
@@ -453,18 +449,14 @@ void signal_treatment(int param)
 /*-----------------------------------------------------------------*/
 static int dsy_init(void)
 {
-	int cl_flags;
-
 	/* TODO handle errors here */
 	dsy_init_serial();		// Init serial port
 
-	ipc_fd = ClRegister("sx1_dsy", &cl_flags);
+	ipc_fd = tbus_register_service("sx1_dsy");
 
 	shdata = ShmMap(SHARED_SYSTEM);
 
-	/* Subscribe to different groups */
-	 /*TODO*/
-	    /* ClSubscribeToGroup(MSG_GROUP_PHONE); */
+	/* Subscribe to different signals here */
 	return 0;
 }
 
@@ -475,22 +467,23 @@ static int dsy_init(void)
 */
 static int ipc_handle(int fd)
 {
-	int ack = 0, size = 64;
-	unsigned short src = 0;
-	unsigned char msg_buf[64];
+	int ret;
+	struct tbus_message msg;
 
-	DBGMSG("ipc_dsy: ipc_handle\n");
+	DBGMSG("\n");
 
-	if ((ack = ClGetMessage(&msg_buf, &size, &src)) < 0)
-		return ack;
-
-	if (ack == CL_CLIENT_BROADCAST) {
-		/* handle broadcast message */
+	ret = tbus_get_message(&msg);
+	if (ret < 0)
+		return -1;
+	switch(msg.type) {
+		case TBUS_MSG_EMIT_SIGNAL:
+			/* we received a signal */
+//			ipc_signal(&msg);
+		case TBUS_MSG_CALL_METHOD:
+			break;
 	}
 
-	/*      if (IS_GROUP_MSG(src))
-	   ipc_group_message(src, msg_buf); */
-
+	tbus_msg_free(&msg);
 	return 0;
 }
 
@@ -546,7 +539,7 @@ int main(int argc, char *argv[])
 	}
 	closelog();
 	close(fd_mux);
-	ClClose();
+	tbus_close();
 
 	return 0;
 }

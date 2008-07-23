@@ -20,21 +20,18 @@
 GR_SCREEN_INFO si;
 
 struct SharedSystem *shdata; /* shared memory segment */
-struct TBusConnection bus;	/* TBUS connection */
 
 /* Register with IPC server */
 int ipc_start(char * servername)
 {
-	int ret;
+	int sock;
 
-	ret = tbus_register_service(&bus, servername);
+	sock = tbus_register_service(servername);
 
-	if (ret < 0)
-		fprintf(stderr,"%s : Unable to locate the IPC server.\n", servername);
-	else
-		GrRegisterInput(bus.socket_fd);
+	if (sock >= 0)
+		GrRegisterInput(sock);
 
-	return bus.socket_fd;
+	return sock;
 }
 
 /* Handle IPC message */
@@ -43,7 +40,7 @@ int ipc_handle (GR_EVENT * e)
 	struct tbus_message msg;
 	int	ret;
 
-	ret = tbus_get_message(&bus, &msg);
+	ret = tbus_get_message(&msg);
 
 	if (ret < 0)
 		return -1;

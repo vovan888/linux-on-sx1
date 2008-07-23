@@ -9,7 +9,7 @@ SRC_C=${shell ls *.c}
 OBJS+=${SRC_C:.c=.o}
 
 
-LIBS+=-lipc -lfltk -lgsmd
+LIBS+= -lfltk -lgsmd -ltbus -ltpl
 
 ifeq ($(CONFIG_NANOX),y)
 LIBS+=-lnano-X

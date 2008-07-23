@@ -36,7 +36,6 @@ extern GR_GC_ID gc;		/* current graphic context */
 int ipc_active(void);
 int ipc_start(char *servername);
 int ipc_handle(GR_EVENT * e);
-extern struct TBusConnection bus;	/* TBUS connection */
 
 /* from mainbattery.c */
 int mainbattery_create(struct indicator *ind);

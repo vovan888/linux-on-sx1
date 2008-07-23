@@ -22,17 +22,8 @@ if [ ! -x "$MWDIR/bin/nano-X" ]; then
     exit 1
 fi
 
-# Sanity check - don't allow colosseum to already be 
-# started when we enter here 
-
-CLPID=`pidof clserver`
-
-if [ -n "$CLPID" ]; then
-    kill $CLPID
-fi
-
-# Start the colosseum server
-$BASE_DIR/sbin/clserver -c &
+# Start the TBUS server
+$BASE_DIR/sbin/tbus-daemon &
 
 # Start the Nano-X server
 $MWDIR/bin/nano-X -e -x 176 -y 220 &
@@ -54,7 +45,7 @@ $BASE_DIR/sbin/alarmserver
 killall -TERM -q $BASE_DIR/sbin/alarmserver
 killall -TERM -q $BASE_DIR/sbin/indicatord
 killall -TERM -q $BASE_DIR/sbin/nanowm
-killall -TERM -q $BASE_DIR/sbin/clserver 
+killall -TERM -q $BASE_DIR/sbin/tbus-daemon
 
 # press enter to exit
 echo Press Enter to exit

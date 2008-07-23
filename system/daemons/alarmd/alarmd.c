@@ -89,7 +89,7 @@ static void handle_rtc(int fd)
 	   (syncronized with time) */
 	if ((irq_count % 60) == 0) {
 		DBGMSG("ALARMD: minute message sent\n");
-		tbus_emit_signal(&bus, "PPM","1");
+		tbus_emit_signal("PPM","");
 
 		minutes_count++;
 	}
@@ -99,7 +99,7 @@ static void handle_rtc(int fd)
 	   (syncronized with time) */
 	if (((minutes_count % 60) == 0) && minutes_sync) {
 		DBGMSG("ALARMD: hour message sent\n");
-		tbus_emit_signal(&bus, "PPH","1");
+		tbus_emit_signal("PPH","");
 	}
 }
 
@@ -159,12 +159,12 @@ static void alarmd_init(void)
 	}
 
 	/* IPC init */
-	ipc_fd = ipc_start("AlarmServer");
+	ipc_fd = tbus_register_service("AlarmServer");
 	/*TODO handle error from ipc_start */
 
 	/*TODO*/
 	/* Subscribe to different signals */
-	tbus_connect_signal(&bus, "nanowm", "debugkey");
+	tbus_connect_signal("nanowm", "debugkey");
 
 	shdata = ShmMap(SHARED_SYSTEM);
 }

@@ -129,6 +129,10 @@ int tbus_client_message(int socket_fd, int bus_id)
 			ret = tbus_write_message(socket_fd, &msg);
 			tbus_msg_free(&msg);
 			break;
+		case TBUS_MSG_CLOSE:
+			tbus_client_del(sender_client);
+			tbus_msg_free(&msg);
+			break;
 		case TBUS_MSG_CALL_METHOD:
 			dest_client = tbus_client_find_by_service(msg.service_dest);
 			ret =

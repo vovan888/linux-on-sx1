@@ -25,7 +25,7 @@ extern "C" {
 
 #include <string.h>
 
-#define INI_ADD_EXTRAS
+#undef INI_ADD_EXTRAS
 #undef INI_ADD_LIST_SUPPORT
 
 #ifdef SWIG

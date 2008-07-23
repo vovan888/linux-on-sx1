@@ -17,26 +17,24 @@
 #include "indicators.h"
 #include <ipc/tbus.h>
 
-struct TBusConnection bus;	/* TBUS connection */
-
 /* Register with IPC server */
 int ipc_start(char *servername)
 {
-	int ret;
-	ret = tbus_register_service(&bus, servername);
+	int sock;
+	sock = tbus_register_service(servername);
 
-	if (ret < 0)
-		fprintf(stderr,"%s : Unable to locate the IPC server.\n", servername);
+	if (sock >= 0)
+		GrRegisterInput(sock);
 	else
-		GrRegisterInput(bus.socket_fd);
+		return -1;
 
 	/* Subscribe to different signals */
-	tbus_connect_signal(&bus, "PhoneServer", "NetworkBars");
-	tbus_connect_signal(&bus, "PhoneServer", "BatteryBars");
+	tbus_connect_signal("PhoneServer", "NetworkBars");
+	tbus_connect_signal("PhoneServer", "BatteryBars");
 
-	tbus_connect_signal(&bus, "AlarmServer", "PPM");
+	tbus_connect_signal("AlarmServer", "PPM");
 
-	tbus_connect_signal(&bus, "nanowm", "debugkey");
+	tbus_connect_signal("nanowm", "debugkey");
 
 	return 0;
 }
@@ -58,9 +56,12 @@ static int ipc_signal(struct tbus_message *msg)
 			indicators[THEME_DATETIME].changed(0);
 	}
 
+/*DEBUG signal*/
 	if(!strcmp(msg->service_dest, "nanowm")) {
-		if(!strcmp(msg->object,"debugkey"))
+		if(!strcmp(msg->object,"debugkey")) {
+			shdata->battery.bars = 3;
 			indicators[THEME_MAINBATTERY].changed(3);
+		}
 	}
 
 	return 0;
@@ -77,7 +78,7 @@ int ipc_handle(GR_EVENT * e)
 	
 	DBGMSG("indicatord: ipc_handle\n");
 
-	ret = tbus_get_message(&bus, &msg);
+	ret = tbus_get_message(&msg);
 	if (ret < 0)
 		return -1;
 	switch(msg.type) {
