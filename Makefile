@@ -105,13 +105,13 @@ dostrip:
 	done
 
 $(subdir-build): dummy
-	@ $(MAKE) -j2 -C $(patsubst _subdir_%,%,$@)
+	@ $(MAKE) -C $(patsubst _subdir_%,%,$@)
 
 $(subdir-clean): dummy
-	@ $(MAKE) -j2 -C $(patsubst _clean_%,%,$@) clean
+	@ $(MAKE) -C $(patsubst _clean_%,%,$@) clean
 
 $(subdir-install): dummy
-	@ $(MAKE) -j2 -C $(patsubst _install_%,%,$@) install
+	@ $(MAKE) -C $(patsubst _install_%,%,$@) install
 
 platform-build:
 	@ make -C scripts/platforms/ 
