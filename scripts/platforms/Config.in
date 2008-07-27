@@ -2,7 +2,7 @@ menu "Platform Configuration"
 
 choice
 	prompt "Build Platform"
-	default "Native X86 Demo"
+	default "Desktop"
 	help
 	  Select the desired build platform.  Among other things
 	  this will install default scripts and other information.

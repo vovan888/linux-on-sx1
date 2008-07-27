@@ -8,6 +8,31 @@ mainmenu "Phone Configuration"
 menu "Flphone Settings"
 
 choice
+	prompt "Build Platform"
+	default "Desktop"
+	help
+	  Select the desired build platform.  Among other things
+	  this will install default scripts and other information.
+
+config CONFIG_PLATFORM_SX1
+        bool "Siemens SX1"
+
+config CONFIG_PLATFORM_X86DEMO
+       bool" Desktop"
+
+endchoice
+
+config CONFIG_CPU_ARM
+       bool
+       depends CONFIG_PLATFORM_SX1
+       default y
+
+config CONFIG_CPU_INTEL
+       bool
+       depends CONFIG_PLATFORM_X86DEMO 
+       default y
+
+choice
 	prompt "Graphical Engine"
 	default "Nano-X"
 	help
@@ -53,7 +78,8 @@ config CONFIG_SYNC
 	help
 	Build all the nessesary components for the sync engine
 
-source scripts/platforms/Config.in
+
+#source scripts/platforms/Config.in
 
 endmenu
 
@@ -62,7 +88,8 @@ menu 'Build Options'
 
 config CROSS_COMPILE
 	bool "Do you want to build with a cross compiler?"
-	default n
+	default y
+	depends	CONFIG_CPU_ARM
 	help
 	  Enable this option to build with a cross compiler.
 
