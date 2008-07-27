@@ -4,6 +4,7 @@
 *
 * Copyright 2007 by Vladimir Ananiev (Vovan888 at gmail com )
 *
+* Licensed under GPLv2, see LICENSE
 */
 
 #include <stdio.h>
@@ -16,9 +17,9 @@
 
 #define PATHS_NUM	2
 #ifdef CONFIG_PLATFORM_X86DEMO
-const char *paths[PATHS_NUM] = {"/usr/local/flphone/", NULL };
+const char *paths[PATHS_NUM] = {"./", NULL };
 #else
-const char *paths[PATHS_NUM] = {"/usr/flphone/","/mnt/mmc1/" };
+const char *paths[PATHS_NUM] = {"/mnt/mmc1/","/usr/flphone/" };
 #endif
 
 /*
@@ -28,12 +29,13 @@ const char *paths[PATHS_NUM] = {"/usr/flphone/","/mnt/mmc1/" };
 */
 char * cfg_findfile(char * filename)
 {
-	int i = PATHS_NUM;
+	int i;
 	char str[256];	/*FIXME - constant ?*/
 	
-	while ( i-- >= 0) {
+	for(i = 0; i < PATHS_NUM; i++) {
 		if (paths[i] == NULL)
 			continue;
+		str[0] = 0;	/*FIXME empty string*/
 		strcpy(str, paths[i]);
 		strncat(str, filename, 255);
 		if (access(str, F_OK))
