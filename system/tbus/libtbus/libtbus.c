@@ -26,7 +26,7 @@ static int tbus_socket_sys;
  * Free all the parts of the message
  * @param msg pointer to the message
  */
-void tbus_msg_free(struct tbus_message *msg)
+DLLEXPORT void tbus_msg_free(struct tbus_message *msg)
 {
 	free(msg->service_sender);
 	free(msg->service_dest);

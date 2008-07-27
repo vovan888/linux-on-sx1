@@ -22,10 +22,11 @@
 /* default window style for GR_WM_PROPS_APPWINDOW*/
 #define DEFAULT_WINDOW_STYLE	(GR_WM_PROPS_APPFRAME | GR_WM_PROPS_CAPTION |\
 				  GR_WM_PROPS_NOAUTOMOVE | GR_WM_PROPS_NOAUTORESIZE)
-//					GR_WM_PROPS_CLOSEBOX | \
+/*					GR_WM_PROPS_CLOSEBOX | \*/
 
-static GR_COORD lastx = FIRST_WINDOW_LOCATION;
+/*static GR_COORD lastx = FIRST_WINDOW_LOCATION;
 static GR_COORD lasty = FIRST_WINDOW_LOCATION;
+*/
 
 /*
  * A new client window has been mapped, so we need to reparent and decorate it.

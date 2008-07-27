@@ -118,11 +118,11 @@ void do_mouse_moved(GR_EVENT_MOUSE *event)
 {
 	win *window;
 
-	Dprintf("do_mouse_moved: wid %d, subwid %d, rootx %d, rooty %d, x %d, "
+/*	Dprintf("do_mouse_moved: wid %d, subwid %d, rootx %d, rooty %d, x %d, "
 		"y %d, buttons %d, modifiers %d\n", event->wid, event->subwid,
 		event->rootx, event->rooty, event->x, event->y, event->buttons,
 		event->modifiers);
-
+*/
 	if(!(window = find_window(event->wid))) return;
 
 	switch(window->type) {

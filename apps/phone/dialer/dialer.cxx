@@ -32,6 +32,8 @@ DialerProgramUI::DialerProgramUI(int width, int height)
 :Fl_Window(width, height, "")
 {      
   label("Simple Dialer App");
+  num_td = (char*)malloc(128);
+
   strcpy ( num_td, "" );
 
   begin();

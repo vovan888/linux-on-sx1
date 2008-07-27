@@ -13,7 +13,7 @@
  * Free all the parts of the message
  * @param msg pointer to the message
  */
-static void tbus_msg_free(struct tbus_message *msg)
+static void tbus_msg_free_internal(struct tbus_message *msg)
 {
 //	DPRINT("%d, %s/%s %s\n",msg->type, msg->service_dest, msg->object, msg->data);
 	
@@ -79,7 +79,7 @@ static int tbus_read_message(int fd, struct tbus_message *msg)
 
 	return 0;
 error_tpl:
-	tbus_msg_free(msg);
+	tbus_msg_free_internal(msg);
 error_msg:
 	tpl_free(tn);
 	return -1;
@@ -119,7 +119,7 @@ int tbus_client_message(int socket_fd, int bus_id)
 			/* error - not connected */
 			msg.type = TBUS_MSG_ERROR;
 			ret = tbus_write_message(socket_fd, &msg);
-			tbus_msg_free(&msg);
+			tbus_msg_free_internal(&msg);
 		}
 	} else {	
 		switch (msg.type) {
@@ -127,17 +127,17 @@ int tbus_client_message(int socket_fd, int bus_id)
 			/* error - already connected */
 			msg.type = TBUS_MSG_ERROR;
 			ret = tbus_write_message(socket_fd, &msg);
-			tbus_msg_free(&msg);
+			tbus_msg_free_internal(&msg);
 			break;
 		case TBUS_MSG_CLOSE:
 			tbus_client_del(sender_client);
-			tbus_msg_free(&msg);
+			tbus_msg_free_internal(&msg);
 			break;
 		case TBUS_MSG_CALL_METHOD:
 			dest_client = tbus_client_find_by_service(msg.service_dest);
 			ret =
 			    tbus_client_method(sender_client, dest_client, &msg);
-			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
+			tbus_msg_free_internal(&msg);/*FIXME - check what should be deallocated*/
 			break;
 /*		case TBUS_MSG_RETURN_METHOD:
 			dest_client = tbus_client_find_by_service(msg.service_dest);
@@ -147,15 +147,15 @@ int tbus_client_message(int socket_fd, int bus_id)
 			break;
 */		case TBUS_MSG_CONNECT_SIGNAL:
 			ret = tbus_client_connect_signal(sender_client, &msg);
-			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
+			tbus_msg_free_internal(&msg);/*FIXME - check what should be deallocated*/
 			break;
 		case TBUS_MSG_DISCON_SIGNAL:
 			ret = tbus_client_disconnect_signal(sender_client, &msg);
-			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
+			tbus_msg_free_internal(&msg);/*FIXME - check what should be deallocated*/
 			break;
 		case TBUS_MSG_EMIT_SIGNAL:
 			ret = tbus_client_emit_signal(sender_client, &msg);
-			tbus_msg_free(&msg);/*FIXME - check what should be deallocated*/
+			tbus_msg_free_internal(&msg);/*FIXME - check what should be deallocated*/
 			break;
 		default:
 			/*goto error;*/

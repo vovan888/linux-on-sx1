@@ -48,6 +48,7 @@ struct tbus_signal_conn {
 /* from tbus-clients.c */
 void tbus_init_clients();
 int tbus_client_add(int socket_fd, char *service);
+struct tbus_client *tbus_client_find_by_socket(int socket_fd);
 struct tbus_client *tbus_client_find_by_service(char *service);
 void tbus_client_del(struct tbus_client *client);
 

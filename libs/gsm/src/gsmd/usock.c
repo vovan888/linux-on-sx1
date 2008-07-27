@@ -561,7 +561,7 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 		gsmd_log(GSMD_DEBUG, "pin type=%u, pin='%s', newpin='%s'\n",
 			 gp->type, gp->pin, gp->newpin);
 
-		cmd = atcmd_fill("AT+CPIN=\"", 9+GSMD_PIN_MAXLEN+3+GSMD_PIN_MAXLEN+2,
+		cmd = atcmd_fill("AT+CPIN=", 9+GSMD_PIN_MAXLEN+3+GSMD_PIN_MAXLEN+2,
 			 &pin_cmd_cb, gu, 0, NULL);
 		if (!cmd)
 			return -ENOMEM;
@@ -571,13 +571,13 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 		switch (gp->type) {
 			case GSMD_PIN_SIM_PUK:
 			case GSMD_PIN_SIM_PUK2:
-				strlcat(cmd->buf, "\",\"", cmd->buflen);
+				/*strlcat(cmd->buf, "\",\"", cmd->buflen);*/
 				strlcat(cmd->buf, gp->newpin, cmd->buflen);
 			break;
 		default:
 			break;
 		}
-		strlcat(cmd->buf, "\"", cmd->buflen);
+	/*	strlcat(cmd->buf, "\"", cmd->buflen);*/
 		break;
 	case GSMD_PIN_GET_STATUS:
 		cmd = atcmd_fill("AT+CPIN?", 8 + 1, &get_cpin_cb, gu, 0, NULL);

@@ -419,6 +419,12 @@ static int ml_parse(const char *buf, int len, void *ctx)
 			/* Part of Case 'D' */
 			goto final_cb;
 		}
+
+		if (!strncmp(buf, "NO DIALTONE", 11) ||
+		    ((g->flags & GSMD_FLAG_V0) && buf[0] == '7')) {
+			/* Part of Case 'D' */
+			goto final_cb;
+		}
 	}
 
 	/* we reach here, if we are at an information response that needs to be

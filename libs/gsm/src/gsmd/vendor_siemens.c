@@ -106,7 +106,36 @@ static int sacd_parse(const char *buf, int len, const char *param, struct gsmd *
 	return 0;
 }
 
+/*  +CIEV ind,value.  indicator:
+1 = battery charge (0..10)
+2 = signal quality (0 - good ..7 - bad, 99 - NA)
+3 = service
+4 = message
+5 = call
+6 = roam
+7 = smsfull
+*/
+static int ciev_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
+{
+	char *tok1, *tok2;
+	char tx_buf[20];
+	
+	strlcpy(tx_buf, buf, sizeof(tx_buf));
+	tok1 = strtok(tx_buf, ",");
+	if (!tok1)
+		return -EIO;
+	
+	switch (atoi(tok1)) {
+		case 1: /* battery charge */
+			/*TODO*/
+			break;
+	}
+
+	return 0;
+}
+
 static const struct gsmd_unsolicit siemens_unsolicit[] = {
+	{ "+CIEV",	&ciev_parse },	/* Indicators event reporting */
 	{ "^SCII",	&scii_parse },	/* Ciphering Indication */
 	{ "^SACD",	&sacd_parse },	/* Accessory Indication */
 };

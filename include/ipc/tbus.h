@@ -52,15 +52,6 @@ struct tbus_message {
 /* TPL format string for the internal message */
 #define TBUS_MESSAGE_FORMAT	"iissss"
 
-/* -fvisibility=hidden support macro */
-#ifdef CONFIG_GCC_HIDDEN_VISIBILITY
-    #define DLLEXPORT __attribute__ ((visibility("default")))
-    #define DLLLOCAL __attribute__ ((visibility("hidden")))
-#else
-    #define DLLEXPORT
-    #define DLLLOCAL
-#endif
-
 DLLEXPORT int tbus_register_service ( char * service );
 
 DLLEXPORT int tbus_close (void);
