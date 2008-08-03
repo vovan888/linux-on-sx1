@@ -7,6 +7,14 @@ config CONFIG_PHONEAPPS
 	Say 'yes' here to build the FLTK Phone and other
 	applications
 
+config CONFIG_PIN_ENTER
+       bool "Pin enter"
+       default y
+        depends CONFIG_PHONEAPPS
+       help
+	Say 'yes' here to build the PIN enter application,
+	that handles gsm phone calls
+
 config CONFIG_PHONE
        bool "Phone"
        default y
