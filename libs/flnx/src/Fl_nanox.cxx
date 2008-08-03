@@ -1137,8 +1137,7 @@ void Fl_X::sendxjunk () {
 
 void Fl_Window::size_range_ () {
   size_range_set = 1;
-  if (shown ())
-    i->sendxjunk ();
+  if (shown()) i->sendxjunk ();
 }
 
 ////////////////////////////////////////////////////////////////
@@ -1147,9 +1146,8 @@ void Fl_Window::size_range_ () {
 const char * fl_filename_name (const char *name)
 {
   const char *p, *q;
-  for (p = q = name; *p;)
-    if (*p++ == '/')
-      q = p;
+  if (!name) return (0);
+  for (p = q = name; *p;) if (*p++ == '/') q = p;
   return q;
 }
 
@@ -1184,11 +1182,9 @@ void Fl_Window::label (const char *name, const char *iname) {
 // contents are restored to the area, but this assummes the area
 // is cleared to background color.  So this is disabled in this version.
 // Fl_Window *fl_boxcheat;
-static inline int can_boxcheat (uchar b) {
-  return (b == 1 || (b & 2) && b <= 15);
-}
+static inline int can_boxcheat (uchar b) {return (b==1 || (b&2) && b<=15);}
 
-void Fl_Window::show () {
+void Fl_Window::show() {
   image(Fl::scheme_bg_);
   if (Fl::scheme_bg_) {
     labeltype(FL_NORMAL_LABEL);
@@ -1197,29 +1193,28 @@ void Fl_Window::show () {
     labeltype(FL_NO_LABEL);
   }
   Fl_Tooltip::exit(this);
-  if (!shown ()) {
+  if (!shown()) {
     fl_open_display ();
     // Don't set background pixel for double-buffered windows...
-//    if (type() == FL_WINDOW && can_boxcheat(box())) {
-    if (can_boxcheat(box())) {
-	fl_background_pixel = int (fl_xpixel (color ()));
-	Fl_X::make_xid (this);
-    } else {
+    if (type() == FL_WINDOW && can_boxcheat(box())) {
+//    if (can_boxcheat(box())) {
+      fl_background_pixel = int (fl_xpixel (color ()));
+    }
+    Fl_X::make_xid (this);
+  } else {
      //tanghao   XMapRaised(fl_display, i->xid);
      GrRaiseWindow (i->xid);
-    }
   }
 }
 Window fl_window;
 //Gr_Window
-Fl_Window *  Fl_Window::current_;
-GC  fl_gc;
+Fl_Window *Fl_Window::current_;
+GC fl_gc;
 
 // make X drawing go into this window (called by subclass flush() impl.)
 void Fl_Window::make_current () {
   static GC gc;		// the GC used by all X windows
-  if (!gc)
-    gc = GrNewGC ();
+  if (!gc) gc = GrNewGC ();
 
   fl_window = i->xid;
   fl_gc = gc;
