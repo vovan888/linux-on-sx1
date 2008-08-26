@@ -10,8 +10,8 @@
 #define _indicators_h_
 
 #include <nano-X.h>
-#include <debug.h>
-#include <theme.h>
+#include <flphone/debug.h>
+#include <flphone/theme.h>
 #include <ipc/shareddata.h>
 //#include <ipc/colosseum.h>
 #include <ipc/phoneserver.h>

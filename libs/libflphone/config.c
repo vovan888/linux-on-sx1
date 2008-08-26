@@ -11,9 +11,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <libini.h>
+#include <common/libini.h>
 #include <flphone_config.h>
-#include <libflphone.h>
+#include <flphone/libflphone.h>
 
 #define PATHS_NUM	2
 #ifdef CONFIG_PLATFORM_X86DEMO

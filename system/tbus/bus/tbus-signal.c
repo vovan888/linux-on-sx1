@@ -9,7 +9,7 @@
 #include <stddef.h>
 
 #include "tbus-server.h"
-#include <debug.h>
+#include <flphone/debug.h>
 
 struct tbus_signal_conn *signal_connections = NULL;
 

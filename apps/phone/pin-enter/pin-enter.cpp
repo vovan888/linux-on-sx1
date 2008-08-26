@@ -3,62 +3,79 @@
 #include "pin-enter.h"
 
 void UserInterface::cb_pin_code_i(Fl_Input*, void*) {
-  //pin code;
+  //pin code changed;
 }
 void UserInterface::cb_pin_code(Fl_Input* o, void* v) {
-//  ((UserInterface*)(o->parent()->user_data()))->cb_pin_code_i(o,v);
+  ((UserInterface*)(o->parent()->user_data()))->cb_pin_code_i(o,v);
 }
 
-void UserInterface::cb_RightSoft_i(Fl_Menu_Button*, void*) {
-  // Close program;
+void UserInterface::cb_LeftSoft_i(Fl_Button*, void*) {
+  // OK button;
 }
-void UserInterface::cb_RightSoft(Fl_Menu_Button* o, void* v) {
-//  ((UserInterface*)(o->parent()->user_data()))->cb_RightSoft_i(o,v);
+void UserInterface::cb_LeftSoft(Fl_Button* o, void* v) {
+  ((UserInterface*)(o->parent()->user_data()))->cb_LeftSoft_i(o,v);
 }
 
-Fl_Double_Window* UserInterface::make_window() {
+void UserInterface::cb_RightSoft_i(Fl_Button*, void*) {
+  // Cancel button;
+}
+void UserInterface::cb_RightSoft(Fl_Button* o, void* v) {
+  ((UserInterface*)(o->parent()->user_data()))->cb_RightSoft_i(o,v);
+}
+#include <FL/fl_ask.H>
+
+UserInterface::UserInterface() {
   Fl_Double_Window* w;
   { Fl_Double_Window* o = win_pin = new Fl_Double_Window(176, 200, "PIN-code");
     w = o;
-    o->box(FL_NO_BOX);
     o->user_data((void*)(this));
-    { Fl_Input* o = pin_code = new Fl_Input(0, 101, 176, 34);
-      o->box(FL_DOWN_FRAME);
+    { Fl_Output* o = msg = new Fl_Output(0, 103, 176, 25);
+      o->box(FL_FLAT_BOX);
+      o->color((Fl_Color)48);
+    }
+    { Fl_Input* o = pin_code = new Fl_Input(0, 127, 176, 34);
+      o->box(FL_FLAT_BOX);
       o->color((Fl_Color)19);
       o->textsize(18);
       o->callback((Fl_Callback*)cb_pin_code);
       o->when(FL_WHEN_CHANGED);
     }
-    { Fl_Menu_Button* o = LeftSoft = new Fl_Menu_Button(0, 180, 88, 20, "Options");
+    { Fl_Button* o = LeftSoft = new Fl_Button(0, 180, 88, 20, "OK");
       o->box(FL_FLAT_BOX);
-      o->labeltype(FL_ENGRAVED_LABEL);
+      o->shortcut(0xffbe);
+      o->labeltype(FL_SHADOW_LABEL);
+      o->callback((Fl_Callback*)cb_LeftSoft);
     }
-    { Fl_Menu_Button* o = RightSoft = new Fl_Menu_Button(88, 180, 88, 20, "Close");
+    { Fl_Button* o = RightSoft = new Fl_Button(88, 180, 88, 20, "Cancel");
       o->box(FL_FLAT_BOX);
+      o->shortcut(0xffbf);
       o->labeltype(FL_SHADOW_LABEL);
       o->callback((Fl_Callback*)cb_RightSoft);
       o->when(FL_WHEN_ENTER_KEY_ALWAYS);
     }
+    o->set_modal();
     o->end();
   }
-  return w;
+  msg->value("Please enter PIN");
+pin_code->activate();
 }
 
 int main(int argc, char **argv) {
-	int fd_ipc;
+  int fd_tbus;
 	int fd_lgsm;
 	UserInterface ui;
 
-//	fd_ipc = tbus_register_service("Phone");
+//	fd_tbus = tbus_register_service("Phone");
 //	fd_lgsm = init_lgsm();
 
 	// add fd of IPC messages
-//	Fl::add_fd(fd_ipc, tbus_handle);
+//	Fl::add_fd(fd_tbus, tbus_handle);
 	// add fd of libgsm
 //	Fl::add_fd(fd_lgsm, lgsm_handle);
 	// UI construction
-	ui.make_window();
-	ui.win_pin->show(argc, argv);
+
+	ui.win_pin->show(argc,argv);
 	
-	return Fl::run();
+//	const char *str = fl_password("Enter PIN");
+  return Fl::run();
 }

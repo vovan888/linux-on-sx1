@@ -10,8 +10,8 @@
 #define _alarmdef_h_
 
 #include <nano-X.h>
-#include <debug.h>
-#include <theme.h>
+#include <flphone/debug.h>
+#include <flphone/theme.h>
 #include <ipc/shareddata.h>
 #include <ipc/alarmd.h>
 #include <ipc/tbus.h>

@@ -55,7 +55,7 @@
 #include <arch/sx1/ipc_sound.h>
 #include <ipc/shareddata.h>
 #include <ipc/tbus.h>
-#include <debug.h>
+#include <flphone/debug.h>
 
 // timeout in seconds
 #define IPC_TIMEOUT 5

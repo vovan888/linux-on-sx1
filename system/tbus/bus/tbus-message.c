@@ -7,7 +7,7 @@
  */
 
 #include "tbus-server.h"
-#include <debug.h>
+#include <flphone/debug.h>
 
 /**
  * Free all the parts of the message

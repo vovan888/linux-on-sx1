@@ -1,0 +1,57 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0107 
+header_name {.h} 
+code_name {.cpp}
+class UserInterface {open
+} {
+  decl {\#include <FL/fl_ask.H>} {}
+  Function {UserInterface()} {open
+  } {
+    Fl_Window win_pin {
+      label {PIN-code} open
+      xywh {338 127 176 200} type Double modal visible
+    } {
+      Fl_Output msg {
+        xywh {0 103 176 25} box FLAT_BOX color 48
+      }
+      Fl_Input pin_code {
+        callback {//pin code changed}
+        xywh {0 127 176 34} box FLAT_BOX color 19 when 1 textsize 18
+      }
+      Fl_Button LeftSoft {
+        label OK
+        callback {// OK button}
+        xywh {0 180 88 20} box FLAT_BOX shortcut 0xffbe labeltype SHADOW_LABEL
+      }
+      Fl_Button RightSoft {
+        label Cancel
+        callback {// Cancel button}
+        xywh {88 180 88 20} box FLAT_BOX shortcut 0xffbf labeltype SHADOW_LABEL when 10
+      }
+    }
+    code {msg->value("Please enter PIN");
+pin_code->activate();} {}
+  }
+  decl {int x;} {}
+  decl {int x;} {}
+} 
+
+Function {} {open
+} {
+  code {int fd_tbus;
+	int fd_lgsm;
+	UserInterface ui;
+
+//	fd_tbus = tbus_register_service("Phone");
+//	fd_lgsm = init_lgsm();
+
+	// add fd of IPC messages
+//	Fl::add_fd(fd_tbus, tbus_handle);
+	// add fd of libgsm
+//	Fl::add_fd(fd_lgsm, lgsm_handle);
+	// UI construction
+
+	ui.win_pin->show(argc,argv);
+	
+//	const char *str = fl_password("Enter PIN");} {}
+} 

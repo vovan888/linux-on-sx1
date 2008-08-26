@@ -16,7 +16,7 @@
 #include <errno.h>
 
 #include <ipc/tbus.h>
-#include <debug.h>
+#include <flphone/debug.h>
 
 /* socket fds for two buses */
 static int tbus_socket_sys;

@@ -7,7 +7,7 @@
 * Licensed under GPLv2, see LICENSE
 */
 
-#include <libflphone.h>
+#include <flphone/libflphone.h>
 
 #ifndef _theme_h_
 #define _theme_h_
@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 #include <nano-X.h>
-#include <libini.h>
+#include <common/libini.h>
 #include <flphone_config.h>
 
 /* Applications layout */

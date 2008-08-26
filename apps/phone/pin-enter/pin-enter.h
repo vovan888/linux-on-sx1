@@ -4,22 +4,29 @@
 #define pin_enter_h
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Output.H>
 #include <FL/Fl_Input.H>
-#include <FL/Fl_Menu_Button.H>
+#include <FL/Fl_Button.H>
 
 class UserInterface {
 public:
-  Fl_Double_Window* make_window();
+  UserInterface();
   Fl_Double_Window *win_pin;
+  Fl_Output *msg;
   Fl_Input *pin_code;
 private:
   void cb_pin_code_i(Fl_Input*, void*);
   static void cb_pin_code(Fl_Input*, void*);
 public:
-  Fl_Menu_Button *LeftSoft;
-  Fl_Menu_Button *RightSoft;
+  Fl_Button *LeftSoft;
 private:
-  void cb_RightSoft_i(Fl_Menu_Button*, void*);
-  static void cb_RightSoft(Fl_Menu_Button*, void*);
+  void cb_LeftSoft_i(Fl_Button*, void*);
+  static void cb_LeftSoft(Fl_Button*, void*);
+public:
+  Fl_Button *RightSoft;
+private:
+  void cb_RightSoft_i(Fl_Button*, void*);
+  static void cb_RightSoft(Fl_Button*, void*);
+  int x;
 };
 #endif

@@ -48,7 +48,7 @@
 #include <ipc/tbus.h>
 #include <ipc/shareddata.h>
 #include <arch/sx1/ipc_dsy.h>
-#include <debug.h>
+#include <flphone/debug.h>
 
 /* timeout in seconds */
 #define IPC_TIMEOUT 3

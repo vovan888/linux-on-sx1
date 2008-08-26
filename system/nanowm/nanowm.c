@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #define MWINCLUDECOLORS
 #include <nano-X.h>
-#include <libini.h>
-#include <libflphone.h>
+#include <common/libini.h>
+#include <flphone/libflphone.h>
 /* Uncomment this if you want debugging output from this file */
 /*#define DEBUG*/
 

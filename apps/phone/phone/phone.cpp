@@ -10,7 +10,7 @@ extern "C" {
 #include <string.h>
 #include <sys/select.h>
 //#include <nano-X.h>
-#include <debug.h>
+#include <flphone/debug.h>
 //#include <theme.h>
 #include <ipc/shareddata.h>
 #include <ipc/tbus.h>

@@ -12,9 +12,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <libini.h>
-#include <theme.h>
-#include <libflphone.h>
+#include <common/libini.h>
+#include <flphone/theme.h>
+#include <flphone/libflphone.h>
 #include <flphone_config.h>
 #include <nano-X.h>
 

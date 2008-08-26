@@ -8,7 +8,7 @@
 #include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Button.H>
 
-#include <theme.h>
+#include <flphone/theme.h>
 
 class AppView : public Fl_Group {
 public:

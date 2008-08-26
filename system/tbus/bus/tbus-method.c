@@ -7,7 +7,7 @@
  */
 
 #include "tbus-server.h"
-#include <debug.h>
+#include <flphone/debug.h>
 
 int tbus_client_method(struct tbus_client *sender_client, struct tbus_client *dest_client, struct tbus_message *msg)
 {

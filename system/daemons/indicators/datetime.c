@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-#include <theme.h>
+#include <flphone/theme.h>
 
 #include <nxcolors.h>
 #include "indicators.h"

@@ -15,7 +15,7 @@
 #include <unistd.h> 
 #include <string.h> 
 
-#include <debug.h>
+#include <flphone/debug.h>
 #include <ipc/shareddata.h>
 
 #define SHMID		0x0888

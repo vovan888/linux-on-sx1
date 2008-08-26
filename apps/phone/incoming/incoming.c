@@ -28,7 +28,7 @@
 #include <gsmd/usock.h>
 
 #include <nano-X.h>
-#include <keys_nanox.h>
+#include <flphone/keys_nanox.h>
 
 #define STDIN_BUF_SIZE	1024
 

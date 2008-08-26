@@ -34,7 +34,7 @@
 #include <unistd.h>
 
 #include <nano-X.h>
-#include <theme.h>
+#include <flphone/theme.h>
 
 #include "menu.h"
 

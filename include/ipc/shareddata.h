@@ -7,7 +7,7 @@
 * Licensed under GPLv2, see LICENSE
 */
 
-#include <libflphone.h>
+#include <flphone/libflphone.h>
 
 #ifndef _shareddata_h_
 #define _shareddata_h_

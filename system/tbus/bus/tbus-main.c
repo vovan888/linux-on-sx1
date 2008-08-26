@@ -7,7 +7,7 @@
  */
 
 #include "tbus-server.h"
-#include <debug.h>
+#include <flphone/debug.h>
 
 /* socket fds for the bus */
 static int tbus_socket_sys;

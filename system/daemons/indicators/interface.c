@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <theme.h>
+#include <flphone/theme.h>
 
 #include <nano-X.h>
 #include <nxcolors.h>

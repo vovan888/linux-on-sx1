@@ -9,8 +9,8 @@
 #include <ipc/shareddata.h>
 #include <ipc/colosseum.h>
 #include <ipc/phoneserver.h>
-#include <keys_nanox.h>
-#include <theme.h>
+#include <flphone/keys_nanox.h>
+#include <flphone/theme.h>
 #include <ipc/tbus.h>
 
 #ifdef WMDEBUG
