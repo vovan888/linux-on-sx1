@@ -8,6 +8,7 @@ target-$(CONFIG_TBUS) += tbus
 target-$(CONFIG_NANOWM) += nanowm
 target-$(CONFIG_DAEMONS) += daemons
 target-$(CONFIG_GSMMUX) += gsmmux
+target-$(CONFIG_GSMD2) += gsmd2
 
 target-y += platform
 

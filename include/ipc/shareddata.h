@@ -32,12 +32,12 @@ struct SharedSystem {
 	} powerup;
 /* nanowm data */
 	struct {
-		char root_displayed; /* is root window displayed ? */
+		char root_displayed;	/* is root window displayed ? */
 	} wm;
 /* network */
 	struct {
-		char signal; 	/* network signal strength in dBm*/
-		char bars; 	/* network bars */
+		char signal;	/* network signal strength in dBm */
+		char bars;	/* network bars */
 	} network;
 /* SIM */
 	struct {
@@ -60,27 +60,26 @@ struct SharedSystem {
 	struct {
 		int missed_calls;
 		int messages;
-		char oper[16]; /* operator name */
+		char oper[16];	/* operator name */
 		int profile;
-		
+
 	} status;
 };
 
 /* Map shared memory segment
  * returns its adress
 */
-DLLEXPORT struct SharedSystem *ShmMap(unsigned int shared_id);
+DLLEXPORT struct SharedSystem *ShmMap (unsigned int shared_id);
 
 /* UnMap shared memory segment
  * returns 
 */
-DLLEXPORT int ShmUnmap(struct SharedSystem *ptr);
+DLLEXPORT int ShmUnmap (struct SharedSystem *ptr);
 
 /* blocks till the shared mem is busy then locks it */
 DLLEXPORT int ShmLock (unsigned int shared_id);
 
 /* unlocks shared memory segment */
 DLLEXPORT int ShmUnlock (unsigned int shared_id);
-
 
 #endif //shareddata_h_
