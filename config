@@ -35,8 +35,8 @@ CONFIG_DEBUG=y
 # Phone Applications
 #
 CONFIG_PHONEAPPS=y
-CONFIG_PIN_ENTER=y
-CONFIG_PHONE=y
+# CONFIG_PIN_ENTER is not set
+# CONFIG_PHONE is not set
 # CONFIG_DIALER is not set
 # CONFIG_INCOMING_CALL is not set
 # CONFIG_CALL_LOGS is not set

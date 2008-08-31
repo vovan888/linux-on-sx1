@@ -164,9 +164,9 @@ void do_key_down(GR_EVENT_KEYSTROKE *event)
 	/* FIXME: Implement keyboard shortcuts */
 	/* DEBUG keys */
 	if (event -> ch == Key_Menu) {
-		int ret;
-
-		ret = tbus_emit_signal("debugkey", "Key_Menu");
+		int ret = 888;
+		char *str = "Key_Menu";
+		ret = tbus_emit_signal("debugkey", "is", &ret, &str);
 
 		printf("key_down: %d\n",ret);
 	}

@@ -59,6 +59,11 @@ static int ipc_signal(struct tbus_message *msg)
 /*DEBUG signal*/
 	if(!strcmp(msg->service_dest, "nanowm")) {
 		if(!strcmp(msg->object,"debugkey")) {
+			int tmp;
+			char *str;
+			tbus_get_message_args(msg, "is", &tmp, &str);
+			DPRINT("%d %s\n", tmp, str);
+			free(str);
 			shdata->battery.bars = 3;
 			indicators[THEME_MAINBATTERY].changed(3);
 		}
