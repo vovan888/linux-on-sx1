@@ -163,17 +163,22 @@ char *calc_field_addr(tpl_node *parent, int type,char *struct_addr, int ordinal)
 }
 
 TPL_API tpl_node *tpl_map(char *fmt,...) {
+    va_list ap;
+    va_start(ap,fmt);
+
+    return tpl_vmap(fmt, ap);
+}
+
+TPL_API tpl_node *tpl_vmap(char *fmt, va_list ap) {
     int lparen_level=0,expect_lparen=0,t,in_structure=0,ordinal,infer=0;
     char *c, *struct_addr;
-    va_list ap;
+/*    va_list ap; */
     tpl_node *root,*parent,*n,*preceding;
     tpl_pidx *pidx;
     int *fxlens, num_fxlens;
     void *fxlens_img; 
     uint32_t f;
     size_t spn;
-
-    va_start(ap,fmt);
 
     /* the internal infer_2 mode is is used to implement the load-stage of
      * 'structure-wildcard' unpacking. (see below). Not the normal case. */

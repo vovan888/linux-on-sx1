@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TPL_H
 #define TPL_H 
 
+#include <stdarg.h>  /* va_list */
 #include <sys/types.h>  /* size_t */
 #include <inttypes.h>   /* uint32_t */
 
@@ -187,6 +188,7 @@ typedef int (tpl_gather_cb)(void *img, size_t sz, void *data);
 
 /* Prototypes */
 TPL_API tpl_node *tpl_map(char *fmt,...);       /* define tpl using format */
+TPL_API tpl_node *tpl_vmap(char *fmt, va_list ap);/* same as tpl_map, takes va_list argument */
 TPL_API void tpl_free(tpl_node *r);             /* free a tpl map */
 TPL_API int tpl_pack(tpl_node *r, int i);       /* pack the n'th packable */
 TPL_API int tpl_unpack(tpl_node *r, int i);     /* unpack the n'th packable */
