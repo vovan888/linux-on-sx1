@@ -36,7 +36,7 @@ config CONFIG_GSMMUX
           Most people should answer Y.
 
 config CONFIG_GSMD2
-       bool "gsmd - OpenMoko`s gsmd with T-BUS interface"
+       bool "gsmd2 - OpenMoko`s gsmd with T-BUS interface"
        default y
        help
 	Say yes here to build gsmd
