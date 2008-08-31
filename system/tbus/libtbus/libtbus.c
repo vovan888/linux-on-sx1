@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -31,26 +32,35 @@ DLLEXPORT void tbus_msg_free (struct tbus_message *msg)
 	free (msg->service_sender);
 	free (msg->service_dest);
 	free (msg->object);
-	free (msg->data);
+	if(msg->datalen > 0) {
+		free (msg->data);
+		msg->datalen = 0;
+	}
 }
 
 /**
  * Write message to the client
  * @param fd file descriptor of destination
  * @param msg message struct
- * @param args message arguments
  */
 static int tbus_write_message (int fd, struct tbus_message *msg)
 {
 	int err;
 	tpl_node *tn;
+	tpl_bin tb;
 
-	tn = tpl_map (TBUS_MESSAGE_FORMAT, &msg->magic, &msg->type,
-		      &msg->service_sender, &msg->service_dest, &msg->object,
-		      &msg->data);
+	tn = tpl_map (TBUS_MESSAGE_FORMAT, msg, &tb);
+	tb.sz = msg->datalen;
+	tb.addr = msg->data;
 	tpl_pack (tn, 0);	/* copies message data into the tpl */
 	err = tpl_dump (tn, TPL_FD, fd);	/* write the tpl image to file descriptor */
 	tpl_free (tn);
+
+	/* free data - it is always malloc`ed */
+	if(msg->datalen > 0) {
+		free (msg->data);
+		msg->datalen = 0;
+	}
 
 	if (err < 0) {
 		/* error while writing means we lost connection to server */
@@ -70,29 +80,48 @@ static int tbus_write_message (int fd, struct tbus_message *msg)
 static int tbus_read_message (int fd, struct tbus_message *msg)
 {
 	tpl_node *tn;
+	tpl_bin tb;
 
-	tn = tpl_map (TBUS_MESSAGE_FORMAT, &msg->magic, &msg->type,
-		      &msg->service_sender, &msg->service_dest, &msg->object,
-		      &msg->data);
+	tn = tpl_map (TBUS_MESSAGE_FORMAT, msg, &tb);
 	if (tpl_load (tn, TPL_FD, fd))
 		goto error_msg;
 	tpl_unpack (tn, 0);	/* allocates space and unpacks data */
-
 	tpl_free (tn);
 
-	if (msg->magic != TBUS_MAGIC) {
-		/* it is not TBUS message */
-		/*FIXME what to do here ? */
-		goto error_tpl;
-	}
+	msg->datalen = tb.sz;
+	msg->data = tb.addr;
 
 	return 0;
-      error_tpl:
-	tbus_msg_free (msg);
       error_msg:
 	free (msg);
 	tpl_free (tn);
 	return -1;
+}
+
+/**
+ * Pack messages arguments
+ * @param msg message structure
+ * @param fmt message format, like in libtpl
+ * @param ap arguments list (pointers to vars!)
+ * @return 0 if OK
+ */
+static int tbus_pack_args(struct tbus_message *msg, char *fmt, va_list ap)
+{
+	void *data = NULL;
+	int datalen = 0;
+
+	if (strlen(fmt) > 0) {
+		tpl_node *tn;
+		tn = tpl_vmap(fmt, ap);
+		tpl_pack(tn, 0);
+		tpl_dump(tn, TPL_MEM, &data, &datalen);
+		tpl_free(tn);
+	}
+
+	msg->data = data;
+	msg->datalen = datalen;
+
+	return 0;
 }
 
 /**
@@ -156,12 +185,12 @@ DLLEXPORT int tbus_register_service (char *service)
 	if (tbus_socket_sys < 0)
 		return -1;
 
-	msg.magic = TBUS_MAGIC;
 	msg.type = TBUS_MSG_REGISTER;
 	msg.service_sender = service;
 	msg.service_dest = "tbus";
 	msg.object = "daemon";
-	msg.data = "register";
+	msg.data = NULL;
+	msg.datalen = 0;
 
 	tbus_write_message (tbus_socket_sys, &msg);
 
@@ -187,12 +216,12 @@ DLLEXPORT int tbus_close (void)
 	if (tbus_socket_sys == -1)
 		return -1;
 
-	msg.magic = TBUS_MAGIC;
 	msg.type = TBUS_MSG_CLOSE;
 	msg.service_sender = "";
 	msg.service_dest = "";
 	msg.object = "";
-	msg.data = "";
+	msg.data = NULL;
+	msg.datalen = 0;
 
 	err = tbus_write_message (tbus_socket_sys, &msg);
 
@@ -223,25 +252,52 @@ DLLEXPORT int tbus_get_message (struct tbus_message *msg)
 	}
 }
 
+/**
+ * Extract message args from message struct
+ * @param msg pointer to the message structure
+ *
+ * returns msg->type, or -1 if error
+ */
+DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...)
+{
+	int err;
+	va_list ap;
+
+	if (!msg || (tbus_socket_sys == -1))
+		return -1;
+
+	if (strlen(fmt) > 0) {
+		va_start(ap, fmt);
+		tpl_node *tn;
+		tn = tpl_vmap(fmt, ap);
+		tpl_load(tn, TPL_MEM, msg->data, msg->datalen);
+		tpl_unpack(tn, 0);
+		tpl_free(tn);
+	}
+	return 0;
+}
+
 /**Call the method on the remote service
  * @param service service name of the method
  * @param method called method
- * @param args arguments to path to the method
+ * @param fmt format string for the arguments, as in libtpl
+ * @param args method arguments, should be pointers to variables!
  */
-DLLEXPORT int tbus_call_method (char *service, char *method, char *args)
+DLLEXPORT int tbus_call_method (char *service, char *method, char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;
+	va_list ap;
 
-	if ((tbus_socket_sys == -1) || !service || !method || !args)
+	if ((tbus_socket_sys == -1) || !service || !method || !fmt)
 		return -1;
 
-	msg.magic = TBUS_MAGIC;
+	va_start(ap, fmt);
+	tbus_pack_args(&msg, fmt, ap);
 	msg.type = TBUS_MSG_CALL_METHOD;
 	msg.service_sender = "";
 	msg.service_dest = service;
 	msg.object = method;
-	msg.data = args;
 
 	err = tbus_write_message (tbus_socket_sys, &msg);
 
@@ -251,22 +307,24 @@ DLLEXPORT int tbus_call_method (char *service, char *method, char *args)
 /**Return from the method with value
  * @param service service name of the method caller
  * @param method called method
+ * @param fmt format string for the arguments, as in libtpl
  * @param args arguments to path to the method
  */
-DLLEXPORT int tbus_method_return(  char * service, char * method, char * outvalue)
+DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;
+	va_list ap;
 
-	if ((tbus_socket_sys == -1) || !service || !method || !outvalue)
+	if ((tbus_socket_sys == -1) || !service || !method || !fmt)
 		return -1;
 
-	msg.magic = TBUS_MAGIC;
+	va_start(ap, fmt);
+	tbus_pack_args(&msg, fmt, ap);
 	msg.type = TBUS_MSG_RETURN_METHOD;
 	msg.service_sender = "";
 	msg.service_dest = service;
 	msg.object = method;
-	msg.data = outvalue;
 
 	err = tbus_write_message (tbus_socket_sys, &msg);
 
@@ -286,12 +344,12 @@ DLLEXPORT int tbus_connect_signal (char *service, char *object)
 	if ((tbus_socket_sys == -1) || !service || !object)
 		return -1;
 
-	msg.magic = TBUS_MAGIC;
 	msg.type = TBUS_MSG_CONNECT_SIGNAL;
 	msg.service_sender = "";
 	msg.service_dest = service;
 	msg.object = object;
-	msg.data = "connect";
+	msg.data = NULL;
+	msg.datalen = 0;
 
 	err = tbus_write_message (tbus_socket_sys, &msg);
 
@@ -311,12 +369,12 @@ DLLEXPORT int tbus_disconnect_signal (char *service, char *object)
 	if ((tbus_socket_sys == -1) || !service || !object)
 		return -1;
 
-	msg.magic = TBUS_MAGIC;
 	msg.type = TBUS_MSG_DISCON_SIGNAL;
 	msg.service_sender = "";
 	msg.service_dest = service;
 	msg.object = object;
-	msg.data = "disconnect";
+	msg.data = NULL;
+	msg.datalen = 0;
 
 	err = tbus_write_message (tbus_socket_sys, &msg);
 
@@ -326,22 +384,24 @@ DLLEXPORT int tbus_disconnect_signal (char *service, char *object)
 /**
  * Emit the signal so the connected clients receive notification
  * @param object signal name to connect
+ * @param fmt format string for the arguments, as in libtpl
  * @param value arguments to path to the method
  */
-DLLEXPORT int tbus_emit_signal (char *object, char *value)
+DLLEXPORT int tbus_emit_signal (char *object, char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;
+	va_list ap;
 
-	if ((tbus_socket_sys == -1) || !object || !value)
+	if ((tbus_socket_sys == -1) || !object || !fmt)
 		return -1;
 
-	msg.magic = TBUS_MAGIC;
+	va_start(ap, fmt);
+	tbus_pack_args(&msg, fmt, ap);
 	msg.type = TBUS_MSG_EMIT_SIGNAL;
 	msg.service_sender = "";
 	msg.service_dest = "";
 	msg.object = object;
-	msg.data = value;
 
 	err = tbus_write_message (tbus_socket_sys, &msg);
 

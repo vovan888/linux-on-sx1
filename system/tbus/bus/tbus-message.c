@@ -20,7 +20,10 @@ static void tbus_msg_free_internal (struct tbus_message *msg)
 	free (msg->service_sender);
 	free (msg->service_dest);
 	free (msg->object);
-	free (msg->data);
+	if(msg->datalen > 0) {
+		free (msg->data);
+		msg->datalen = 0;
+	}
 }
 
 /**
@@ -31,22 +34,16 @@ static void tbus_msg_free_internal (struct tbus_message *msg)
  */
 int tbus_write_message (int fd, struct tbus_message *msg)
 {
-	DPRINT ("%d, %s/%s %s\n", msg->type, msg->service_dest, msg->object,
-		msg->data);
-
 	int err;
 	tpl_node *tn;
+	tpl_bin tb;
 
-	tn = tpl_map (TBUS_MESSAGE_FORMAT, &msg->magic, &msg->type,
-		      &msg->service_sender, &msg->service_dest, &msg->object,
-		      &msg->data);
+	tn = tpl_map (TBUS_MESSAGE_FORMAT, msg, &tb);
+	tb.sz = msg->datalen;
+	tb.addr = msg->data;
 	tpl_pack (tn, 0);	/* copies message data into the tpl */
 	err = tpl_dump (tn, TPL_FD, fd);	/* write the tpl image to file descriptor */
 	tpl_free (tn);
-
-	if (err < 0) {
-		/* error while writing means we lost connection to client */
-	 /*FIXME*/}
 
 	return err;
 }
@@ -61,28 +58,18 @@ int tbus_write_message (int fd, struct tbus_message *msg)
 static int tbus_read_message (int fd, struct tbus_message *msg)
 {
 	tpl_node *tn;
+	tpl_bin tb;
 
-	tn = tpl_map (TBUS_MESSAGE_FORMAT, &msg->magic, &msg->type,
-		      &msg->service_sender, &msg->service_dest, &msg->object,
-		      &msg->data);
+	tn = tpl_map (TBUS_MESSAGE_FORMAT, msg, &tb);
 	if (tpl_load (tn, TPL_FD, fd))
 		goto error_msg;
 	tpl_unpack (tn, 0);	/* allocates space and unpacks data */
-
 	tpl_free (tn);
 
-	DPRINT ("%d,%s->%s/%s (%s)\n", msg->type, msg->service_sender,
-		msg->service_dest, msg->object, msg->data);
-
-	if (msg->magic != TBUS_MAGIC) {
-		/* it is not TBUS message */
-		/*FIXME what to do here ? */
-		goto error_tpl;
-	}
+	msg->datalen = tb.sz;
+	msg->data = tb.addr;
 
 	return 0;
-      error_tpl:
-	tbus_msg_free_internal (msg);
       error_msg:
 	tpl_free (tn);
 	return -1;
@@ -144,13 +131,13 @@ int tbus_client_message (int socket_fd, int bus_id)
 						&msg);
 			tbus_msg_free_internal (&msg);	/*FIXME - check what should be deallocated */
 			break;
-/*		case TBUS_MSG_RETURN_METHOD:
+		case TBUS_MSG_RETURN_METHOD:
 			dest_client = tbus_client_find_by_service(msg.service_dest);
 			ret =
 			    tbus_client_method_return(sender_client,
 						      dest_client, &msg);
 					break;
-*/
+
 		case TBUS_MSG_CONNECT_SIGNAL:
 			ret = tbus_client_connect_signal (sender_client, &msg);
 			tbus_msg_free_internal (&msg);	/*FIXME - check what should be deallocated */

@@ -173,8 +173,8 @@ int tbus_client_emit_signal (struct tbus_client *sender_client,
 	str = service_signal_str (sender_client->service, msg->object, &len);
 
 	connection = tbus_find_connection (str, len);
-
 	DPRINT ("%s, %d\n", str, connection);
+	free(str);
 
 	if (connection && (connection->clients_head != NULL)) {
 		tmp = msg->service_dest;
