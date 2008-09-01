@@ -41,6 +41,8 @@
 #include <gsmd/talloc.h>
 #include <gsmd/extrsp.h>
 
+#include <ipc/tbus.h>
+
 static const char *ts0705_memtype_name[] = {
 	[GSM0705_MEMTYPE_NONE]		= "NONE",
 	[GSM0705_MEMTYPE_BROADCAST]	= "BM",
@@ -62,7 +64,7 @@ static inline int parse_memtype(char *memtype)
 
 	return GSM0705_MEMTYPE_NONE;
 }
-
+/*TODO*/
 static int sms_list_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
@@ -99,8 +101,7 @@ static int sms_list_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		return -EINVAL;	/* TODO: Send a response */
 	}
 
-	return gsmd_ucmd_submit(gu, GSMD_MSG_SMS, GSMD_SMS_LIST,
-			cmd->id, sizeof(msg), &msg);
+	return tbus_method_return(gu->service_sender, "SMS/List", "s", &resp);
 }
 
 static int sms_read_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -128,7 +129,7 @@ static int sms_read_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	colon = strchr(cmd->buf, '=');
 
         /* get a correct message index value on reading a SMS */
-	if (!strncmp(cmd->buf, "AT+CMGR", 7) && colon) 
+	if (!strncmp(cmd->buf, "AT+CMGR", 7) && colon)
 		msg.index = atoi(colon+1);
 	msg.stat = stat;
 	msg.is_last = 1;
@@ -145,12 +146,12 @@ static int sms_read_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		return -EINVAL;
 	}
 
-	return gsmd_ucmd_submit(gu, GSMD_MSG_SMS, GSMD_SMS_READ,
-			cmd->id, sizeof(msg), &msg);
+	return tbus_method_return(gu->service_sender, "SMS/Read", "s", &resp);
 }
 
 static int sms_send_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
+	struct gsmd_user *gu = ctx;
 	int msgref;
 
 	if (cmd->ret == 0 || cmd->ret == -255) {
@@ -159,13 +160,15 @@ static int sms_send_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	} else
 		msgref = -cmd->ret;
 
-	return gsmd_ucmd_submit(ctx, GSMD_MSG_SMS, GSMD_SMS_SEND,
-			cmd->id, sizeof(msgref), &msgref);
+	return tbus_method_return(gu->service_sender, "SMS/List", "s", &resp);
+/*	return gsmd_ucmd_submit(ctx, GSMD_MSG_SMS, GSMD_SMS_SEND,
+		cmd->id, sizeof(msgref), &msgref);*/
 }
 
 static int sms_write_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	int result;
+	struct gsmd_user *gu = ctx;
 
 	if (cmd->ret == 0) {
 		if (sscanf(resp, "+CMGW: %i", &result) < 1)
@@ -173,22 +176,25 @@ static int sms_write_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	} else
 		result = -cmd->ret;
 
-	return gsmd_ucmd_submit(ctx, GSMD_MSG_SMS, GSMD_SMS_WRITE,
-			cmd->id, sizeof(result), &result);
+	return tbus_method_return(gu->service_sender, "SMS/List", "s", &resp);
+/*	return gsmd_ucmd_submit(ctx, GSMD_MSG_SMS, GSMD_SMS_WRITE,
+			cmd->id, sizeof(result), &result);*/
 }
 
 static int sms_delete_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	int result = cmd->ret;
+	struct gsmd_user *gu = ctx;
 
-	return gsmd_ucmd_submit(ctx, GSMD_MSG_SMS, GSMD_SMS_DELETE,
-			cmd->id, sizeof(result), &result);
+	return tbus_method_return(gu->service_sender, "SMS/List", "s", &resp);
+/*	return gsmd_ucmd_submit(ctx, GSMD_MSG_SMS, GSMD_SMS_DELETE,
+			cmd->id, sizeof(result), &result);*/
 }
 
 static int usock_cpms_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
-	struct gsmd_ucmd *ucmd = ucmd_alloc(sizeof(struct gsmd_sms_storage));
+	struct gsmd_ucmd *ucmd = malloc(sizeof(struct gsmd_sms_storage));
 	struct gsmd_sms_storage *gss = (typeof(gss)) ucmd->buf;
 	char buf[3][3];
 
@@ -209,7 +215,7 @@ static int usock_cpms_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 				buf[1], &gss->mem[1].used, &gss->mem[1].total,
 				buf[2], &gss->mem[2].used, &gss->mem[2].total)
 			< 9) {
-		talloc_free(ucmd);
+//		talloc_free(ucmd);
 		return -EINVAL;	/* TODO: Send a response */
 	}
 
@@ -217,22 +223,25 @@ static int usock_cpms_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	gss->mem[1].memtype = parse_memtype(buf[1]);
 	gss->mem[2].memtype = parse_memtype(buf[2]);
 
-	usock_cmd_enqueue(ucmd, gu);
+// 	usock_cmd_enqueue(ucmd, gu);
+	return tbus_method_return(gu->service_sender, "SMS/List", "s", &resp);
 
-	return 0;
+// 	return 0;
 }
 
 static int usock_get_smsc_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_addr ga;
+	struct gsmd_user *gu = ctx;
 
 	if (sscanf(resp, "+CSCA: \"%31[^\"]\",%hhi",
 				ga.number, &ga.type) < 2)
 		return -EINVAL;	/* TODO: Send a response */
 
-	return gsmd_ucmd_submit(ctx,
+	return tbus_method_return(gu->service_sender, "SMS/List", "s", &resp);
+/*	return gsmd_ucmd_submit(ctx,
 			GSMD_MSG_SMS, GSMD_SMS_GET_SERVICE_CENTRE,
-			cmd->id, sizeof(ga), &ga);
+			cmd->id, sizeof(ga), &ga);*/
 }
 
 static const char *gsmd_cmgl_stat[] = {
@@ -240,7 +249,7 @@ static const char *gsmd_cmgl_stat[] = {
 };
 
 /* main unix socket Short Message receiver */
-int usock_rcv_sms(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
+int usock_rcv_sms(struct gsmd_user *gu, struct tbus_message *msg)
 {
 	/* FIXME: TEXT mode support!!  */
 	struct gsmd_atcmd *cmd = NULL;
@@ -253,40 +262,32 @@ int usock_rcv_sms(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 	int atcmd_len;
 	char buf[1024];
 
-	switch (gph->msg_subtype) {
-	case GSMD_SMS_LIST:
-		if(len < sizeof(*gph) + sizeof(int))
-			return -EINVAL;
-		stat = (int *) ((void *)gph + sizeof(*gph));
-		if (*stat < 0 || *stat > 4)
+	if(!strcmp("SMS/List", msg->object)) {
+		int stat;
+		tbus_get_message_args(msg, "i", &stat);
+
+		if (stat < 0 || stat > 4)
 			return -EINVAL;
 
 		if (gu->gsmd->flags & GSMD_FLAG_SMS_FMT_TEXT)
 			atcmd_len = sprintf(buf, "AT+CMGL=\"%s\"",
-					gsmd_cmgl_stat[*stat]);
+					gsmd_cmgl_stat[stat]);
 		else
-			atcmd_len = sprintf(buf, "AT+CMGL=%i", *stat);
+			atcmd_len = sprintf(buf, "AT+CMGL=%i", stat);
 
 		cmd = atcmd_fill(buf, atcmd_len + 1,
-				&sms_list_cb, gu, gph->id, NULL);
-		break;
-
-	case GSMD_SMS_READ:
-		if(len < sizeof(*gph) + sizeof(int))
-			return -EINVAL;
-		index = (int *) ((void *)gph + sizeof(*gph));
-
-		atcmd_len = sprintf(buf, "AT+CMGR=%i", *index);
+				&sms_list_cb, gu, 0, NULL);
+	} else
+	if(!strcmp("SMS/Read", msg->object)) {
+		int index;
+		tbus_get_message_args(msg, "i", &index);
+		atcmd_len = sprintf(buf, "AT+CMGR=%i", index);
 
 		cmd = atcmd_fill(buf, atcmd_len + 1,
-				&sms_read_cb, gu, gph->id, NULL);
-		break;
-
-	case GSMD_SMS_SEND:
-		if (len < sizeof(*gph) + sizeof(*gss))
-			return -EINVAL;
-		gss = (struct gsmd_sms_submit *) ((void *) gph + sizeof(*gph));
-
+				&sms_read_cb, gu, 0, NULL);
+	} else
+	if(!strcmp("SMS/Send", msg->object)) {
+		/*TODO*/
 		if (gu->gsmd->flags & GSMD_FLAG_SMS_FMT_TEXT) {
 			atcmd_len = sprintf(buf, "AT+CMGS=\"%s\"\n%.*s",
 					gss->addr.number,
@@ -301,13 +302,10 @@ int usock_rcv_sms(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 		buf[atcmd_len ++] = 26;	/* ^Z ends the message */
 		buf[atcmd_len ++] = 0;
 
-		cmd = atcmd_fill(buf, atcmd_len, &sms_send_cb, gu, gph->id, NULL);
-		break;
-
-	case GSMD_SMS_WRITE:
-		if (len < sizeof(*gph) + sizeof(*gsw))
-			return -EINVAL;
-		gsw = (struct gsmd_sms_write *) ((void *) gph + sizeof(*gph));
+		cmd = atcmd_fill(buf, atcmd_len, &sms_send_cb, gu, 0, NULL);
+	} else
+	if(!strcmp("SMS/Write", msg->object)) {
+		/*TODO*/
 		if (gsw->stat > 4)
 			return -EINVAL;
 
@@ -326,52 +324,35 @@ int usock_rcv_sms(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 		buf[atcmd_len ++] = 26;	/* ^Z ends the message */
 		buf[atcmd_len ++] = 0;
 
-		cmd = atcmd_fill(buf, atcmd_len, &sms_write_cb, gu, gph->id, NULL);
-		break;
-
-	case GSMD_SMS_DELETE:
-		if(len < sizeof(*gph) + sizeof(*gsd))
-			return -EINVAL;
-		gsd = (struct gsmd_sms_delete *) ((void *)gph + sizeof(*gph));
-
+		cmd = atcmd_fill(buf, atcmd_len, &sms_write_cb, gu, 0, NULL);
+	} else
+	if(!strcmp("SMS/Delete", msg->object)) {
+		/*TODO*/
 		atcmd_len = sprintf(buf, "AT+CMGD=%d,%d",
 				gsd->index, gsd->delflg);
 
 		cmd = atcmd_fill(buf, atcmd_len + 1,
-				&sms_delete_cb, gu, gph->id, NULL);
-		break;
-
-	case GSMD_SMS_GET_MSG_STORAGE:
+				&sms_delete_cb, gu, 0, NULL);
+	} else
+	if(!strcmp("SMS/GetStorage", msg->object)) {
 		cmd = atcmd_fill("AT+CPMS?", 8 + 1, usock_cpms_cb, gu, 0, NULL);
-		break;
-
-	case GSMD_SMS_SET_MSG_STORAGE:
-		if (len < sizeof(*gph) + 3 * sizeof(enum ts0705_mem_type))
-			return -EINVAL;
-		storage = (enum ts0705_mem_type *)
-			((void *) gph + sizeof(*gph));
+	} else
+	if(!strcmp("SMS/SetStorage", msg->object)) {
+		/*TODO*/
 		atcmd_len = sprintf(buf, "AT+CPMS=\"%s\",\"%s\",\"%s\"",
 				ts0705_memtype_name[storage[0]],
 				ts0705_memtype_name[storage[1]],
 				ts0705_memtype_name[storage[2]]);
-		cmd = atcmd_fill(buf, atcmd_len + 1, NULL, gu, gph->id, NULL);
-		break;
-
-	case GSMD_SMS_GET_SERVICE_CENTRE:
+		cmd = atcmd_fill(buf, atcmd_len + 1, NULL, gu, 0, NULL);
+	} else
+	if(!strcmp("SMS/GetServiceCenter", msg->object)) {
 		cmd = atcmd_fill("AT+CSCA?", 8 + 1, &usock_get_smsc_cb, gu, 0, NULL);
-		break;
-
-	case GSMD_SMS_SET_SERVICE_CENTRE:
-		if (len < sizeof(*gph) + sizeof(struct gsmd_addr))
-			return -EINVAL;
-		ga = (struct gsmd_addr *) ((void *) gph + sizeof(*gph));
+	} else
+	if(!strcmp("SMS/SetServiceCenter", msg->object)) {
+		/*TODO*/
 		atcmd_len = sprintf(buf, "AT+CSCA=\"%s\",%i",
 				ga->number, ga->type);
-		cmd = atcmd_fill(buf, atcmd_len + 1, NULL, gu, gph->id, NULL);
-		break;
-
-	default:
-		return -ENOSYS;
+		cmd = atcmd_fill(buf, atcmd_len + 1, NULL, gu, 0, NULL);
 	}
 
 	if (!cmd)
@@ -382,20 +363,17 @@ int usock_rcv_sms(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 }
 
 /* main unix socket Cell Broadcast receiver */
-int usock_rcv_cb(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
+int usock_rcv_cb(struct gsmd_user *gu, struct tbus_message *msg)
 {
 	struct gsmd_atcmd *cmd;
 
-	switch (gph->msg_subtype) {
-	case GSMD_CB_SUBSCRIBE:
+	if(!strcmp("CB/Subscribe", msg->object)) {
 		cmd = atcmd_fill("AT+CSCB=1", 9 + 1, NULL, gu->gsmd, 0, NULL);
-		break;
-	case GSMD_CB_UNSUBSCRIBE:
+	} else
+	if(!strcmp("CB/UnSubscribe", msg->object)) {
 		cmd = atcmd_fill("AT+CSCB=0", 9 + 1, NULL, gu->gsmd, 0, NULL);
-		break;
-	default:
+	} else
 		return -ENOSYS;
-	}
 
 	if (!cmd)
 		return -ENOMEM;
@@ -408,23 +386,16 @@ static int cmti_parse(const char *buf, int len, const char *param,
 		struct gsmd *gsmd)
 {
 	char memstr[3];
-	struct gsmd_evt_auxdata *aux;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-			GSMD_EVT_IN_SMS, sizeof(struct gsmd_evt_auxdata));
+	int index, inlined, memtype;
 
-	if (!ucmd)
-		return -ENOMEM;
-
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
-	if (sscanf(param, "\"%2[A-Z]\",%i", memstr, &aux->u.sms.index) < 2) {
-		talloc_free(ucmd);
+	if (sscanf(param, "\"%2[A-Z]\",%i", memstr, &index) < 2) {
 		return -EINVAL;
 	}
 
-	aux->u.sms.inlined = 0;
-	aux->u.sms.memtype = parse_memtype(memstr);
+	inlined = 0;
+	memtype = parse_memtype(memstr);
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_SMS);
+	return tbus_emit_signal("IncomingSMS", "iii", &index, &inlined, &memtype);
 }
 
 static int cmt_parse(const char *buf, int len, const char *param,
@@ -438,9 +409,10 @@ static int cmt_parse(const char *buf, int len, const char *param,
 	struct gsm_extrsp *er;
 	struct gsmd_evt_auxdata *aux;
 	struct gsmd_sms_list *msg;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-			GSMD_EVT_IN_SMS, sizeof(struct gsmd_evt_auxdata) +
-			sizeof(struct gsmd_sms_list));
+ 	struct gsmd_ucmd *ucmd;
+//	 = usock_build_event(GSMD_MSG_EVENT,
+// 			GSMD_EVT_IN_SMS, sizeof(struct gsmd_evt_auxdata) +
+// 			sizeof(struct gsmd_sms_list));
 
 	if (!ucmd)
 		return -ENOMEM;
@@ -465,21 +437,21 @@ static int cmt_parse(const char *buf, int len, const char *param,
 		return -ENOMEM;
 	}
 
-	//extrsp_dump(er);	
+	//extrsp_dump(er);
 
-	if ( er->num_tokens == 2 && 
+	if ( er->num_tokens == 2 &&
 			er->tokens[0].type == GSMD_ECMD_RTT_EMPTY &&
 			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC ) {
 
 		aux->u.sms.alpha[0] = '\0';
-		len = er->tokens[1].u.numeric; 
+		len = er->tokens[1].u.numeric;
 	}
-	else if ( er->num_tokens == 2 && 
+	else if ( er->num_tokens == 2 &&
 			er->tokens[0].type == GSMD_ECMD_RTT_STRING &&
 			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC ) {
 
 		strcpy(aux->u.sms.alpha, er->tokens[0].u.string);
-		len = er->tokens[1].u.numeric; 
+		len = er->tokens[1].u.numeric;
 	}
 	else {
 		talloc_free(ucmd);
@@ -505,7 +477,9 @@ static int cmt_parse(const char *buf, int len, const char *param,
 		return -EINVAL;
 	}
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_SMS);
+//	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_SMS);
+	/*TODO*/
+	return tbus_emit_signal("IncomingSMS", "s", &param);
 }
 
 static int cbmi_parse(const char *buf, int len, const char *param,
@@ -513,8 +487,9 @@ static int cbmi_parse(const char *buf, int len, const char *param,
 {
 	char memstr[3];
 	struct gsmd_evt_auxdata *aux;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-			GSMD_EVT_IN_CBM, sizeof(struct gsmd_evt_auxdata));
+	struct gsmd_ucmd *ucmd;
+// 	 = usock_build_event(GSMD_MSG_EVENT,
+// 			GSMD_EVT_IN_CBM, sizeof(struct gsmd_evt_auxdata));
 
 	if (!ucmd)
 		return -ENOMEM;
@@ -528,7 +503,9 @@ static int cbmi_parse(const char *buf, int len, const char *param,
 	aux->u.cbm.inlined = 0;
 	aux->u.cbm.memtype = parse_memtype(memstr);
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CBM);
+	/*TODO*/
+	return tbus_emit_signal("IncomingSMS", "s", &param);
+//	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CBM);
 }
 
 static int cbm_parse(const char *buf, int len, const char *param,
@@ -540,9 +517,10 @@ static int cbm_parse(const char *buf, int len, const char *param,
 	int i;
 	struct gsmd_evt_auxdata *aux;
 	struct gsmd_cbm *msg;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-			GSMD_EVT_IN_CBM, sizeof(struct gsmd_evt_auxdata) +
-			sizeof(struct gsmd_cbm));
+	struct gsmd_ucmd *ucmd;
+// 	 = usock_build_event(GSMD_MSG_EVENT,
+// 			GSMD_EVT_IN_CBM, sizeof(struct gsmd_evt_auxdata) +
+// 			sizeof(struct gsmd_cbm));
 
 	if (!ucmd)
 		return -ENOMEM;
@@ -574,7 +552,9 @@ static int cbm_parse(const char *buf, int len, const char *param,
 		return -EINVAL;
 	}
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CBM);
+	/*TODO*/
+	return tbus_emit_signal("IncomingSMS", "s", &param);
+//	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CBM);
 }
 
 static int cdsi_parse(const char *buf, int len, const char *param,
@@ -582,8 +562,9 @@ static int cdsi_parse(const char *buf, int len, const char *param,
 {
 	char memstr[3];
 	struct gsmd_evt_auxdata *aux;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-			GSMD_EVT_IN_DS, sizeof(struct gsmd_evt_auxdata));
+	struct gsmd_ucmd *ucmd;
+// 	 = usock_build_event(GSMD_MSG_EVENT,
+// 			GSMD_EVT_IN_DS, sizeof(struct gsmd_evt_auxdata));
 
 	if (!ucmd)
 		return -ENOMEM;
@@ -597,7 +578,9 @@ static int cdsi_parse(const char *buf, int len, const char *param,
 	aux->u.ds.inlined = 0;
 	aux->u.ds.memtype = parse_memtype(memstr);
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_DS);
+	/*TODO*/
+	return tbus_emit_signal("IncomingSMS", "s", &param);
+//	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_DS);
 }
 
 static int cds_parse(const char *buf, int len, const char *param,
@@ -609,9 +592,10 @@ static int cds_parse(const char *buf, int len, const char *param,
 	int i;
 	struct gsmd_evt_auxdata *aux;
 	struct gsmd_sms_list *msg;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-			GSMD_EVT_IN_DS, sizeof(struct gsmd_evt_auxdata) +
-			sizeof(struct gsmd_sms_list));
+	struct gsmd_ucmd *ucmd;
+// 	 = usock_build_event(GSMD_MSG_EVENT,
+// 			GSMD_EVT_IN_DS, sizeof(struct gsmd_evt_auxdata) +
+// 			sizeof(struct gsmd_sms_list));
 
 	if (!ucmd)
 		return -ENOMEM;
@@ -643,7 +627,9 @@ static int cds_parse(const char *buf, int len, const char *param,
 		return -EINVAL;
 	}
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_DS);
+	/*TODO*/
+	return tbus_emit_signal("IncomingSMS", "s", &param);
+//	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_DS);
 }
 
 static const struct gsmd_unsolicit gsm0705_unsolicit[] = {

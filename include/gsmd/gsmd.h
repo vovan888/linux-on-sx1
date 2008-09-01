@@ -8,6 +8,8 @@
 
 #include <common/linux_list.h>
 
+#include <ipc/tbus.h>
+
 #include <gsmd/machineplugin.h>
 #include <gsmd/vendorplugin.h>
 #include <gsmd/select.h>
@@ -32,7 +34,7 @@ struct gsmd_atcmd {
 	u_int16_t id;
 	u_int8_t flags;
         struct gsmd_timer *timeout;
-	create_timer_t * create_timer_func;  
+	create_timer_t * create_timer_func;
 	char *cur;
 	char buf[];
 };

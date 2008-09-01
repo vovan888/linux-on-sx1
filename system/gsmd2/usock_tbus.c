@@ -53,23 +53,6 @@
 
 static void *__ucmd_ctx, *__gu_ctx;
 
-// struct gsmd_ucmd *ucmd_alloc(int extra_size)
-// {
-// 	return talloc_size(__ucmd_ctx,
-// 			   sizeof(struct gsmd_ucmd) + extra_size);
-// }
-//
-// void usock_cmd_enqueue(struct gsmd_ucmd *ucmd, struct gsmd_user *gu)
-// {
-// 	DEBUGP("enqueueing usock cmd %p for user %p\n", ucmd, gu);
-//
-// 	/* add to per-user list of finished cmds */
-// 	llist_add_tail(&ucmd->list, &gu->finished_ucmds);
-//
-// 	/* mark socket of user as we-want-to-write */
-// 	gu->gfd.when |= GSMD_FD_WRITE;
-// }
-
 /* callback for completed passthrough gsmd_atcmd's */
 static int usock_passthru_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
@@ -760,25 +743,6 @@ static int network_vmail_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	}
 	return rc;
 }
-
-// int gsmd_ucmd_submit(struct gsmd_user *gu, u_int8_t msg_type,
-// 		u_int8_t msg_subtype, u_int16_t id, int len, const void *data)
-// {
-// 	struct gsmd_ucmd *ucmd = ucmd_alloc(len);
-//
-// 	if (!ucmd)
-// 		return -ENOMEM;
-//
-// 	ucmd->hdr.version = GSMD_PROTO_VERSION;
-// 	ucmd->hdr.msg_type = msg_type;
-// 	ucmd->hdr.msg_subtype = msg_subtype;
-// 	ucmd->hdr.len = len;
-// 	ucmd->hdr.id = id;
-// 	memcpy(ucmd->buf, data, len);
-//
-// 	usock_cmd_enqueue(ucmd, gu);
-// 	return 0;
-// }
 
 static int network_sigq_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
