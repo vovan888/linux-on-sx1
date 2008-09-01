@@ -1,24 +1,25 @@
 #ifndef _GSMD_EVENT_H
 #define _GSMD_EVENT_H
 
+/* Signals */
 enum gsmd_events {
-	GSMD_EVT_NONE		= 0,
-	GSMD_EVT_IN_CALL	= 1,	/* Incoming call */
-	GSMD_EVT_IN_SMS		= 2,	/* Incoming SMS */
-	GSMD_EVT_IN_GPRS	= 3,	/* Network initiated GPRS */
-	GSMD_EVT_IN_CLIP	= 4,	/* Incoming CLIP */
-	GSMD_EVT_NETREG		= 5,	/* Network (un)registration event */
-	GSMD_EVT_SIGNAL		= 6,	/* Signal quality event */
-	GSMD_EVT_PIN		= 7, 	/* Modem is waiting for some PIN/PUK */
-	GSMD_EVT_OUT_STATUS	= 8,	/* Outgoing call status */
-	GSMD_EVT_OUT_COLP	= 9,	/* Outgoing COLP */
-	GSMD_EVT_CALL_WAIT	= 10,	/* Call Waiting */
-	GSMD_EVT_TIMEZONE	= 11,	/* Timezone change */
-	GSMD_EVT_SUBSCRIPTIONS	= 12,	/* To which events are we subscribed to */
-	GSMD_EVT_CIPHER		= 13,	/* Ciphering Information */
-	GSMD_EVT_IN_CBM		= 14,	/* Incoming Cell Broadcast message */
-	GSMD_EVT_IN_DS		= 15,	/* SMS Status Report */
-	GSMD_EVT_IN_ERROR	= 16,	/* CME/CMS error */
+//	GSMD_EVT_NONE		= 0,
+	GSMD_EVT_IN_CALL	= 1,	/* IncomingCall	- Incoming call */
+	GSMD_EVT_IN_SMS		= 2,	/* IncomingSMS	- Incoming SMS */
+	GSMD_EVT_IN_GPRS	= 3,	/* IncomingGPRS	- Network initiated GPRS */
+	GSMD_EVT_IN_CLIP	= 4,	/* IncomingCLIP	- Incoming CLIP */
+	GSMD_EVT_NETREG		= 5,	/* NetworkReg	- Network (un)registration event */
+	GSMD_EVT_SIGNAL		= 6,	/* Signal	- Signal quality event */
+	GSMD_EVT_PIN		= 7,	/* PINneeded	- Modem is waiting for some PIN/PUK */
+	GSMD_EVT_OUT_STATUS	= 8,	/* OutgoingCall	- Outgoing call status */
+	GSMD_EVT_OUT_COLP	= 9,	/* OutgoingCOLP	- Outgoing COLP */
+	GSMD_EVT_CALL_WAIT	= 10,	/* CallWaiting	- Call Waiting */
+	GSMD_EVT_TIMEZONE	= 11,	/* TimezoneChange - Timezone change */
+//	GSMD_EVT_SUBSCRIPTIONS	= 12,	/* To which events are we subscribed to */
+	GSMD_EVT_CIPHER		= 13,	/* CipheringInfo - Ciphering Information */
+	GSMD_EVT_IN_CBM		= 14,	/* IncomingCBM	- Incoming Cell Broadcast message */
+	GSMD_EVT_IN_DS		= 15,	/* SMSDeliveryStatus - SMS Status Report */
+	GSMD_EVT_IN_ERROR	= 16,	/* CME_CMS_Error - CME/CMS error */
 	__NUM_GSMD_EVT
 };
 
@@ -51,7 +52,7 @@ enum gsmd_call_type {
 	GSMD_CALL_DATA_SYNC	= 5,
 	GSMD_CALL_DATA_REL_ASYNC= 6,
 	GSMD_CALL_DATA_REL_SYNC	= 7,
-        GSMD_CALL_TIMEOUT       = 8,
+	GSMD_CALL_TIMEOUT       = 8,
 	__NUM_GSMD_CALL
 };
 

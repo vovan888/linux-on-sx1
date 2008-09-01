@@ -37,67 +37,12 @@
 #include <gsmd/talloc.h>
 #include <gsmd/sms.h>
 
-struct gsmd_ucmd *usock_build_event(u_int8_t type, u_int8_t subtype, u_int16_t len)
-{
-	struct gsmd_ucmd *ucmd = ucmd_alloc(len);
-
-	if (!ucmd)
-		return NULL;
-
-	ucmd->hdr.version = GSMD_PROTO_VERSION;
-	ucmd->hdr.msg_type = type;
-	ucmd->hdr.msg_subtype = subtype;
-	ucmd->hdr.len = len;
-
-	return ucmd;
-}
-
-static struct gsmd_ucmd *ucmd_copy(const struct gsmd_ucmd *orig)
-{
-	struct gsmd_ucmd *copy = ucmd_alloc(orig->hdr.len);
-
-	if (copy)
-		memcpy(copy, orig, orig->hdr.len);
-
-	return copy;
-}
-
-int usock_evt_send(struct gsmd *gsmd, struct gsmd_ucmd *ucmd, u_int32_t evt)
-{
-	struct gsmd_user *gu;
-	int num_sent = 0;
-
-	DEBUGP("entering evt=%u\n", evt);
-
-	llist_for_each_entry(gu, &gsmd->users, list) {
-		if (gu->subscriptions & (1 << evt)) {
-			if (num_sent == 0)
-				usock_cmd_enqueue(ucmd, gu);
-			else {
-				struct gsmd_ucmd *cpy = ucmd_copy(ucmd);
-				if (!cpy) {
-					fprintf(stderr, 
-						"can't allocate memory for "
-						"copy of ucmd\n");
-					return num_sent;
-				}
-				usock_cmd_enqueue(cpy, gu);
-			}
-			num_sent++;
-		}
-	}
-
-	if (num_sent == 0)
-		talloc_free(ucmd);
-
-	return num_sent;
-}
+#include <ipc/tbus.h>
 
 static void state_ringing_timeout(struct gsmd_timer *timer, void *opaque)
 {
 	struct gsmd *gsmd = (struct gsmd *) opaque;
-	struct gsmd_ucmd *ucmd;
-	struct gsmd_evt_auxdata *aux;
+	int ret, type;
 
 	gsmd->dev_state.ring_check = 0;
 	gsmd_timer_free(timer);
@@ -110,15 +55,9 @@ static void state_ringing_timeout(struct gsmd_timer *timer, void *opaque)
 	gsmd_log(GSMD_INFO, "an incoming call timed out\n");
 
 	/* Generate a timeout event */
-	ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CALL,
-			sizeof(struct gsmd_evt_auxdata));	
-	if (!ucmd)
-		goto err;
-
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
-	aux->u.call.type = GSMD_CALL_TIMEOUT;
-
-	if (usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CALL) < 0)
+	type = GSMD_CALL_TIMEOUT;
+	ret = tbus_emit_signal("IncomingCall", "i", &type);
+	if (ret < 0)
 		goto err;
 	return;
 err:
@@ -151,54 +90,41 @@ static void state_ringing_update(struct gsmd *gsmd)
 static int ring_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
-        struct gsmd_ucmd *ucmd;
-	struct gsmd_evt_auxdata *aux;
+	int ret, type;
 
-        state_ringing_update(gsmd);
-        ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CALL,
-                        sizeof(struct gsmd_evt_auxdata));
+	state_ringing_update(gsmd);
 	/* FIXME: generate ring event */
-	if (!ucmd)
-		return -ENOMEM;
+	type = GSMD_CALL_UNSPEC;
+	ret = tbus_emit_signal("IncomingCall", "i", &type);
 
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
-
-	aux->u.call.type = GSMD_CALL_UNSPEC;
-
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CALL);
+	return ret;
 }
 
 static int cring_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CALL,
-					     sizeof(struct gsmd_evt_auxdata));
-	struct gsmd_evt_auxdata *aux;
-	if (!ucmd)
-		return -ENOMEM;
-
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
+	int ret, type;
 
 	if (!strcmp(param, "VOICE")) {
 		/* incoming voice call */
-		aux->u.call.type = GSMD_CALL_VOICE;
+		type = GSMD_CALL_VOICE;
 	} else if (!strcmp(param, "SYNC")) {
-		aux->u.call.type = GSMD_CALL_DATA_SYNC;
+		type = GSMD_CALL_DATA_SYNC;
 	} else if (!strcmp(param, "REL ASYNC")) {
-		aux->u.call.type = GSMD_CALL_DATA_REL_ASYNC;
+		type = GSMD_CALL_DATA_REL_ASYNC;
 	} else if (!strcmp(param, "REL SYNC")) {
-		aux->u.call.type = GSMD_CALL_DATA_REL_SYNC;
+		type = GSMD_CALL_DATA_REL_SYNC;
 	} else if (!strcmp(param, "FAX")) {
-		aux->u.call.type = GSMD_CALL_FAX;
+		type = GSMD_CALL_FAX;
 	} else if (!strncmp(param, "GPRS ", 5)) {
 		/* FIXME: change event type to GPRS */
-		talloc_free(ucmd);
 		return 0;
 	} else {
-                aux->u.call.type = GSMD_CALL_UNSPEC;
+                type = GSMD_CALL_UNSPEC;
         }
 	/* FIXME: parse all the ALT* profiles, Chapter 6.11 */
+	ret = tbus_emit_signal("IncomingCall", "i", &type);
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CALL);
+	return ret;
 }
 
 /* Chapter 7.2, network registration */
@@ -206,11 +132,10 @@ static int creg_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
 	const char *comma = strchr(param, ',');
-	struct gsmd_ucmd *ucmd;
-	struct gsmd_evt_auxdata *aux;
 	int prev_registered = gsmd->dev_state.registered;
 	int state;
 	char *end;
+	int ret;
 
 	state = strtol(param, &end, 10);
 	if (!(end > param)) {
@@ -223,30 +148,27 @@ static int creg_parse(const char *buf, int len, const char *param,
 		(state == GSMD_NETREG_REG_HOME ||
 		 state == GSMD_NETREG_REG_ROAMING);
 
-	/* Intialise things that depend on network registration */
+	/* Initialize things that depend on network registration */
 	if (gsmd->dev_state.registered && !prev_registered) {
 		sms_cb_network_init(gsmd);
 	}
 
 	/* Notify clients */
-	ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_NETREG,
-			sizeof(struct gsmd_evt_auxdata));
-	if (!ucmd)
-		return -ENOMEM;
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
-
-	aux->u.netreg.state = atoi(param);
+	int lac, ci;
+	state = atoi(param);
 	if (comma) {
 		/* we also have location area code and cell id to parse (hex) */
-		aux->u.netreg.lac = strtoul(comma+2, NULL, 16);
+		lac = strtoul(comma+2, NULL, 16);
 		comma = strchr(comma+1, ',');
 		if (!comma)
 			return -EINVAL;
-		aux->u.netreg.ci = strtoul(comma+2, NULL, 16);
+		ci = strtoul(comma+2, NULL, 16);
 	} else
-		aux->u.netreg.lac = aux->u.netreg.ci = 0;
+		lac = ci = 0;
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_NETREG);
+	ret = tbus_emit_signal("NetworkReg", "iii", &state, &lac, &ci);
+
+	return ret;
 
 }
 
@@ -254,18 +176,13 @@ static int creg_parse(const char *buf, int len, const char *param,
 static int ccwa_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
-	struct gsmd_evt_auxdata *aux;
 	struct gsm_extrsp *er;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_CALL_WAIT,
-					     sizeof(struct gsmd_evt_auxdata));
-	
-	if (!ucmd)
-		return -ENOMEM;
-
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
+	int ret;
+	char number[GSMD_ALPHA_MAXLEN + 1];
+	int type, classx, cli;
+	char alpha[GSMD_ALPHA_MAXLEN + 1];
 	
 	er = extrsp_parse(gsmd_tallocs, param);
-
 	if ( !er ) 
 		return -ENOMEM;
 
@@ -279,12 +196,12 @@ static int ccwa_parse(const char *buf, int len, const char *param,
 		 * <number>,<type>,<class>,[<alpha>][,<CLI validity>]
 		 */
 		
-		strcpy(aux->u.ccwa.addr.number, er->tokens[0].u.string);
-		aux->u.ccwa.addr.type = er->tokens[1].u.numeric;
-		aux->u.ccwa.classx = er->tokens[2].u.numeric;
-		aux->u.ccwa.alpha[0] = '\0';
-		aux->u.ccwa.cli = er->tokens[4].u.numeric; 
-	} 
+		strcpy(number, er->tokens[0].u.string);
+		type = er->tokens[1].u.numeric;
+		classx = er->tokens[2].u.numeric;
+		alpha[0] = '\0';
+		cli = er->tokens[4].u.numeric; 
+	}
 	else if ( er->num_tokens == 5 &&
 			er->tokens[0].type == GSMD_ECMD_RTT_STRING &&
 			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
@@ -294,19 +211,21 @@ static int ccwa_parse(const char *buf, int len, const char *param,
 		/*
 		 * <number>,<type>,<class>,[<alpha>][,<CLI validity>]
 		 */
-		
-		strcpy(aux->u.ccwa.addr.number, er->tokens[0].u.string);
-		aux->u.ccwa.addr.type = er->tokens[1].u.numeric;
-		aux->u.ccwa.classx = er->tokens[2].u.numeric;
-		strcpy(aux->u.ccwa.alpha, er->tokens[3].u.string);
-		aux->u.ccwa.cli = er->tokens[4].u.numeric; 
+
+		strcpy(number, er->tokens[0].u.string);
+		type = er->tokens[1].u.numeric;
+		classx = er->tokens[2].u.numeric;
+		strcpy(alpha, er->tokens[3].u.string);
+		cli = er->tokens[4].u.numeric; 
 	}
 	else {
 		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
 	}
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_CALL_WAIT);
+	ret = tbus_emit_signal("CallWaiting", "siisi", &number, &type, &classx, &alpha, &cli);
+
+	return ret;
 }
 
 /* Chapter 7.14, unstructured supplementary service data */
@@ -345,43 +264,28 @@ static int cgreg_parse(const char *buf, int len, const char *param,
 static int clip_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_CLIP,
-					     sizeof(struct gsmd_evt_auxdata));
-	struct gsmd_evt_auxdata *aux;
 	const char *comma = strchr(param, ',');
-
-	if (!ucmd)
-		return -ENOMEM;
-	
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
+	char number[GSMD_ALPHA_MAXLEN + 1];
 
 	if (!comma)
 		return -EINVAL;
 
-	
 	if (comma - param > GSMD_ADDR_MAXLEN)
 		return -EINVAL;
 
-	aux->u.clip.addr.number[0] = '\0';
-	strncat(aux->u.clip.addr.number, param, comma-param);
+	number[0] = '\0';
+	strncat(number, param, comma-param);
 	/* FIXME: parse of subaddr, etc. */
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_IN_CLIP);
+	return tbus_emit_signal("IncomingCLIP", "s", &number);
 }
 
 /* Chapter 7.9, calling line identification presentation */
 static int colp_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_OUT_COLP,
-					     sizeof(struct gsmd_evt_auxdata));
-	struct gsmd_evt_auxdata *aux;
 	const char *comma = strchr(param, ',');
-
-	if (!ucmd)
-		return -ENOMEM;
-	
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
+	char number[GSMD_ALPHA_MAXLEN + 1];
 
 	if (!comma)
 		return -EINVAL;
@@ -389,25 +293,17 @@ static int colp_parse(const char *buf, int len, const char *param,
 	if (comma - param > GSMD_ADDR_MAXLEN)
 		return -EINVAL;
 
-	aux->u.colp.addr.number[0] = '\0';
-	strncat(aux->u.colp.addr.number, param, comma-param);
+	number[0] = '\0';
+	strncat(number, param, comma-param);
 	/* FIXME: parse of subaddr, etc. */
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_OUT_COLP);
+	return tbus_emit_signal("OutgoingCOLP", "s", &number);
 }
 
 static int ctzv_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_TIMEZONE,
-					     sizeof(struct gsmd_evt_auxdata));
-	struct gsmd_evt_auxdata *aux;
 	int tz;
-
-	if (!ucmd)
-		return -ENOMEM;
-	
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
 
 	/* timezones are expressed in quarters of hours +/- GMT (-48...+48) */
 	tz = atoi(param);
@@ -415,9 +311,8 @@ static int ctzv_parse(const char *buf, int len, const char *param,
 	if (tz < -48  || tz > 48)
 		return -EINVAL;
 	
-	aux->u.timezone.tz = tz;
 
-	return usock_evt_send(gsmd, ucmd, GSMD_EVT_TIMEZONE);
+	return tbus_emit_signal("TimezoneChange", "i", &tz);
 }
 
 static int copn_parse(const char *buf, int len, const char *param,
@@ -601,44 +496,24 @@ const int pintype_from_cme[GSM0707_CME_UNKNOWN] = {
 
 int generate_event_from_cme(struct gsmd *g, unsigned int cme_error)
 {
-	struct gsmd_ucmd *gu;
-	struct gsmd_evt_auxdata *eaux;
-
 	if (!is_in_array(cme_error, errors_creating_events,
 		ARRAY_SIZE(errors_creating_events))) {
 
-		gu = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_ERROR, sizeof(*eaux));
-		if (!gu)
-			return -1;
-		eaux = ((void *)gu) + sizeof(*gu);
-		eaux->u.cme_err.number = cme_error;
-		return usock_evt_send(g, gu, GSMD_EVT_IN_ERROR);
+		int tmp = cme_error;
+		return tbus_emit_signal("ErrorCME", "i", &tmp);
  	} else {
+		int pin_type = pintype_from_cme[cme_error];
 		if (cme_error >= GSM0707_CME_UNKNOWN ||
-				!pintype_from_cme[cme_error])
+				!pin_type)
 			return 0;
 
-		gu = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_PIN,
-				sizeof(*eaux));
-		if (!gu)
-			return -1;
-
-		eaux = ((void *)gu) + sizeof(*gu);
-		eaux->u.pin.type = pintype_from_cme[cme_error];
-		return usock_evt_send(g, gu, GSMD_EVT_PIN);
+		return tbus_emit_signal("PINneeded", "i", &pin_type);
 	}
 }
 
 int generate_event_from_cms(struct gsmd *g, unsigned int cms_error)
 {
-	struct gsmd_ucmd *gu;
-	struct gsmd_evt_auxdata *eaux;
-	
-	gu = usock_build_event(GSMD_MSG_EVENT, GSMD_EVT_IN_ERROR, sizeof(*eaux));
-	if (!gu)
-		return -1;
-	eaux = ((void *)gu) + sizeof(*gu);
-	eaux->u.cms_err.number = cms_error;
-	return usock_evt_send(g, gu, GSMD_EVT_IN_ERROR);
+	int tmp = cms_error;
+	return tbus_emit_signal("ErrorCMS", "i", &tmp);
 }
 

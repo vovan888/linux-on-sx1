@@ -110,7 +110,7 @@ static int tbus_pack_args(struct tbus_message *msg, char *fmt, va_list ap)
 	void *data = NULL;
 	int datalen = 0;
 
-	if (strlen(fmt) > 0) {
+	if (!fmt && (strlen(fmt) > 0)) {
 		tpl_node *tn;
 		tn = tpl_vmap(fmt, ap);
 		tpl_pack(tn, 0);
@@ -266,7 +266,7 @@ DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...)
 	if (!msg || (tbus_socket_sys == -1))
 		return -1;
 
-	if (strlen(fmt) > 0) {
+	if (!fmt && (strlen(fmt) > 0)) {
 		va_start(ap, fmt);
 		tpl_node *tn;
 		tn = tpl_vmap(fmt, ap);
