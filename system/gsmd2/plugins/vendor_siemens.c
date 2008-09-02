@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -40,12 +40,12 @@ static int scii_parse(const char *buf, int len, const char *param, struct gsmd *
 {
 	char *tok1, *tok2;
 	char tx_buf[20];
-	
+
 	strlcpy(tx_buf, buf, sizeof(tx_buf));
 	tok1 = strtok(tx_buf, ",");
 	if (!tok1)
 		return -EIO;
-	
+
 	tok2 = strtok(NULL, ",");
 	if (!tok2) {
 		switch (atoi(tok1)) {
@@ -60,19 +60,12 @@ static int scii_parse(const char *buf, int len, const char *param, struct gsmd *
 			break;
 		}
 	} else {
-		struct gsmd_evt_auxdata *aux;
-		struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-							   GSMD_EVT_CIPHER,
-							   sizeof(*aux));
-		if (!ucmd)
-			return -ENOMEM;
+// 		struct gsmd_evt_auxdata *aux;
+//
+// 		aux->u.cipher.net_state_gsm = atoi(tok1);
+// 		aux->u.cipher.net_state_gsm = atoi(tok2);
 
-		aux = (struct gsmd_evt_auxdata *) ucmd->buf;
-
-		aux->u.cipher.net_state_gsm = atoi(tok1);
-		aux->u.cipher.net_state_gsm = atoi(tok2);
-
-		usock_evt_send(gsmd, ucmd, GSMD_EVT_CIPHER);
+//		usock_evt_send(gsmd, ucmd, GSMD_EVT_CIPHER);
 	}
 
 	return 0;
@@ -82,12 +75,12 @@ static int sacd_parse(const char *buf, int len, const char *param, struct gsmd *
 {
 	char *tok1, *tok2;
 	char tx_buf[20];
-	
+
 	strlcpy(tx_buf, buf, sizeof(tx_buf));
 	tok1 = strtok(tx_buf, ",");
 	if (!tok1)
 		return -EIO;
-	
+
 	tok2 = strtok(NULL, ",");
 	if (!tok2) {
 		switch (atoi(tok2)) {
@@ -119,12 +112,12 @@ static int ciev_parse(const char *buf, int len, const char *param, struct gsmd *
 {
 	char *tok1, *tok2;
 	char tx_buf[20];
-	
+
 	strlcpy(tx_buf, buf, sizeof(tx_buf));
 	tok1 = strtok(tx_buf, ",");
 	if (!tok1)
 		return -EIO;
-	
+
 	switch (atoi(tok1)) {
 		case 1: /* battery charge */
 			/*TODO*/
@@ -161,7 +154,7 @@ static int siemens_initsettings(struct gsmd *g)
 	rc |= gsmd_simplecmd(g, "AT+CMER=3,0,0,1,0");
 	/* enable ^SACD: Accessory Indicators */
 	rc |= gsmd_simplecmd(g, "AT^SACD=3");
-	
+
 	/* AT^SCII=  enable ^SCII: ciphering reporting */
 
 	return rc;

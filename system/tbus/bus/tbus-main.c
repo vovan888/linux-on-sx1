@@ -24,6 +24,8 @@ static int tbus_init_socket (char *socket_path)
 	int sock;
 	struct sockaddr_un saddr;
 
+	unlink (socket_path);
+
 	sock = socket (AF_UNIX, SOCK_STREAM, 0);
 	if (sock == -1)
 		goto init_socket_error;
@@ -80,8 +82,6 @@ static int tbus_init ()
 		return -1;
 #endif
 	terminate = 0;
-
-	unlink (TBUS_SOCKET_SYS);
 
 	tbus_socket_sys = tbus_init_socket (TBUS_SOCKET_SYS);
 
@@ -170,6 +170,8 @@ static void tbus_mainloop ()
  */
 static void tbus_exit ()
 {
+	close(tbus_socket_sys);
+	unlink (TBUS_SOCKET_SYS);
 }
 
 /**
