@@ -126,6 +126,11 @@ endif
 
 INCLUDES += -I$(FLTKDIR)
 
+ifeq ($(CONFIG_FLGUI),y)
+FLGUIDIR=$(BASE_DIR)/libs/flgui
+INCLUDES += -I$(FLGUIDIR)
+endif
+
 # Paranoia - it is up to the individual makefiles to define these
 # if they don't then we zero them out for safety
 
