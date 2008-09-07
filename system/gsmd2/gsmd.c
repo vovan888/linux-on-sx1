@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,7 +100,7 @@ static int gsmd_modem_alive(struct gsmd *gsmd)
 
 	gsmd->alive_responded = 0;
 
-	cmd = atcmd_fill(GSMD_ALIVECMD, strlen(GSMD_ALIVECMD)+1, 
+	cmd = atcmd_fill(GSMD_ALIVECMD, strlen(GSMD_ALIVECMD)+1,
 			 &gsmd_alive_cb, gsmd, 0, alive_timer);
 	if (!cmd) {
 		return -ENOMEM;
@@ -147,6 +147,17 @@ static int gsmd_test_atcb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	return 0;
 }
 
+static int gsmd_get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
+{
+	struct gsmd *g = ctx;
+
+	DEBUGP("cpin? : %s\n", resp);
+	int type = pin_name_to_type(resp+7);
+
+	g->pin_type = type;
+	return 0;
+}
+
 static int gsmd_get_imsi_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd *g = ctx;
@@ -163,15 +174,15 @@ int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 	cmd = atcmd_fill(cmdtxt, strlen(cmdtxt)+1, &gsmd_test_atcb, NULL, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
-	
+
 	return atcmd_submit(gsmd, cmd);
 }
 
-static int gsmd_initsettings2(struct gsmd *gsmd)
+int gsmd_initsettings2(struct gsmd *gsmd)
 {
 	int rc = 0;
-	
-	/* echo on, verbose */
+
+	/* echo off, display acknowledgments as text */
 	rc |= gsmd_simplecmd(gsmd, "ATE0V1");
 	/* use +CRING instead of RING */
 	rc |= gsmd_simplecmd(gsmd, "AT+CRC=1");
@@ -189,7 +200,14 @@ static int gsmd_initsettings2(struct gsmd *gsmd)
 	/* configure message format as PDU mode*/
 	/* FIXME: TEXT mode support!! */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMGF=0");
-	/* reueset imsi */
+
+	if(gsmd->pin_type == -1) {
+		/* get PIN status */
+		atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 8+1,
+		     &gsmd_get_cpin_cb, gsmd, 0, NULL));
+	}
+
+	/* get imsi */
 	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 7+1,
 					&gsmd_get_imsi_cb, gsmd, 0, NULL));
 
@@ -274,22 +292,22 @@ static int set_baudrate(int fd, int baudrate, int hwflow)
 	}
 	if (bd == 0)
 		return -EINVAL;
-	
+
 	i = tcgetattr(fd, &ti);
 	if (i < 0) {
                 return -errno;
         }
-	
+
 	i = cfsetispeed(&ti, B0);
 	if (i < 0) {
                 return -errno;
         }
-	
+
 	i = cfsetospeed(&ti, bd);
 	if (i < 0) {
                 return -errno;
         }
-	
+
 	if (hwflow)
 		ti.c_cflag |= CRTSCTS;
 	else
@@ -305,6 +323,8 @@ static int gsmd_initialize(struct gsmd *g)
 	g->mlbuf = talloc_array(gsmd_tallocs, unsigned char, MLPARSE_BUF_SIZE);
 	if (!g->mlbuf)
 		return -ENOMEM;
+
+	g->pin_type = -1;
 
 	return 0;
 }
@@ -370,7 +390,7 @@ static void sig_handler(int signr)
 
 int main(int argc, char **argv)
 {
-	int fd, argch; 
+	int fd, argch;
 
 	int bps = 115200;
 	int hwflow = 0;
@@ -383,7 +403,7 @@ int main(int argc, char **argv)
 	signal(SIGINT, sig_handler);
 	signal(SIGUSR1, sig_handler);
 	signal(SIGALRM, sig_handler);
-	
+
 	gsmd_tallocs = talloc_named_const(NULL, 1, "GSMD");
 
 	print_header();
@@ -497,7 +517,7 @@ int main(int argc, char **argv)
 
 	if (g.interpreter_ready) {
 		gsmd_initsettings(&g);
-	
+
 		gsmd_alive_start(&g);
 	}
 

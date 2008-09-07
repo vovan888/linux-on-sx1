@@ -444,20 +444,29 @@ static const char *pin_type_names[__NUM_GSMD_PIN] = {
 	[GSMD_PIN_PH_CORP_PUK]	= "Corporate personalisation PUK",
 };
 
+int pin_name_to_type(char *pin_name)
+{
+	enum gsmd_pin_type type = 0;
+
+	unsigned int i;
+	for (i = 0; i < __NUM_GSMD_PIN; i++) {
+		if(!strcmp(pin_name, pin_type_names[i])) {
+			type = i;
+			break;
+		}
+	}
+
+	return type;
+}
+
 /* PIN read callback. Gets called for response to AT+CPIN? cmcd */
 static int get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
 	enum gsmd_pin_type type = 0;
 
-	if (!strncmp(resp, "+CPIN: ", 7)) {
-		unsigned int i;
-		resp += 7;
-		for (i = 0; i < __NUM_GSMD_PIN; i++) {
-			if(!strcmp(resp,pin_type_names[i]))
-				type = i;
-		}
-	}
+	if (!strncmp(resp, "+CPIN: ", 7))
+		type = pin_name_to_type(resp+7);
 
 	return tbus_method_return(gu->service_sender, "PIN/GetStatus", "i", &type);
 }
@@ -669,14 +678,21 @@ static int usock_rcv_phone(struct gsmd_user *gu, struct tbus_message *msg)
 	return atcmd_submit(gu->gsmd, cmd);
 }
 
-static int usock_rcv_modem(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
-			   int len)
+static int usock_rcv_modem(struct gsmd_user *gu, struct tbus_message *msg)
 {
 	struct gsmd *g = gu->gsmd;
 
-	if (g->machinepl->power) {
-		g->machinepl->power(g, gph->msg_subtype);
-	}
+	if(!strcmp("Modem/Power", msg->object)) {
+		int power;
+		tbus_get_message_args(msg, "i", &power);
+		if (g->machinepl->power) {
+			g->machinepl->power(g, power);
+		}
+	} else
+	if(!strcmp("Modem/Init", msg->object)) {
+		gsmd_initsettings2(g);
+	} else
+		return -EINVAL;
 
 	return 0;
 }
