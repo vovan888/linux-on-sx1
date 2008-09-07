@@ -151,8 +151,8 @@ static int gsmd_get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd *g = ctx;
 
-	DEBUGP("cpin? : %s\n", resp);
 	int type = pin_name_to_type(resp+7);
+	DEBUGP("cpin? pin_type= : %d\n", type);
 
 	g->pin_type = type;
 	return 0;

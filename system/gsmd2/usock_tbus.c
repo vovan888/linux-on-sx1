@@ -75,7 +75,7 @@ typedef int usock_method_handler(struct gsmd_user *gu, struct tbus_message *msg)
  */
 static int usock_rcv_connect(struct gsmd_user *gu, struct tbus_message *msg)
 {
-	if(!strcmp("0", msg->data)) {
+//	if(!strcmp("0", msg->data)) {
 		/* disconnect client from gsmd */
 		DEBUGP("EOF, this client has just vanished\n");
 		/* EOF, this client has just vanished */
@@ -87,7 +87,7 @@ static int usock_rcv_connect(struct gsmd_user *gu, struct tbus_message *msg)
 		/* destroy whole user structure */
 		llist_del(&gu->list);
 		talloc_free(gu);
-	}
+//	}
 
 	return 0;
 }
@@ -490,11 +490,13 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct tbus_message *msg)
 			strlcat(cmd->buf, ",", cmd->buflen);
 			strlcat(cmd->buf, newpin, cmd->buflen);
 		}
+		cmd->buflen = strlen();
 		/*strlcat(cmd->buf, "\"", cmd->buflen);*/
 		free(oldpin);
 		free(newpin);
 	} else
 	if(!strcmp("PIN/GetStatus", msg->object)) {
+//		return tbus_method_return(gu->service_sender, "PIN/GetStatus", "i", &gu->pin_type);
 		cmd = atcmd_fill("AT+CPIN?", 8 + 1, &get_cpin_cb, gu, 0, NULL);
 	} else {
 		return -EINVAL;
@@ -1481,7 +1483,7 @@ static struct usock_methods {
 	{"Passthrough", &usock_rcv_passthrough},
 	{"Event",	&usock_rcv_event},
 	{"VoiceCall",	&usock_rcv_voicecall},
-	{"Pin",		&usock_rcv_pin},
+	{"PIN",		&usock_rcv_pin},
 	{"Phone",	&usock_rcv_phone},
 	{"Network",	&usock_rcv_network},
 	{"SMS",		&usock_rcv_sms},
@@ -1498,6 +1500,7 @@ static int usock_rcv_pcmd(struct gsmd_user *gu, struct tbus_message *msg)
 	char *str;
 	usock_method_handler *umh = NULL;
 
+	DEBUGP("got from %s <-%s\n", msg->service_sender, msg->object);
 	for(i = 0; i < __NUM_GSMD_MSGS; i++) {
 		str = pcmd_type_handlers[i].method;
 		len = strlen(str);
@@ -1507,6 +1510,7 @@ static int usock_rcv_pcmd(struct gsmd_user *gu, struct tbus_message *msg)
 		}
 	}
 
+	DEBUGP("handler = %d\n", umh);
 	if (!umh)
 		return -EINVAL;
 
@@ -1517,19 +1521,19 @@ static int usock_connect(struct gsmd *g, struct tbus_message *msg)
 {
 	struct gsmd_user *newuser;
 
-	if(!strcmp("1", msg->data)) {
-		/* connect client to gsmd */
-		newuser = talloc(__gu_ctx, struct gsmd_user);
-		if (!newuser)
-			return -ENOMEM;
+	/* connect client to gsmd */
+	newuser = talloc(__gu_ctx, struct gsmd_user);
+	if (!newuser)
+		return -ENOMEM;
 
-		newuser->gsmd = g;
-		newuser->subscriptions = 0xffffffff;
-		newuser->service_sender = strdup(msg->service_sender);
-		INIT_LLIST_HEAD(&newuser->finished_ucmds);
+	newuser->gsmd = g;
+	newuser->subscriptions = 0xffffffff;
+	newuser->service_sender = strdup(msg->service_sender);
+	INIT_LLIST_HEAD(&newuser->finished_ucmds);
 
-		llist_add(&newuser->list, &g->users);
-	}
+	llist_add(&newuser->list, &g->users);
+
+	DEBUGP("service_sender = %s\n", newuser->service_sender);
 }
 
 /* callback for read/write on client (libgsmd) socket */
@@ -1545,6 +1549,7 @@ static int gsmd_usock_cb(int fd, unsigned int what, void *data)
 		if(type < 0)
 			return type;
 
+		DEBUGP("got tbus message from %s\n", msg.service_sender);
 		/* try to find client in users list */
 		struct gsmd_user *usr, *usrtmp;
 		llist_for_each_entry_safe(usr, usrtmp, &g->users, list) {
@@ -1590,5 +1595,6 @@ int usock_init(struct gsmd *g)
 	g->gfd_sock.data = g;
 	g->gfd_sock.cb = &gsmd_usock_cb;
 
+	DEBUGP("usock_init\n");
 	return gsmd_register_fd(&g->gfd_sock);
 }

@@ -136,8 +136,8 @@ int tbus_client_message (int socket_fd, int bus_id)
 			ret =
 			    tbus_client_method_return(sender_client,
 						      dest_client, &msg);
-					break;
-
+			tbus_msg_free_internal (&msg);	/*FIXME - check what should be deallocated */
+			break;
 		case TBUS_MSG_CONNECT_SIGNAL:
 			ret = tbus_client_connect_signal (sender_client, &msg);
 			tbus_msg_free_internal (&msg);	/*FIXME - check what should be deallocated */

@@ -19,8 +19,15 @@ int tbus_client_method (struct tbus_client *sender_client,
 	}
 	sock = dest_client->socket_fd;
 	if (sock > 0) {
+		char *tmp;
+		tmp = msg->service_sender;
+		msg->service_sender = sender_client->service;
+
 		ret = tbus_write_message (sock, msg);
-		DPRINT ("sent to %s ,ret = %d\n", dest_client->service, ret);
+
+		msg->service_sender = tmp;
+		DPRINT ("sent from %s to %s/%s ,ret = %d\n", sender_client->service,
+				 dest_client->service, msg->object, ret);
 	} else {
 		DPRINT ("empty client!\n");
 	}
@@ -37,8 +44,15 @@ int tbus_client_method_return (struct tbus_client *sender_client,
 	}
 	sock = dest_client->socket_fd;
 	if (sock > 0) {
+		char *tmp;
+		tmp = msg->service_sender;
+		msg->service_sender = sender_client->service;
+
 		ret = tbus_write_message (sock, msg);
-		DPRINT ("sent to %s ,ret = %d\n", dest_client->service, ret);
+
+		msg->service_sender = tmp;
+		DPRINT ("sent from %s to %s/%s ,ret = %d\n", sender_client->service,
+				 dest_client->service, msg->object, ret);
 	} else {
 		DPRINT ("empty client!\n");
 	}

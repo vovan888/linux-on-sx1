@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <unistd.h>
 #include <stdio.h>
@@ -200,17 +200,17 @@ static int parse_final_result(const char *res)
 		if (!strcmp(res, final_results[i]))
 			return i;
 	}
-	
+
 	return -1;
 }
 #endif
 
-void atcmd_wake_pending_queue (struct gsmd *g) 
+void atcmd_wake_pending_queue (struct gsmd *g)
 {
         g->gfd_uart.when |= GSMD_FD_WRITE;
 }
 
-void atcmd_wait_pending_queue (struct gsmd *g) 
+void atcmd_wait_pending_queue (struct gsmd *g)
 {
         g->gfd_uart.when &= ~GSMD_FD_WRITE;
 }
@@ -238,11 +238,11 @@ static int atcmd_done(struct gsmd *g, struct gsmd_atcmd *cmd, const char *buf)
                 memset(g->mlbuf, 0, MLPARSE_BUF_SIZE);
                 g->mlbuf_len = 0;
         }
-        
+
         /* remove from list of currently executing cmds */
         llist_del(&cmd->list);
         talloc_free(cmd);
-        
+
         /* if we're finished with current commands, but still have pending
         * commands: we want to WRITE again */
         if (llist_empty(&g->busy_atcmds)) {
@@ -327,6 +327,13 @@ static int ml_parse(const char *buf, int len, void *ctx)
 			cms_error = 1;
 			goto final_cb;
 		}
+		if (!strncmp(buf+1, "CPIN: TRUE", 10)) {
+			/* Part of Case 'A' */
+			DEBUGP("PIN OK\n");
+			if (cmd)
+				cmd->ret = 0;
+			goto final_cb;
+		}
 
 		if (!cmd || strncmp(buf, &cmd->buf[2], colon-buf)) {
 			/* Assuming Case 'B' */
@@ -346,7 +353,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 				g->mlunsolicited = 1;
 				return 0;
 			}
-			/* if unsolicited parser didn't handle this 'reply', then we 
+			/* if unsolicited parser didn't handle this 'reply', then we
 			 * need to continue and try harder and see what it is */
 			if (rc != -ENOENT) {
 				/* Case 'B' finished */
@@ -461,7 +468,7 @@ final_cb:
 
 	if (cmd && cme_error)
 		generate_event_from_cme(g, cmd->ret);
-	
+
 	if (cmd && cms_error)
 		generate_event_from_cms(g, cmd->ret);
 
@@ -511,7 +518,8 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 			if (cr)
 				len = cr - pos->cur;
 			else
-				len = pos->buflen - 1;  /* assuming zero-terminated strings */
+//				len = pos->buflen - 1;  /* assuming zero-terminated strings */
+				len = strlen(pos->cur);  /* assuming zero-terminated strings */
 			rc = write(fd, pos->cur, len);
 			if (rc == 0) {
 				gsmd_log(GSMD_ERROR, "write returns 0, aborting\n");
@@ -529,7 +537,7 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 
 			if (!pos->buflen) {
 				/* success: create atcommand timeout timer */
-				pos->timeout = pos->create_timer_func(g);  
+				pos->timeout = pos->create_timer_func(g);
 				/* success: remove from global list of
 				 * to-be-sent atcmds */
 				llist_del(&pos->list);
@@ -554,7 +562,7 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 	return 0;
 }
 
-static void discard_timeout(struct gsmd_timer *tmr, void *data) 
+static void discard_timeout(struct gsmd_timer *tmr, void *data)
 {
         struct gsmd *g=data;
         struct gsmd_atcmd *cmd=NULL;
@@ -562,7 +570,7 @@ static void discard_timeout(struct gsmd_timer *tmr, void *data)
         if (!llist_empty(&g->busy_atcmds)) {
                 cmd = llist_entry(g->busy_atcmds.next,struct gsmd_atcmd, list);
         }
-        if (!cmd) { 
+        if (!cmd) {
                 DEBUGP("ERROR!! busy_atcmds is NULL\n");
                 return;
         }
@@ -578,11 +586,11 @@ static void discard_timeout(struct gsmd_timer *tmr, void *data)
 		cmd->resp = "Timeout";
                 cmd->cb(cmd, cmd->ctx, cmd->resp);
 	}
-	
+
 	// discard the timeout at command
 	llist_del(&cmd->list);
 	talloc_free(cmd);
-	
+
 	// pass the next pending at command
 	if (llist_empty(&g->busy_atcmds) && !llist_empty(&g->pending_atcmds)) {
 		atcmd_wake_pending_queue(g);
@@ -591,13 +599,13 @@ static void discard_timeout(struct gsmd_timer *tmr, void *data)
 
 static struct gsmd_timer * discard_timer(struct gsmd *g)
 {
-        
+
 	struct timeval tv;
 	tv.tv_sec = GSMD_ATCMD_TIMEOUT;
 	tv.tv_usec = 0;
-         
+
 	DEBUGP("Create discard timer\n");
-	
+
 	return gsmd_timer_create(&tv, &discard_timeout, g);
 }
 
@@ -627,7 +635,7 @@ struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 	atcmd->timeout = NULL;
 	strncpy(atcmd->buf, cmd, buflen-1);
 	if (!ct)
-		atcmd->create_timer_func = discard_timer; 
+		atcmd->create_timer_func = discard_timer;
 	else
 		atcmd->create_timer_func = ct;
 
@@ -677,12 +685,12 @@ int cancel_atcmd(struct gsmd *g, struct gsmd_atcmd *cmd)
         }
         cur = llist_entry(g->busy_atcmds.next, struct gsmd_atcmd, list);
         DEBUGP("cancelling command `%s' with an `%s'\n", cur->buf, cmd->buf);
-        
+
         if (g->mlbuf_len) {
                 DEBUGP("Discarding mlbuf: %.*s\n", g->mlbuf_len, g->mlbuf);
                 g->mlbuf_len = 0;
         }
-        
+
         llist_add(&cmd->list, &g->pending_atcmds);
         return atcmd_done(g, cur, "ERROR");
 }

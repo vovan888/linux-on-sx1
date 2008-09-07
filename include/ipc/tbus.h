@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 #include <common/tpl.h>
+#include <errno.h>
 
 /* buses */
 #define TBUS_SYSTEM		0
@@ -58,6 +59,8 @@ DLLEXPORT int tbus_get_message (struct tbus_message *msg);
 DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...);
 
 DLLEXPORT int tbus_call_method (char *service, char *method, char *fmt, ...);
+
+DLLEXPORT int tbus_call_method_and_wait (struct tbus_message *answer, char *service, char *method, char *fmt, ...);
 
 DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...);
 

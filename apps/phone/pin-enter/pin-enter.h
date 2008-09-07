@@ -8,22 +8,22 @@
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Button.H>
 
-class UserInterface {
+#include <flgui/Fl_App.h>
+#include <gsmd/event.h>
+
+class UserInterface: public Fl_App {
 public:
   UserInterface();
-  Fl_Double_Window *win_pin;
   Fl_Output *msg;
   Fl_Input *pin_code;
 private:
   void cb_pin_code_i(Fl_Input*, void*);
   static void cb_pin_code(Fl_Input*, void*);
 public:
-  Fl_Button *LeftSoft;
 private:
   void cb_LeftSoft_i(Fl_Button*, void*);
   static void cb_LeftSoft(Fl_Button*, void*);
 public:
-  Fl_Button *RightSoft;
 private:
   void cb_RightSoft_i(Fl_Button*, void*);
   static void cb_RightSoft(Fl_Button*, void*);

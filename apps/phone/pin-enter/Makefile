@@ -5,8 +5,7 @@ TARGET_CXX=pin-enter
 SRC=${shell ls *.cpp}
 OBJS=${SRC:.cpp=.o}
 
-LIBS+= -lfltk
-#LIBS+= -lfltk -lgsmd -ltbus -ltpl
+LIBS+= -lfltk -lflgui -ltbus -ltpl
 
 ifeq ($(CONFIG_NANOX),y)
 LIBS+=-lnano-X

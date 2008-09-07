@@ -95,6 +95,7 @@ struct gsmd {
 	int mlunsolicited;
 	int alive_responded;
 	char imsi[16];			/* imsi mem space */
+	int pin_type;			/* enum gsmd_pin_type */
 };
 
 struct gsmd_user {

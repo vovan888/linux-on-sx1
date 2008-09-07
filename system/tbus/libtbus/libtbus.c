@@ -110,7 +110,7 @@ static int tbus_pack_args(struct tbus_message *msg, char *fmt, va_list ap)
 	void *data = NULL;
 	int datalen = 0;
 
-	if (!fmt && (strlen(fmt) > 0)) {
+	if (fmt && (strlen(fmt) > 0)) {
 		tpl_node *tn;
 		tn = tpl_vmap(fmt, ap);
 		tpl_pack(tn, 0);
@@ -264,14 +264,16 @@ DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...)
 	va_list ap;
 
 	if (!msg || (tbus_socket_sys == -1))
-		return -1;
+		return -EINVAL;
 
-	if (!fmt && (strlen(fmt) > 0)) {
+	if (fmt && (strlen(fmt) > 0) && (msg->datalen > 0)) {
 		va_start(ap, fmt);
 		tpl_node *tn;
 		tn = tpl_vmap(fmt, ap);
-		tpl_load(tn, TPL_MEM, msg->data, msg->datalen);
-		tpl_unpack(tn, 0);
+		err = tpl_load(tn, TPL_MEM, msg->data, msg->datalen);
+		if(err < 0) return err;
+		err = tpl_unpack(tn, 0);
+		if(err < 0) return err;
 		tpl_free(tn);
 	}
 	return 0;
@@ -308,7 +310,7 @@ DLLEXPORT int tbus_call_method (char *service, char *method, char *fmt, ...)
  * @param service service name of the method caller
  * @param method called method
  * @param fmt format string for the arguments, as in libtpl
- * @param args arguments to path to the method
+ * @param args arguments to pass to the method
  */
 DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...)
 {
@@ -331,6 +333,48 @@ DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...)
 	return err;
 }
 
+/** Call method and wait for the method return
+ * After sending method call ignores all incoming messages!
+ * Waits for method_return message and then return
+ * @param answer method_return message
+ * @param service service name of the method caller
+ * @param method called method
+ * @param fmt format string for the arguments, as in libtpl
+ * @param args arguments to pass to the method
+ */
+DLLEXPORT int tbus_call_method_and_wait (struct tbus_message *answer, char *service, char *method, char *fmt, ...)
+{
+	int err, type, counter = 0;
+	struct tbus_message msg;
+	va_list ap;
+
+	if ((tbus_socket_sys == -1) || !service || !method || !fmt)
+		return -EINVAL;
+
+	va_start(ap, fmt);
+	tbus_pack_args(&msg, fmt, ap);
+	msg.type = TBUS_MSG_CALL_METHOD;
+	msg.service_sender = "";
+	msg.service_dest = service;
+	msg.object = method;
+
+	err = tbus_write_message (tbus_socket_sys, &msg);
+	if(err < 0)
+		return err;
+
+	do {
+		type = tbus_get_message (answer);
+		/* check the answer */
+		if(type != TBUS_MSG_RETURN_METHOD)
+			continue;
+		if( !strcmp(method, answer->object) && !strcmp(service, answer->service_sender) ) {
+			return 0;
+		}
+	} while(counter++ < 16);
+
+	return -EPROTO;
+}
+
 /**
  * Connect to the remote signal
  * @param service service name of the method
@@ -342,7 +386,7 @@ DLLEXPORT int tbus_connect_signal (char *service, char *object)
 	struct tbus_message msg;
 
 	if ((tbus_socket_sys == -1) || !service || !object)
-		return -1;
+		return -EINVAL;
 
 	msg.type = TBUS_MSG_CONNECT_SIGNAL;
 	msg.service_sender = "";

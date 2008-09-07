@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 		unlink(lockfile);
 	}
 
-	pathfd_ = open(lockfile, O_RDWR | O_TRUNC | O_CREAT);
+	pathfd_ = open(lockfile, O_RDWR | O_TRUNC | O_CREAT, 0644);
 	if (pathfd_ == -1) {
 		perror("open(): " DAEMON_NAME);
 		exit(errno);

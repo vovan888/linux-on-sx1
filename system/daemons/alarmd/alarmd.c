@@ -73,7 +73,7 @@ static void handle_rtc(int fd)
 			exit(errno);
 		}
 
-		/* Check current time: minutes */	
+		/* Check current time: minutes */
 		if (rtc_tm.tm_min == 0) {
 			irq_count = 0;
 			minutes_sync = 1;
@@ -85,7 +85,7 @@ static void handle_rtc(int fd)
 	  maybe it is too often ?*/
 
 	/*Send PPM (pulse per minute message)
-	   this message should be sent on the first second of minute 
+	   this message should be sent on the first second of minute
 	   (syncronized with time) */
 	if ((irq_count % 60) == 0) {
 		DBGMSG("ALARMD: minute message sent\n");
@@ -188,7 +188,7 @@ static void alarmd_check_lockfile(void)
 		unlink(lockfile);
 	}
 
-	pathfd_ = open(lockfile, O_RDWR | O_TRUNC | O_CREAT);
+	pathfd_ = open(lockfile, O_RDWR | O_TRUNC | O_CREAT, 0644);
 	if (pathfd_ == -1) {
 		perror("open(): " DAEMON_NAME);
 		exit(errno);
