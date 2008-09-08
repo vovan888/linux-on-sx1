@@ -48,10 +48,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 
 Fl_App::~Fl_App()
 {
-	delete AppArea;
-	delete LeftSoft;
-	delete RightSoft;
-
+	Fl::remove_fd(tbus_socket);
 	tbus_close();
 }
 

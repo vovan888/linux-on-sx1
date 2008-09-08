@@ -23,12 +23,6 @@ void UserInterface::cb_LeftSoft_i(Fl_Button*, void*) {
 	char *oldpin = (char *)pin_code->value();
 
 	result = EnterPIN(oldpin,"");
-
-	if(result == 0) {
-		msg->value("PIN OK");
-		PinOK = true;
-		Fl::add_timeout(1.0, timer_callback, (void *)this);
-	}
 }
 
 void UserInterface::cb_LeftSoft(Fl_Button* o, void* v) {
@@ -73,23 +67,47 @@ UserInterface::UserInterface()
 
 	msg->value("Please enter PIN");
 
-	pin_code->activate();
+	pin_code->take_focus();
 
 	PinOK = false;
+}
+
+void UserInterface::handle_signal(struct tbus_message *msg)
+{
+}
+
+void UserInterface::handle_method_return(struct tbus_message *tmsg)
+{
+	if(!strcmp(tmsg->service_sender, "PhoneServer")) {
+		if(!strcmp(tmsg->object, "PIN/Input")) {
+			int result = -1;
+			int ret = tbus_get_message_args(tmsg, "i", &result);
+
+			if(result == 0) {
+				msg->value("PIN OK");
+				PinOK = true;
+				Fl::add_timeout(2.0, timer_callback, (void *)this);
+			}
+		}
+	}
 }
 
 int UserInterface::EnterPIN(char *oldpin, char *newpin)
 {
 	int ret;
-	struct tbus_message tmsg;
+// 	struct tbus_message tmsg;
+	char *op = oldpin, *np = newpin;
 
-	ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/Input", "ss",
-			&oldpin, &newpin);
+/*	ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/Input", "ss",
+			&op, &np);*/
+	ret = tbus_call_method("PhoneServer", "PIN/Input", "ss",
+			&op, &np);
 	if(ret < 0)
 		return ret;
 
 	int result = -1;
-	ret = tbus_get_message_args(&tmsg, "i", &result);
+// 	ret = tbus_get_message_args(&tmsg, "i", &result);
+// 	tbus_msg_free(&tmsg);
 
 	return result;
 }
@@ -100,26 +118,23 @@ int UserInterface::GetPINType()
 	struct tbus_message tmsg;
 
 	ret = tbus_call_method("PhoneServer", "Connect", "");
-	if(ret)
+	if(ret < 0)
 		return ret;
 	do {
 		ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/GetStatus", "");
 		if(ret < 0)
 			continue;
 		ret = tbus_get_message_args(&tmsg, "i", &type);
+		tbus_msg_free(&tmsg);
 		if(ret < 0) {
 			// do something ???
 			usleep(100);
 			continue;
 		}
-		if(type == GSMD_PIN_READY) {
-			/* no need to enter PIN */
-			return 0;
-		} else
-			break;
+		return type;
 	} while(counter++ < 5);
 
-	return type;
+	return -1;
 }
 
 static const char *pin_type_names[__NUM_GSMD_PIN] = {

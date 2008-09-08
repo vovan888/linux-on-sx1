@@ -21,6 +21,10 @@ public:
 private:
 	int EnterPIN(char *oldpin, char *newpin);
 	static void timer_callback(void*);
+
+	void handle_signal(struct tbus_message *msg);
+	void handle_method_return(struct tbus_message *msg);
+
 private:
   void cb_pin_code_i(Fl_Input*, void*);
   static void cb_pin_code(Fl_Input*, void*);
