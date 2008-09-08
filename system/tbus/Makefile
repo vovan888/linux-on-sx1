@@ -1,6 +1,6 @@
 # tbus/Makefile
 
-DIRS=bus libtbus
+DIRS=bus libtbus util
 
 subdir-build = $(patsubst %,_subdir_%,$(DIRS))
 subdir-clean = $(patsubst %,_clean_%,$(DIRS))

@@ -20,7 +20,7 @@
 #include <flphone/debug.h>
 
 /* socket fds for two buses */
-static int tbus_socket_sys;
+static int tbus_socket_sys = -1;
 //static int tbus_socket_app;
 
 /**
@@ -64,7 +64,7 @@ static int tbus_write_message (int fd, struct tbus_message *msg)
 
 	if (err < 0) {
 		/* error while writing means we lost connection to server */
-		tbus_socket_sys = 0;
+		tbus_socket_sys = -1;
 	 /*FIXME*/}
 
 	return err;
@@ -150,20 +150,19 @@ static int tbus_connect_socket (char *socket_path)
 		    == -1) {
 			close (sock);
 			sock = 0;
-			DPRINT ("Waiting for TBUS server\n");
+			DPRINT ("Waiting for TBUS server - %d\n", tries);
 			sleep (1);	/* 1 second */
 		} else
-			break;
-		if (tries++ == 5)
+			return sock;
+
+		if (tries++ == 5) {
 			/* no tries left */
 			DPRINT ("No TBUS server!\n");
-		goto init_socket_error;
+			goto init_socket_error;
+		}
 	} while (1);
 
-	return sock;
-
       init_socket_error:
-
 	perror ("tbus_init_socket");
 	if (sock >= 0)
 		close (sock);
@@ -291,7 +290,7 @@ DLLEXPORT int tbus_call_method (char *service, char *method, char *fmt, ...)
 	struct tbus_message msg;
 	va_list ap;
 
-	if ((tbus_socket_sys == -1) || !service || !method || !fmt)
+	if ((tbus_socket_sys < 0) || !service || !method || !fmt)
 		return -1;
 
 	va_start(ap, fmt);
