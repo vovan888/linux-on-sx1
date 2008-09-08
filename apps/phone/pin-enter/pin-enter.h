@@ -16,6 +16,11 @@ public:
   UserInterface();
   Fl_Output *msg;
   Fl_Input *pin_code;
+	int GetPINType();
+	bool PinOK;
+private:
+	int EnterPIN(char *oldpin, char *newpin);
+	static void timer_callback(void*);
 private:
   void cb_pin_code_i(Fl_Input*, void*);
   static void cb_pin_code(Fl_Input*, void*);

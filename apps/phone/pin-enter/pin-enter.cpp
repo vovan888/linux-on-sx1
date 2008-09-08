@@ -11,25 +11,26 @@ void UserInterface::cb_pin_code(Fl_Input* o, void* v) {
   ((UserInterface*)v)->cb_pin_code_i(o,v);
 }
 
+void UserInterface::timer_callback(void *v)
+{
+	Fl::delete_widget((UserInterface*)v);// close program
+}
+
 void UserInterface::cb_LeftSoft_i(Fl_Button*, void*) {
   // OK button;
 //	msg->value("OK");
-	int ret;
-	struct tbus_message tmsg;
-	const char *oldpin, *newpin="";
-	oldpin = pin_code->value();
-
-	ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/Input", "ss", &oldpin, &newpin);
-	if(ret < 0)
-		return;
-
 	int result;
-	ret = tbus_get_message_args(&tmsg, "i", &result);
+	char *oldpin = (char *)pin_code->value();
 
-	if(result = 0)
+	result = EnterPIN(oldpin,"");
+
+	if(result == 0) {
 		msg->value("PIN OK");
-	fl_alert("result=%d", result);
+		PinOK = true;
+		Fl::add_timeout(1.0, timer_callback, (void *)this);
+	}
 }
+
 void UserInterface::cb_LeftSoft(Fl_Button* o, void* v) {
   ((UserInterface*)v)->cb_LeftSoft_i(o,v);
 }
@@ -37,6 +38,8 @@ void UserInterface::cb_LeftSoft(Fl_Button* o, void* v) {
 void UserInterface::cb_RightSoft_i(Fl_Button*, void*) {
   // Cancel button;
 	msg->value("Cancel");
+	Fl::delete_widget(this);// close program
+	// Tell others to shutdown system!!!
 }
 void UserInterface::cb_RightSoft(Fl_Button* o, void* v) {
   ((UserInterface*)v)->cb_RightSoft_i(o,v);
@@ -71,6 +74,52 @@ UserInterface::UserInterface()
 	msg->value("Please enter PIN");
 
 	pin_code->activate();
+
+	PinOK = false;
+}
+
+int UserInterface::EnterPIN(char *oldpin, char *newpin)
+{
+	int ret;
+	struct tbus_message tmsg;
+
+	ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/Input", "ss",
+			&oldpin, &newpin);
+	if(ret < 0)
+		return ret;
+
+	int result = -1;
+	ret = tbus_get_message_args(&tmsg, "i", &result);
+
+	return result;
+}
+
+int UserInterface::GetPINType()
+{
+	int ret, counter = 0, type = -1;
+	struct tbus_message tmsg;
+
+	ret = tbus_call_method("PhoneServer", "Connect", "");
+	if(ret)
+		return ret;
+	do {
+		ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/GetStatus", "");
+		if(ret < 0)
+			continue;
+		ret = tbus_get_message_args(&tmsg, "i", &type);
+		if(ret < 0) {
+			// do something ???
+			usleep(100);
+			continue;
+		}
+		if(type == GSMD_PIN_READY) {
+			/* no need to enter PIN */
+			return 0;
+		} else
+			break;
+	} while(counter++ < 5);
+
+	return type;
 }
 
 static const char *pin_type_names[__NUM_GSMD_PIN] = {
@@ -94,32 +143,15 @@ const char *lgsm_pin_name(int ptype)
 	return pin_type_names[ptype];
 }
 
-
 int main(int argc, char **argv)
 {
-	int ret, counter = 0, type;
-	struct tbus_message tmsg;
-
+	int type;
 // create GUI to PIN input
 	UserInterface ui;
 // ask phoneserver if some PIN is needed
-	ret = tbus_call_method("PhoneServer", "Connect", "");
-	do {
-		ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/GetStatus", "");
-		if(ret < 0)
-			continue;
-		ret = tbus_get_message_args(&tmsg, "i", &type);
-		if(ret < 0) {
-			// do something ???
-			sleep(1);
-			continue;
-		}
-		if(type == GSMD_PIN_READY) {
-			/* no need to enter PIN */
-			return 0;
-		} else
-			break;
-	} while(counter++ < 5);
+	type = ui.GetPINType();
+	if(type == GSMD_PIN_READY)
+		return 0;
 // enter PIN
 	ui.msg->value(lgsm_pin_name(type));
 	ui.show(argc,argv);

@@ -490,7 +490,7 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct tbus_message *msg)
 			strlcat(cmd->buf, ",", cmd->buflen);
 			strlcat(cmd->buf, newpin, cmd->buflen);
 		}
-		cmd->buflen = strlen();
+		cmd->buflen = strlen(cmd->buf);
 		/*strlcat(cmd->buf, "\"", cmd->buflen);*/
 		free(oldpin);
 		free(newpin);

@@ -14,11 +14,8 @@
 
 class Fl_App : public Fl_Window {
 public:
- // TODO fix default values
-//  Fl_App(int X, int Y, int W=176, int H=200, const char *L = 0);
   Fl_App(const char *L = 0, bool leftmenu = false, bool rightsoft = false);
   ~Fl_App();
-// widget constructor
   Fl_Scroll *AppArea;
   Fl_Menu_Button *LeftSoftMenu;
   Fl_Button *LeftSoft;
