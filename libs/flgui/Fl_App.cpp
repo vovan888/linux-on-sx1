@@ -27,7 +27,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 		LeftSoft = new Fl_Button(0, APPVIEW_AREA_HEIGHT,
 				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "OK");
 		LeftSoftMenu = NULL;
-		LeftSoft->shortcut(0xffbe);
+		LeftSoft->shortcut(Key_LeftSoft);
 		LeftSoft->box(FL_FLAT_BOX);
 	}
 	// Fl_Menu_Button* LeftSoft
@@ -40,7 +40,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 		RightSoft = new Fl_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
 				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Close");
 		RightSoftMenu = NULL;
-		RightSoft->shortcut(0xffbf);
+		RightSoft->shortcut(Key_RightSoft);
 		RightSoft->box(FL_FLAT_BOX);
 	}
 	// Fl_Menu_Button* RightSoft
@@ -53,6 +53,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 Fl_App::~Fl_App()
 {
 	tbus_close();
+	Fl::remove_fd(tbus_socket);
 }
 
 void Fl_App::handle_tbus_message(int fd, void *data)
@@ -81,6 +82,26 @@ void Fl_App::handle_tbus_message(int fd, void *data)
 
 	tbus_msg_free(&msg);
 	return;
+}
+
+int Fl_App::TBusWaitForMsg(struct tbus_message *msg, char *service, char *object, int timeout)
+{
+	int wait_result, type;
+
+	Fl::check();	/* let FLTK process events */
+
+	do {
+		wait_result = tbus_wait_message(timeout);
+		if( (wait_result == 0) ||	/*timeout*/
+			(wait_result == -1) )	/*error*/
+			return wait_result;
+
+		type = tbus_get_message (msg);
+		if( !strcmp(object, msg->object) && !strcmp(service, msg->service_sender) ) {
+			return 0;
+		}
+		tbus_msg_free(msg);
+	} while(1);
 }
 
 void Fl_App::handle_signal(struct tbus_message *msg)

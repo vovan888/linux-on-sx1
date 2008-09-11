@@ -332,6 +332,26 @@ DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...)
 	return err;
 }
 
+/** Wait for data on socket
+  * @param millisec timeout in Milliseconds
+  * Returns 0 if timeout, 1 if input available, -1 if error
+**/
+DLLEXPORT int tbus_wait_message (int millisec)
+{
+	int seconds;
+	fd_set set;
+	struct timeval timeout;
+
+	FD_ZERO (&set);
+	FD_SET (tbus_socket_sys, &set);
+	seconds = (millisec * 1000) / 1000000;
+	timeout.tv_sec = seconds;
+	 /*Microseconds*/
+	timeout.tv_usec =(millisec * 1000 - seconds * 1000000);
+
+	return TEMP_FAILURE_RETRY (select (FD_SETSIZE, &set, NULL, NULL, &timeout));
+}
+
 /** Call method and wait for the method return
  * After sending method call ignores all incoming messages!
  * Waits for method_return message and then return
@@ -364,11 +384,11 @@ DLLEXPORT int tbus_call_method_and_wait (struct tbus_message *answer, char *serv
 	do {
 		type = tbus_get_message (answer);
 		/* check the answer */
-		if(type != TBUS_MSG_RETURN_METHOD)
-			continue;
-		if( !strcmp(method, answer->object) && !strcmp(service, answer->service_sender) ) {
-			return 0;
-		}
+		if(type == TBUS_MSG_RETURN_METHOD)
+			if( !strcmp(method, answer->object) && !strcmp(service, answer->service_sender) ) {
+				return 0;
+			}
+		tbus_msg_free(answer);
 	} while(counter++ < 16);
 
 	return -EPROTO;

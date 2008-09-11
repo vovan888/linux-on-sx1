@@ -54,6 +54,8 @@ DLLEXPORT int tbus_register_service (char *service);
 
 DLLEXPORT int tbus_close (void);
 
+DLLEXPORT int tbus_wait_message (int millisec);
+
 DLLEXPORT int tbus_get_message (struct tbus_message *msg);
 
 DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...);
