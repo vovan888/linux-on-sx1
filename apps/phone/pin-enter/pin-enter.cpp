@@ -3,139 +3,7 @@
 #include "pin-enter.h"
 #include <FL/fl_ask.H>
 
-void UserInterface::cb_pin_code_i(Fl_Input* o, void* v) {
-  //pin code changed;
-//	msg->value("pin changed");
-}
-void UserInterface::cb_pin_code(Fl_Input* o, void* v) {
-  ((UserInterface*)v)->cb_pin_code_i(o,v);
-}
-
-void UserInterface::timer_callback(void *v)
-{
-	Fl::delete_widget((UserInterface*)v);// close program
-}
-
-void UserInterface::cb_LeftSoft_i(Fl_Button*, void*) {
-  // OK button;
-//	msg->value("OK");
-	int result;
-	char *oldpin = (char *)pin_code->value();
-
-	result = EnterPIN(oldpin,"");
-}
-
-void UserInterface::cb_LeftSoft(Fl_Button* o, void* v) {
-  ((UserInterface*)v)->cb_LeftSoft_i(o,v);
-}
-
-void UserInterface::cb_RightSoft_i(Fl_Button*, void*) {
-  // Cancel button;
-	msg->value("Cancel");
-	Fl::delete_widget(this);// close program
-	// Tell others to shutdown system!!!
-}
-void UserInterface::cb_RightSoft(Fl_Button* o, void* v) {
-  ((UserInterface*)v)->cb_RightSoft_i(o,v);
-}
-#include <FL/fl_ask.H>
-
-UserInterface::UserInterface()
-	: Fl_App("PIN-code"){
-
-    { Fl_Output* o = msg = new Fl_Output(0, 103, 176, 25);
-      o->box(FL_FLAT_BOX);
-      o->color((Fl_Color)48);
-      AppArea -> add(o);
-    }
-    { Fl_Input* o = pin_code = new Fl_Input(0, 127, 176, 34);
-      o->box(FL_FLAT_BOX);
-      o->color((Fl_Color)19);
-      o->textsize(18);
-      o->callback((Fl_Callback*)cb_pin_code, (void *)this);
-      o->when(FL_WHEN_CHANGED);
-      AppArea -> add(o);
-    }
-	LeftSoft->box(FL_FLAT_BOX);
-	LeftSoft->labeltype(FL_SHADOW_LABEL);
-	LeftSoft->callback((Fl_Callback*)cb_LeftSoft, (void *)this);
-
-	RightSoft->box(FL_FLAT_BOX);
-	RightSoft->labeltype(FL_SHADOW_LABEL);
-	RightSoft->callback((Fl_Callback*)cb_RightSoft, (void *)this);
-//	RightSoft->when(FL_WHEN_ENTER_KEY_ALWAYS);
-
-	msg->value("Please enter PIN");
-
-	pin_code->take_focus();
-
-	PinOK = false;
-}
-
-void UserInterface::handle_signal(struct tbus_message *msg)
-{
-}
-
-void UserInterface::handle_method_return(struct tbus_message *tmsg)
-{
-	if(!strcmp(tmsg->service_sender, "PhoneServer")) {
-		if(!strcmp(tmsg->object, "PIN/Input")) {
-			int result = -1;
-			int ret = tbus_get_message_args(tmsg, "i", &result);
-
-			if(result == 0) {
-				msg->value("PIN OK");
-				PinOK = true;
-				Fl::add_timeout(2.0, timer_callback, (void *)this);
-			}
-		}
-	}
-}
-
-int UserInterface::EnterPIN(char *oldpin, char *newpin)
-{
-	int ret;
-// 	struct tbus_message tmsg;
-	char *op = oldpin, *np = newpin;
-
-/*	ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/Input", "ss",
-			&op, &np);*/
-	ret = tbus_call_method("PhoneServer", "PIN/Input", "ss",
-			&op, &np);
-	if(ret < 0)
-		return ret;
-
-	int result = -1;
-// 	ret = tbus_get_message_args(&tmsg, "i", &result);
-// 	tbus_msg_free(&tmsg);
-
-	return result;
-}
-
-int UserInterface::GetPINType()
-{
-	int ret, counter = 0, type = -1;
-	struct tbus_message tmsg;
-
-	ret = tbus_call_method("PhoneServer", "Connect", "");
-	if(ret < 0)
-		return ret;
-	do {
-		ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/GetStatus", "");
-		if(ret < 0)
-			continue;
-		ret = tbus_get_message_args(&tmsg, "i", &type);
-		tbus_msg_free(&tmsg);
-		if(ret < 0) {
-			// do something ???
-			usleep(100);
-			continue;
-		}
-		return type;
-	} while(counter++ < 5);
-
-	return -1;
-}
+#include <stdlib.h>
 
 static const char *pin_type_names[__NUM_GSMD_PIN] = {
 	"READY", "SIM PIN", "SIM PUK", "Phone-to-SIM PIN",
@@ -158,6 +26,149 @@ const char *lgsm_pin_name(int ptype)
 	return pin_type_names[ptype];
 }
 
+void UserInterface::cb_pin_code_i(Fl_Input* o, void* v) {
+  //pin code changed;
+//	msg->value("pin changed");
+}
+void UserInterface::cb_pin_code(Fl_Input* o, void* v) {
+  ((UserInterface*)v)->cb_pin_code_i(o,v);
+}
+
+void UserInterface::timer_callback(void *v)
+{
+	Fl::delete_widget((UserInterface*)v);// close program
+}
+
+void UserInterface::cb_wait_animation(void *data)
+{
+	
+}
+
+void UserInterface::handle_method_return(struct tbus_message *msg)
+{
+	if(!strcmp("PhoneServer", msg->service_sender))
+	if(!strcmp("PIN/Input", msg->object)) {
+		int ret, result = -1;
+		ret = tbus_get_message_args(msg, "i", &result);
+		if(ret < 0)
+			return;
+		if(result == 0) {
+			exit(1);
+		} else {
+//			message->value("PIN Error!");
+			message->value(lgsm_pin_name(GetPINType()));
+//			tries left = ...
+		}
+	}
+}
+
+void UserInterface::cb_LeftSoft_i(Fl_Button*, void*) {
+  // OK button;
+//	message->value("OK");
+	int ret, result;
+	char *oldpin = (char *)pin_code->value();
+	char *newpin = "";
+
+	ret = tbus_call_method("PhoneServer", "PIN/Input", "ss",
+			&oldpin, &newpin);
+	Fl::add_timeout(1.0, cb_wait_animation);
+
+/*	result = EnterPIN(oldpin,"");
+
+	if(result == 0) {
+		message->value("PIN OK");
+		PinOK = true;
+		Fl::add_timeout(1.0, timer_callback, (void *)this);
+	}*/
+}
+
+void UserInterface::cb_LeftSoft(Fl_Button* o, void* v) {
+  ((UserInterface*)v)->cb_LeftSoft_i(o,v);
+}
+
+void UserInterface::cb_RightSoft_i(Fl_Button*, void*) {
+  // Cancel button;
+	message->value("Cancel");
+	Fl::delete_widget(this);// close program
+	// Tell others to shutdown system!!!
+}
+void UserInterface::cb_RightSoft(Fl_Button* o, void* v) {
+  ((UserInterface*)v)->cb_RightSoft_i(o,v);
+}
+#include <FL/fl_ask.H>
+
+UserInterface::UserInterface()
+	: Fl_App("PIN-code"){
+
+    { Fl_Output* o = message = new Fl_Output(0, 103, 176, 25);
+      o->box(FL_FLAT_BOX);
+      o->color((Fl_Color)48);
+      AppArea -> add(o);
+    }
+    { 
+      Fl_Secret_Input* o = pin_code = new Fl_Secret_Input(0, 127, 176, 34);
+
+      o->box(FL_FLAT_BOX);
+      o->color((Fl_Color)19);
+      o->textsize(18);
+      o->callback((Fl_Callback*)cb_pin_code, (void *)this);
+      o->when(FL_WHEN_CHANGED);
+      AppArea -> add(o);
+    }
+//	LeftSoft->labeltype(FL_SHADOW_LABEL);
+	LeftSoft->callback((Fl_Callback*)cb_LeftSoft, (void *)this);
+
+//	RightSoft->labeltype(FL_SHADOW_LABEL);
+	RightSoft->callback((Fl_Callback*)cb_RightSoft, (void *)this);
+//	RightSoft->when(FL_WHEN_ENTER_KEY_ALWAYS);
+
+	message->value("Please enter PIN");
+
+	pin_code->activate();
+
+	PinOK = false;
+}
+
+int UserInterface::EnterPIN(char *oldpin, char *newpin)
+{
+	int ret;
+	struct tbus_message tmsg;
+
+	ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/Input", "ss",
+			&oldpin, &newpin);
+	if(ret < 0)
+		return ret;
+
+	int result = -1;
+	ret = tbus_get_message_args(&tmsg, "i", &result);
+
+	return result;
+}
+
+int UserInterface::GetPINType()
+{
+	int ret, counter = 0, type = -1;
+	struct tbus_message tmsg;
+
+/*	ret = tbus_call_method("PhoneServer", "Connect", "");
+	if(ret)
+		return ret;*/
+	do {
+		ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/GetStatus", "");
+		if(ret < 0)
+			continue;
+		ret = tbus_get_message_args(&tmsg, "i", &type);
+		if(ret < 0) {
+			// do something ???
+			usleep(1000);
+			continue;
+		}
+		break;
+	} while(counter++ < 5);
+
+	return type;
+}
+
 int main(int argc, char **argv)
 {
 	int type;
@@ -168,7 +179,7 @@ int main(int argc, char **argv)
 	if(type == GSMD_PIN_READY)
 		return 0;
 // enter PIN
-	ui.msg->value(lgsm_pin_name(type));
+	ui.message->value(lgsm_pin_name(type));
 	ui.show(argc,argv);
 
 //	const char *str = fl_password("Enter PIN");

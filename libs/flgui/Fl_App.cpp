@@ -21,23 +21,27 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 	if (leftsoft) {
 		LeftSoftMenu = new Fl_Menu_Button(0, APPVIEW_AREA_HEIGHT,
 				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Options");
+		LeftSoftMenu->box(FL_FLAT_BOX);
 		LeftSoft = NULL;
 	} else {
 		LeftSoft = new Fl_Button(0, APPVIEW_AREA_HEIGHT,
 				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "OK");
 		LeftSoftMenu = NULL;
 		LeftSoft->shortcut(0xffbe);
+		LeftSoft->box(FL_FLAT_BOX);
 	}
 	// Fl_Menu_Button* LeftSoft
 	if (rightsoft) {
 		RightSoftMenu = new Fl_Menu_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
 				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Close");
+		RightSoftMenu->box(FL_FLAT_BOX);
 		RightSoft = NULL;
 	} else {
 		RightSoft = new Fl_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
 				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Close");
 		RightSoftMenu = NULL;
 		RightSoft->shortcut(0xffbf);
+		RightSoft->box(FL_FLAT_BOX);
 	}
 	// Fl_Menu_Button* RightSoft
 	end();
@@ -48,7 +52,6 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 
 Fl_App::~Fl_App()
 {
-	Fl::remove_fd(tbus_socket);
 	tbus_close();
 }
 

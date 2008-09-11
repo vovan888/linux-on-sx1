@@ -5,7 +5,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Output.H>
-#include <FL/Fl_Input.H>
+#include <FL/Fl_Secret_Input.H>
 #include <FL/Fl_Button.H>
 
 #include <flgui/Fl_App.h>
@@ -14,17 +14,15 @@
 class UserInterface: public Fl_App {
 public:
   UserInterface();
-  Fl_Output *msg;
-  Fl_Input *pin_code;
+  Fl_Output *message;
+  Fl_Secret_Input *pin_code;
 	int GetPINType();
 	bool PinOK;
 private:
 	int EnterPIN(char *oldpin, char *newpin);
-	static void timer_callback(void*);
-
-	void handle_signal(struct tbus_message *msg);
-	void handle_method_return(struct tbus_message *msg);
-
+	static void timer_callback(void *data);
+	static void cb_wait_animation(void *data);
+	virtual void handle_method_return(struct tbus_message *msg);
 private:
   void cb_pin_code_i(Fl_Input*, void*);
   static void cb_pin_code(Fl_Input*, void*);

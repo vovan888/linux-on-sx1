@@ -61,7 +61,7 @@ int main (int argc, char **argv)
 
 	if(wait_for_answer) {
 		ret = tbus_get_message(&msg);
-		char *fmt_str = "(NONE)";
+		char *fmt_str = "NONE";
 		if(msg.datalen > 0) {
 			fmt_str = tpl_peek(TPL_MEM, msg.data, msg.datalen);
 		}
