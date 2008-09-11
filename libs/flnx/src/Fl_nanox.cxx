@@ -64,8 +64,8 @@ static pollfd *pollfds = 0;
 // The following #define is only needed for HP-UX 9.x and earlier:
 //#define select(a,b,c,d,e) select((a),(int *)(b),(int *)(c),(int *)(d),(e))
 
-static fd_set fdsets[3];
-static int maxfd;
+//static fd_set fdsets[3];
+//static int maxfd;
 #define POLLIN 1
 #define POLLOUT 4
 #define POLLERR 8
@@ -240,8 +240,10 @@ void Fl::remove_fd(int n, int events) {
     maxfd--;
 #endif
 #endif
-
   GrUnregisterInput(n);
+// fix memory leak
+  if ( (nfds == 0) && (fd > 0) )
+     free(fd);
 }
 
 void Fl::remove_fd(int n){
