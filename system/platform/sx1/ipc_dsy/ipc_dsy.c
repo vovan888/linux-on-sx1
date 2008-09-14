@@ -45,7 +45,6 @@
 
 #include <ipc/tbus.h>
 #include <ipc/shareddata.h>
-#include <ipc/phoneserver.h>
 #include <arch/sx1/ipc_dsy.h>
 #include <flphone/debug.h>
 
@@ -269,7 +268,7 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	unsigned char cmd;
 	unsigned char c1;
 	unsigned short data16;
-	char str[6];
+	int bars;
 
 	cmd = buf[2];
 	switch (cmd) {
@@ -278,10 +277,10 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 		// CDosEventManager::ChargingState(TDosChargingState)  data16
 		if (data16 == 1) {
 			shdata->battery.status = BATTERY_STATUS_CHARGING;
-			tbus_emit_signal("BatteryStatus","Charging");
+			tbus_emit_signal("BatteryCharging","");
 		} else {
 			shdata->battery.status = BATTERY_STATUS_POWERED;
-			tbus_emit_signal("BatteryStatus","Powered");
+			tbus_emit_signal("BatteryPowered","");
 		}
 		break;
 	case BAT_StatusRes:	// CDsyIndicationHandler::NotifyBatteryStatus(TPtr8 &)
@@ -290,17 +289,17 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 		/*FIXME maybe we dont need this*/
 		break;
 	case BAT_BarsRes:	// CCDsyIndicationHandler::NotifyBatteryBars(TPtr8 &)
-		c1 = *(unsigned char *)(buf + 6);
+		bars = *(unsigned char *)(buf + 6);
 		//CDosEventManager::BatteryBars(int)  c1
-		snprintf(str, 5, "%d", c1);
-		shdata->battery.bars = c1;
-		tbus_emit_signal("BatteryBars",str);
+//		snprintf(str, 5, "%d", c1);
+		shdata->battery.bars = bars;
+		tbus_emit_signal("BatteryBars","i", &bars);
 		break;
 	case BAT_LowWarningRes:	// CDsyIndicationHandler::NotifyBatteryLowWarning(TPtr8 &)
 		c1 = *(unsigned char *)(buf + 6);
 		// CDosEventManager::BatteryLowWarning(int)  c1
 		shdata->battery.status = BATTERY_STATUS_LOW;
-		tbus_emit_signal("BatteryStatus","Low");
+		tbus_emit_signal("BatteryLow","");
 		break;
 	default:
 		return -1;
@@ -316,8 +315,6 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 	unsigned char IPC_Group = buf[1];
 	unsigned char cmd;
 	unsigned char err = 0;
-	unsigned short data16;
-	char	str[5];
 
 	if (IPC_Group > 10)
 		return -2;	// error
@@ -336,11 +333,11 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 		return HandleBattery(buf, res);
 	case IPC_GROUP_RSSI:	// CDsyIndicationHandler::HandleRssi(TIpcMsgHdr *, TPtr8 &)
 		if (cmd == 0) {	// CDsyIndicationHandler::NotifyNetworkBars(TPtr8 &)
-			data16 = *(unsigned short *)(buf + 6);
+			int netbars = *(unsigned short *)(buf + 6);
 			// CDosEventManager::NetworkBars(int)  data16
-			shdata->network.bars = (unsigned char)data16;
-			snprintf(str, 5, "%d", data16);
-			tbus_emit_signal("NetworkBars", str);
+			shdata->PhoneServer.bars = netbars;
+//			snprintf(str, 5, "%d", data16);
+			tbus_emit_signal("NetworkBars", "i", &netbars);
 			return 0;
 		}
 		return -1;

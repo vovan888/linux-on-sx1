@@ -411,6 +411,8 @@ static int null_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 static int pin_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
+	struct gsmd *g = gu->gsmd;
+
 	int ret = cmd->ret;
 
 	/* Siemens modems return `+CPIN: TRUE` after valid PIN entry
@@ -418,6 +420,9 @@ static int pin_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (!strncmp(resp, "+CPIN: TRUE", 11)) {
 		ret = 0;
 	}
+
+	if(ret == 0)
+		gsmd_initsettings_after_pin(g);
 
 	/* Pass a GSM07.07 CME code directly, don't issue a new PIN
 	 * request because the client waits for a response to her
@@ -484,7 +489,7 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct tbus_message *msg)
 
 		int newpinlen = strlen(newpin);
 		int atcmdlen = 8 + strlen(oldpin) + 1;
-		if (newpinlen > 0) 
+		if (newpinlen > 0)
 			atcmdlen += 1 + newpinlen;
 		cmd = atcmd_fill("AT+CPIN=", atcmdlen,
 			 &pin_cmd_cb, gu, 0, NULL);

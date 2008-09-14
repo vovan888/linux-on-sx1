@@ -87,7 +87,7 @@ void gsm0710_buffer_destroy(GSM0710_Buffer *buf) {
   free(buf);
 }
 
-int gsm0710_buffer_write(GSM0710_Buffer *buf, const char *input, int count) {
+int gsm0710_buffer_write(GSM0710_Buffer *buf, const unsigned char *input, int count) {
   int c=buf->endp - buf->writep;
 
   count = min(count, gsm0710_buffer_free(buf));

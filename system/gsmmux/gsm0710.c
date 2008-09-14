@@ -171,7 +171,7 @@ static speed_t baud_bits[] = {
 * RETURNS:
 * number of characters written
 */
-int write_frame(int channel, const char *input, int count, unsigned char type)
+int write_frame(int channel, const unsigned char *input, int count, unsigned char type)
 {
 	// flag, EA=1 C channel, frame type, length 1-2
 	unsigned char prefix[5] = { F_FLAG, EA | CR, 0, 0, 0 };
@@ -295,16 +295,16 @@ int ussp_recv_data(unsigned char *buf, int len, int port)
 {
 	int written = 0;
 	int i = 0;
-    int last  = 0;
+	int last  = 0;
 	// try to write 5 times
 	while (written  != len && i < WRITE_RETRIES)
 	{
-        last = write_frame(port + 1, buf + written,
-								len - written, UIH);
-        written += last;
-        if (last == 0) {
-		    i++;
-        }
+		last = write_frame(port + 1, buf + written,
+									len - written, UIH);
+		written += last;
+		if (last == 0) {
+			i++;
+		}
 	}
 	if (i == WRITE_RETRIES)
 	{
@@ -324,7 +324,7 @@ int ussp_send_data(unsigned char *buf, int n, int port)
 
 // Returns 1 if found, 0 otherwise. needle must be null-terminated.
 // strstr might not work because WebBox sends garbage before the first OK
-int findInBuf(char* buf, int len, char* needle) {
+int findInBuf(unsigned char* buf, int len, char* needle) {
   int i;
   int needleMatchedPos=0;
 
@@ -780,7 +780,7 @@ void usage(char *_name)
 int extract_frames(GSM0710_Buffer * buf)
 {
 	// version test for Siemens terminals to enable version 2 functions
-	static char version_test[] = "\x23\x21\x04TEMUXVERSION2\0\0";
+	static unsigned char version_test[] = "\x23\x21\x04TEMUXVERSION2\0\0";
 	unsigned char flagg = 0xF9;
 	int framesExtracted = 0;
 
@@ -1077,7 +1077,7 @@ void closeDevices()
 int main(int argc, char *argv[], char *env[])
 {
 #define PING_TEST_LEN 6
-	static char ping_test[] = "\x23\x09PING";
+	static unsigned char ping_test[] = "\x23\x09PING";
 	//struct sigaction sa;
 	int sel, len;
 	fd_set rfds;
@@ -1163,12 +1163,12 @@ int main(int argc, char *argv[], char *env[])
 	programName = argv[0];
 	if(_debug)
 	{
-		openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR  , LOG_LOCAL0);//pode ir até 7
+		openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR  , LOG_LOCAL0);//pode ir atï¿½ 7
 		_priority = LOG_DEBUG;
 	}
 	else
 	{
-		openlog(programName, LOG_NDELAY | LOG_PID , LOG_LOCAL0 );//pode ir até 7
+		openlog(programName, LOG_NDELAY | LOG_PID , LOG_LOCAL0 );//pode ir atï¿½ 7
 		_priority = LOG_INFO;
 	}
 

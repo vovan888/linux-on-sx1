@@ -462,7 +462,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 
 final_cb:
 	/* if reach here, the final result code of a command has been reached */
-	DEBUGP("final_cb, cmd=%d\n", cmd);
+	DEBUGP("final_cb, cmd=%d\n", (int)cmd);
 	if (!cmd)
 		return rc;
 
@@ -520,10 +520,10 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 			else
 				len = pos->buflen - 1;  /* assuming zero-terminated strings */
 //				len = strlen(pos->cur);  /* assuming zero-terminated strings */
-DEBUGP("Send to UART=");
-int i;
-for(i=0;i<len;i++) printf("%x ",pos->cur[i]);
-printf("\n");
+//DEBUGP("Send to UART=");
+//int i;
+//for(i=0;i<len;i++) printf("%x ",pos->cur[i]);
+//printf("\n");
 			rc = write(fd, pos->cur, len);
 			if (rc == 0) {
 				gsmd_log(GSMD_ERROR, "write returns 0, aborting\n");

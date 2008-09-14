@@ -18,13 +18,15 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+
 #include <ctype.h>
 #include <sys/types.h>
 
@@ -45,7 +47,7 @@ int extrsp_supports(const struct gsm_extrsp *er, int index, int value)
 		return -EINVAL;
 
 	for (i = 0; i < er->tokens[index].u.range.num_items; i++) {
-		struct gsm_extrsp_range_item *ri = 
+		struct gsm_extrsp_range_item *ri =
 			&er->tokens[index].u.range.item[i];
 		if (value >= ri->min && value <= ri->max)
 			return 1;
@@ -61,7 +63,7 @@ enum parser_state {
 	TOKEN_NUMERIC,
 	TOKEN_RANGE,
 };
-		
+
 /* parse a comma-separated list, possibly containing quote values */
 struct gsm_extrsp *extrsp_parse(const void *ctx, const char *input)
 {

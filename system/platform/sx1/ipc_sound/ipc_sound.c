@@ -563,7 +563,6 @@ void signal_treatment(int param)
 //-----------------------------------------------------------------
 int	sound_init()
 {
-	int ret;
 	/* TODO handle errors here */
 
 	sound_init_serial();
@@ -580,7 +579,6 @@ int	sound_init()
 int main(int argc, char *argv[])
 {
 	int sock_nl, sock_loc;	// File handlers
-	int res;		// temp vars
 
 	struct sockaddr_nl sa_netlink;
 

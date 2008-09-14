@@ -11,12 +11,10 @@
 
 BASE_DIR=@installdir@
 MWDIR=@mwdir@
-
 export MWFONTDIR=$BASE_DIR/share/fonts/
 export LD_LIBRARY_PATH=$BASE_DIR/lib:$MWDIR/lib
 
 # Verify that everything exists
-
 if [ ! -x "$MWDIR/bin/nano-X" ]; then 
     echo "Oops - no nano-X binary exists.  Bailing..."
     exit 1
@@ -24,29 +22,26 @@ fi
 
 # Start the TBUS server
 $BASE_DIR/sbin/tbus-daemon &
-
 # Start the Nano-X server
 $MWDIR/bin/nano-X -e -x 176 -y 220 &
-
 # Start up the Nano-X window manager
 $BASE_DIR/sbin/nanowm &
-
 sleep 1
-
 # Start Indicator daemon
 $BASE_DIR/sbin/indicatord &
-
 #sleep 1
-
-$BASE_DIR/sbin/alarmserver
+$BASE_DIR/sbin/alarmserver &
 #sleep 100000
+
+# press enter to exit
+echo "-------------------"
+echo "Press Enter to exit"
+echo "-------------------"
+read
 
 ## Welcome back  Shut down pending daemons
 killall -TERM -q $BASE_DIR/sbin/alarmserver
 killall -TERM -q $BASE_DIR/sbin/indicatord
 killall -TERM -q $BASE_DIR/sbin/nanowm
 killall -TERM -q $BASE_DIR/sbin/tbus-daemon
-
-# press enter to exit
-echo Press Enter to exit
-read
+killall -TERM -q $MWDIR/bin/nano-X

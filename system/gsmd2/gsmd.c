@@ -155,6 +155,10 @@ static int gsmd_get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	DEBUGP("cpin? pin_type= : %d\n", type);
 
 	g->pin_type = type;
+
+	if(type == GSMD_PIN_READY)
+		gsmd_initsettings_after_pin(g);
+
 	return 0;
 }
 
@@ -181,19 +185,30 @@ int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 int gsmd_initsettings2(struct gsmd *gsmd)
 {
 	int rc = 0;
-
 	/* echo off, display acknowledgments as text */
 	rc |= gsmd_simplecmd(gsmd, "ATE0V1");
-	/* use +CRING instead of RING */
-	rc |= gsmd_simplecmd(gsmd, "AT+CRC=1");
 	/* enable +CREG: unsolicited response if registration status changes */
 	rc |= gsmd_simplecmd(gsmd, "AT+CREG=2");
 	/* use +CME ERROR: instead of ERROR */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMEE=1");
+
+	/* get PIN status */
+	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 8+1,
+		&gsmd_get_cpin_cb, gsmd, 0, NULL));
+
+	return 0;
+}
+/* these commands require PIN to be READY */
+int gsmd_initsettings_after_pin(struct gsmd *gsmd)
+{
+	int rc = 0;
+
+	/* use +CRING instead of RING */
+	rc |= gsmd_simplecmd(gsmd, "AT+CRC=1");
 	/* use +CLIP: to indicate CLIP */
 	rc |= gsmd_simplecmd(gsmd, "AT+CLIP=1");
 	/* use +COLP: to indicate COLP */
-	/* set it 0 to disable subscriber info and avoid cme err 512 */
+	/* set it 0 to disable subscriber info and avoid cme err 512 ?FIXME?*/
 	rc |= gsmd_simplecmd(gsmd, "AT+COLP=0");
 	/* use +CCWA: to indicate waiting call */
 	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
@@ -201,16 +216,9 @@ int gsmd_initsettings2(struct gsmd *gsmd)
 	/* FIXME: TEXT mode support!! */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMGF=0");
 
-	if(gsmd->pin_type == -1) {
-		/* get PIN status */
-		atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 8+1,
-		     &gsmd_get_cpin_cb, gsmd, 0, NULL));
-	}
-
 	/* get imsi */
 	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 7+1,
 					&gsmd_get_imsi_cb, gsmd, 0, NULL));
-
 
 	sms_cb_init(gsmd);
 
@@ -392,7 +400,7 @@ int main(int argc, char **argv)
 {
 	int fd, argch;
 
-	int bps = 115200;
+	int bps = 38400;
 	int hwflow = 0;
 	char *device = NULL;
 	char *vendor_name = NULL;
@@ -506,7 +514,7 @@ int main(int argc, char **argv)
 	atcmd_drain(fd);
 
 	if (usock_init(&g) < 0) {
-		fprintf(stderr, "can't open unix socket\n");
+		fprintf(stderr, "can't open T-BUS connection\n");
 		exit(1);
 	}
 

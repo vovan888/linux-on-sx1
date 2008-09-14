@@ -16,6 +16,7 @@
 #include <errno.h>
 
 #include <common/uthash.h>
+#include <common/tpl.h>
 
 #include <ipc/tbus.h>
 

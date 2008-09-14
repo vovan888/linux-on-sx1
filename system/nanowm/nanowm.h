@@ -7,8 +7,6 @@
 #define __NANOWM_H
 
 #include <ipc/shareddata.h>
-#include <ipc/colosseum.h>
-#include <ipc/phoneserver.h>
 #include <flphone/keys_nanox.h>
 #include <flphone/theme.h>
 #include <ipc/tbus.h>
@@ -48,7 +46,7 @@ enum {
 	WINDOW_TYPE_ROOTMENUENTRY*/
 };
 
-/* 
+/*
  * Used to keep a list of all the windows we know about so we can quickly
  * find out whether a window is "one of ours", and if it is, what kind of
  * window it is (title bar, side bar, button, icon, root menu, etc.), who
@@ -206,7 +204,7 @@ extern int righthand_resize_columns, righthand_resize_rows;
 extern int righthand_resize_hotx, righthand_resize_hoty;
 
 /* mainscreen.c */
-/* 
+/*
  * Load wallpaper "filename" to the background of "wid" window
  */
 int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index);

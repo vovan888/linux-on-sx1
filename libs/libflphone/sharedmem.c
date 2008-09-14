@@ -3,17 +3,17 @@
  *
  * Copyright 2007 by Vladimir Ananiev (Vovan888 at gmail com )
  *
- * Licensed under GPLv2 
+ * Licensed under GPLv2
 */
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/stat.h>
-#include <stdio.h>  
-#include <stdlib.h> 
-#include <unistd.h> 
-#include <string.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
 #include <flphone/debug.h>
 #include <ipc/shareddata.h>
@@ -48,6 +48,11 @@ static struct sembuf oper_unlock[1] = {{
 	.sem_flg	= SEM_UNDO,
 	}};
 
+/**
+ * Connect to or allocate shared memory segment
+* @param shared_id ID for the new memory segment
+* @return 0 - if OK, -1 - for error
+*/
 static int ShmInit(unsigned int shared_id)
 {
 	/* allocate shared memory segment */
@@ -73,10 +78,11 @@ static int ShmInit(unsigned int shared_id)
 	return 0;
 }
 
-/* Map shared memory segment with shared_id
- * returns its adress
+/** Map shared memory segment with
+ * @param shared_id - ID for memory segment
+ * @returns its adress
 */
-struct SharedSystem *ShmMap(unsigned int shared_id)
+void *ShmMap(unsigned int shared_id)
 {
 	void 	*ptr = NULL;
 	int	res;
@@ -98,23 +104,26 @@ struct SharedSystem *ShmMap(unsigned int shared_id)
 			shmid = -1;
 		}
 	}
-	
+
 	shmids[shared_id] = shmid;
 	semids[shared_id] = semid;
 
 	return (struct SharedSystem *) ptr;
 }
 
-/* UnMap shared memory segment
- * returns 
+/** UnMap shared memory segment
+ * @param ptr pointer for the memory segment
+ * @return  0 if OK, -1 if error
 */
-int	ShmUnmap(struct SharedSystem *ptr)
+int ShmUnmap(void *ptr)
 {
 	/*FIXME should we free segments and semaphores ?*/
 	return shmdt(ptr);
 }
 
-/* blocks till the shared mem is busy then locks it */
+/** blocks till the shared mem is busy then locks it
+ * @param shared_id ID for the shm segment
+*/
 int ShmLock (unsigned int shared_id)
 {
 	if(shmids[shared_id])
@@ -123,7 +132,9 @@ int ShmLock (unsigned int shared_id)
 		return 0;
 }
 
-/* unlocks shared memory segment */
+/** unlocks shared memory segment
+ * @param shared_id ID for the shm segment
+*/
 int ShmUnlock (unsigned int shared_id)
 {
 	if(shmids[shared_id])

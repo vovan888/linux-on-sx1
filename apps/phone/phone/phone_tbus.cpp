@@ -1,4 +1,4 @@
-/* phone_tbus.c
+/* phone_tbus.cpp
 *
 *  TBUS connection functions
 *

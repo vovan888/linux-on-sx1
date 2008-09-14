@@ -745,7 +745,7 @@ static int extension_init(void)
 	ipc_fd = tbus_register_service("sx1_ext");
 
 	shdata = ShmMap(SHARED_SYSTEM);
-	DBGLOG("Shdata = %x\n",shdata);
+	DBGLOG("Shdata = %x\n",(unsigned int)shdata);
 
 	/* Subscribe to different signals */
 	return 0;
@@ -775,7 +775,7 @@ static int extension_set_rtc(void)
 		DBGLOG("RtcCheck error: %d\n", shdata->powerup.rtccheck);
 		return -1;
 	}
-	
+
 	res = RtcTransfer(&modem_time);
 	if (!res) {
 		loc_time = mktime(&modem_time);
@@ -784,7 +784,7 @@ static int extension_set_rtc(void)
 			DBGLOG("local time set = %s\n",
 				asctime(&modem_time));
 		}
-		
+
 		/* open RTC device and set it to localtime*/
 		rtc_fd = open(default_rtc, O_RDONLY);
 		/* set the RTC time */

@@ -52,7 +52,7 @@ struct tbus_client *tbus_client_find_by_socket (int socket_fd)
 
 	HASH_FIND (hh1, clients_by_fd, &fd, sizeof (int), found_client);
 
-	DPRINT ("sock=%d, found_client=%d\n", socket_fd, found_client);
+	DPRINT ("sock=%d, found_client=%d\n", socket_fd, (int)found_client);
 
 	return found_client;
 }
@@ -69,7 +69,7 @@ struct tbus_client *tbus_client_find_by_service (char *service)
 //      HASH_FIND_STR(clients_by_service, service, found_client);
 	HASH_FIND (hh2, clients_by_service, service, strlen (service),
 		   found_client);
-	DPRINT ("serv=%s, found_client=%d\n", service, found_client);
+	DPRINT ("serv=%s, found_client=%d\n", service, (int)found_client);
 
 	return found_client;
 }

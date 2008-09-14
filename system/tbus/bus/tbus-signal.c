@@ -165,21 +165,22 @@ int tbus_client_emit_signal (struct tbus_client *sender_client,
 			     struct tbus_message *msg)
 {
 	struct tbus_signal_conn *connection;
-	struct subscription *cur, *cur2;
+	struct subscription *cur;
 	int ret;
-	char *str, *tmp;
+	char *str, *tmp1, *tmp2;
 	int len;
 
 	str = service_signal_str (sender_client->service, msg->object, &len);
 
 	connection = tbus_find_connection (str, len);
-	DPRINT ("%s, %d\n", str, connection);
+	DPRINT ("%s, %d\n", str, (int)connection);
 	free(str);
 
 	if (connection && (connection->clients_head != NULL)) {
-		tmp = msg->service_dest;
-		msg->service_dest = sender_client->service;
-		DPRINT ("%s, %s\n", tmp,
+		tmp1 = msg->service_dest;
+		tmp2 = msg->service_sender;
+		msg->service_dest = msg->service_sender = sender_client->service;
+		DPRINT ("%s, %s\n", tmp2,
 			connection->clients_head->client->service);
 
 		cur = connection->clients_head;
@@ -194,7 +195,8 @@ int tbus_client_emit_signal (struct tbus_client *sender_client,
 			}
 			cur = cur->next;
 		}
-		msg->service_dest = tmp;
+		msg->service_dest = tmp1;
+		msg->service_sender = tmp2;
 		return 0;	/* OK */
 	} else
 		return -1;	/* no connected clients */

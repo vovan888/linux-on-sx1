@@ -27,10 +27,10 @@ static int mainsignal_show(int frame);
 
 static void mainsignal_changed_callback(int new_value)
 {
-	DBGMSG("%d\n", shdata->network.bars);
+	DBGMSG("%d\n", shdata->PhoneServer.bars);
 
-	if (signal_current != shdata->network.bars) {
-		signal_current = shdata->network.bars;
+	if (signal_current != shdata->PhoneServer.bars) {
+		signal_current = shdata->PhoneServer.bars;
 		mainsignal_show(signal_current);
 	}
 }
@@ -78,7 +78,7 @@ static int mainsignal_show(int frame)
 		frame = MAINSIGNAL_NUMFRAMES - 1;
 	else  if (frame < 0)
 		frame = 0;
-	
+
 	/* draw frame (part) of the image */
 	/* clear the area under the indicator to background pixmap */
 	GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,

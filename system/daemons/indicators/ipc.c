@@ -42,8 +42,9 @@ int ipc_start(char *servername)
 /* handle signals */
 static int ipc_signal(struct tbus_message *msg)
 {
-	DPRINT("%d,%s->%s/%s (%s)\n",msg->type, msg->service_sender, msg->service_dest, msg->object, msg->data);
-	
+	DPRINT("%d,%s->%s/%s (%s)\n",msg->type, msg->service_sender,
+		msg->service_dest, msg->object, (char *)msg->data);
+
 	if(!strcmp(msg->service_dest, "PhoneServer")) {
 		if(!strcmp(msg->object,"NetworkBars"))
 			indicators[THEME_MAINSIGNAL].changed(0);
@@ -80,7 +81,7 @@ int ipc_handle(GR_EVENT * e)
 {
 	int ret;
 	struct tbus_message msg;
-	
+
 	DBGMSG("indicatord: ipc_handle\n");
 
 	ret = tbus_get_message(&msg);

@@ -23,9 +23,9 @@ public:
 	Fl_Menu_Button *RightSoftMenu;
 	Fl_Button *RightSoft;
 
+	int AppState;		// Current App state (user controlled)
 	int TBusWaitForMsg(struct tbus_message *msg, char *service, char *object, int timeout);
 private:
-	int AppState;		// Current App state (user controlled)
 	int tbus_socket;	// Socket fd for T-BUS connection
 	static void handle_tbus_message(int fd, void *data);
 protected:

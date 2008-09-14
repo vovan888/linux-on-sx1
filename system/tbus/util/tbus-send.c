@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ipc/tbus.h>
+#include <common/tpl.h>
 
 void print_usage(void)
 {
@@ -31,7 +32,7 @@ int main (int argc, char **argv)
 	}
 
 	struct tbus_message msg;
-	
+
 	ret = tbus_register_service("tbus-send");
 	printf("connect to T-BUS : %d\n", ret);
 
@@ -46,11 +47,11 @@ int main (int argc, char **argv)
 			argv[arg+3]);
 		break;
 	case 2:
-		ret = tbus_call_method(argv[arg], argv[arg+1], argv[arg+2], 
+		ret = tbus_call_method(argv[arg], argv[arg+1], argv[arg+2],
 			argv[arg+3], argv[arg+4]);
 		break;
 	case 3:
-		ret = tbus_call_method(argv[arg], argv[arg+1], argv[arg+2], 
+		ret = tbus_call_method(argv[arg], argv[arg+1], argv[arg+2],
 			argv[arg+3], argv[arg+4], argv[arg+5]);
 		break;
 	default:

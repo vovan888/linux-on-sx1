@@ -6,6 +6,7 @@
  * Licensed under GPLv2, see file License in this tarball for details.
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -16,7 +17,8 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#include <ipc/tbus.h>
+#include "tbus.h"
+#include <common/tpl.h>
 #include <flphone/debug.h>
 
 /* socket fds for two buses */

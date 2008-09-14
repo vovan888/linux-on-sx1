@@ -94,6 +94,7 @@ struct machines {
 	char *machine;
 	char *vendor;
 } machines[] = {
+	{ "OMAP310 based Siemens SX1",	"sx1",		"siemens" },
 	{ "GTA01",		"gta01",	"ti" },
 	{ "GTA02",		"gta01",	"ti" },
 	{ "HTC Blueangel",	"tihtc",	"tihtc" },
@@ -151,7 +152,7 @@ int gsmd_machine_plugin_init(struct gsmd *g, char *machine_name, char *vendor_na
 		rc = gsmd_machine_plugin_load(machine_name);
 	else
 		rc = gsmd_machine_plugin_load("generic");
-	
+
 	if (vendor_name)
 		gsmd_vendor_plugin_load(vendor_name);
 	else {

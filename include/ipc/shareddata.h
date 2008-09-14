@@ -18,6 +18,12 @@
 
 #define SHARED_NUMSEGMENTS	2
 
+#define BATTERY_STATUS_UNKNOWN		0x00
+#define BATTERY_STATUS_POWERED		0x01
+#define BATTERY_STATUS_EXTERNAL		0x02
+#define BATTERY_STATUS_CHARGING		0x03
+#define BATTERY_STATUS_LOW		0x04
+
 /* shared memory structure for SHARED_SYSTEM*/
 struct SharedSystem {
 /* powerup data */
@@ -34,11 +40,6 @@ struct SharedSystem {
 	struct {
 		char root_displayed;	/* is root window displayed ? */
 	} wm;
-/* network */
-	struct {
-		char signal;	/* network signal strength in dBm */
-		char bars;	/* network bars */
-	} network;
 /* SIM */
 	struct {
 		int state;
@@ -56,25 +57,27 @@ struct SharedSystem {
 		int bars;	/* capacity - 0..7 */
 		int capacity;	/* capacity - 0%..100% */
 	} battery;
-/* phone status */
+/* PhoneServer status */
 	struct {
+		int signal;	/* network signal strength in dBm */
+		int bars;	/* network bars */
 		int missed_calls;
 		int messages;
 		char oper[16];	/* operator name */
 		int profile;
 
-	} status;
+	} PhoneServer;
 };
 
 /* Map shared memory segment
  * returns its adress
 */
-DLLEXPORT struct SharedSystem *ShmMap (unsigned int shared_id);
+DLLEXPORT void *ShmMap (unsigned int shared_id);
 
 /* UnMap shared memory segment
- * returns 
+ * returns
 */
-DLLEXPORT int ShmUnmap (struct SharedSystem *ptr);
+DLLEXPORT int ShmUnmap (void *ptr);
 
 /* blocks till the shared mem is busy then locks it */
 DLLEXPORT int ShmLock (unsigned int shared_id);

@@ -17,7 +17,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -26,7 +26,7 @@
 
 #ifndef min
 #define min(a,b) ((a < b) ? a :b)
-#endif 
+#endif
 
 
 typedef struct GSM0710_Frame {
@@ -97,7 +97,7 @@ int gsm0710_buffer_read(GSM0710_Buffer *buf, char *output, int count);
  * RETURNS
  * number of characters written
  */
-int gsm0710_buffer_write2ch(GSM0710_Buffer *buf, int channel, 
+int gsm0710_buffer_write2ch(GSM0710_Buffer *buf, int channel,
 			    const char *input, int count);
 
 /* Writes data to the buffer
@@ -109,7 +109,7 @@ int gsm0710_buffer_write2ch(GSM0710_Buffer *buf, int channel,
  * RETURNS
  * number of characters written
  */
-int gsm0710_buffer_write(GSM0710_Buffer *buf, const char *input, int count);
+int gsm0710_buffer_write(GSM0710_Buffer *buf, const unsigned char *input, int count);
 
 /* Gets a frame from buffer. You have to remember to free this frame
  * when it's not needed anymore

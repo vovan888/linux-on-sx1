@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -38,6 +38,8 @@
 #include <gsmd/sms.h>
 
 #include <ipc/tbus.h>
+
+static void *__us_ctx;
 
 static void state_ringing_timeout(struct gsmd_timer *timer, void *opaque)
 {
@@ -178,12 +180,12 @@ static int ccwa_parse(const char *buf, int len, const char *param,
 {
 	struct gsm_extrsp *er;
 	int ret;
-	char number[GSMD_ALPHA_MAXLEN + 1];
+	char *number = talloc_size(__us_ctx, GSMD_ALPHA_MAXLEN + 1);
 	int type, classx, cli;
-	char alpha[GSMD_ALPHA_MAXLEN + 1];
-	
+	char *alpha = talloc_size(__us_ctx, GSMD_ALPHA_MAXLEN + 1);
+
 	er = extrsp_parse(gsmd_tallocs, param);
-	if ( !er ) 
+	if ( !er )
 		return -ENOMEM;
 
 	if ( er->num_tokens == 5 &&
@@ -195,12 +197,12 @@ static int ccwa_parse(const char *buf, int len, const char *param,
 		/*
 		 * <number>,<type>,<class>,[<alpha>][,<CLI validity>]
 		 */
-		
+
 		strcpy(number, er->tokens[0].u.string);
 		type = er->tokens[1].u.numeric;
 		classx = er->tokens[2].u.numeric;
 		alpha[0] = '\0';
-		cli = er->tokens[4].u.numeric; 
+		cli = er->tokens[4].u.numeric;
 	}
 	else if ( er->num_tokens == 5 &&
 			er->tokens[0].type == GSMD_ECMD_RTT_STRING &&
@@ -216,7 +218,7 @@ static int ccwa_parse(const char *buf, int len, const char *param,
 		type = er->tokens[1].u.numeric;
 		classx = er->tokens[2].u.numeric;
 		strcpy(alpha, er->tokens[3].u.string);
-		cli = er->tokens[4].u.numeric; 
+		cli = er->tokens[4].u.numeric;
 	}
 	else {
 		DEBUGP("Invalid Input : Parse error\n");
@@ -224,6 +226,9 @@ static int ccwa_parse(const char *buf, int len, const char *param,
 	}
 
 	ret = tbus_emit_signal("CallWaiting", "siisi", &number, &type, &classx, &alpha, &cli);
+	talloc_free(er);
+	talloc_free(number);
+	talloc_free(alpha);
 
 	return ret;
 }
@@ -260,12 +265,15 @@ static int cgreg_parse(const char *buf, int len, const char *param,
 	return 0;
 }
 
-/* Chapter 7.6, calling line identification presentation */
+/* Chapter 7.6, calling line identification presentation
++CLIP: "8926xxxxxxx",129,,,,0
+*/
 static int clip_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
+	int ret;
 	const char *comma = strchr(param, ',');
-	char number[GSMD_ALPHA_MAXLEN + 1];
+	char *number = talloc_size(__us_ctx, GSMD_ALPHA_MAXLEN + 1);
 
 	if (!comma)
 		return -EINVAL;
@@ -277,19 +285,23 @@ static int clip_parse(const char *buf, int len, const char *param,
 	strncat(number, param, comma-param);
 	/* FIXME: parse of subaddr, etc. */
 
-	return tbus_emit_signal("IncomingCLIP", "s", &number);
+	ret = tbus_emit_signal("IncomingCLIP", "s", &number);
+	talloc_free(number);
+
+	return ret;
 }
 
 /* Chapter 7.9, calling line identification presentation */
 static int colp_parse(const char *buf, int len, const char *param,
 		      struct gsmd *gsmd)
 {
+	int ret;
 	const char *comma = strchr(param, ',');
-	char number[GSMD_ALPHA_MAXLEN + 1];
+	char *number = talloc_size(__us_ctx, GSMD_ALPHA_MAXLEN + 1);
 
 	if (!comma)
 		return -EINVAL;
-	
+
 	if (comma - param > GSMD_ADDR_MAXLEN)
 		return -EINVAL;
 
@@ -297,7 +309,10 @@ static int colp_parse(const char *buf, int len, const char *param,
 	strncat(number, param, comma-param);
 	/* FIXME: parse of subaddr, etc. */
 
-	return tbus_emit_signal("OutgoingCOLP", "s", &number);
+	ret = tbus_emit_signal("OutgoingCOLP", "s", &number);
+	talloc_free(number);
+
+	return ret;
 }
 
 static int ctzv_parse(const char *buf, int len, const char *param,
@@ -310,7 +325,7 @@ static int ctzv_parse(const char *buf, int len, const char *param,
 
 	if (tz < -48  || tz > 48)
 		return -EINVAL;
-	
+
 
 	return tbus_emit_signal("TimezoneChange", "i", &tz);
 }
@@ -382,7 +397,7 @@ int unsolicited_parse(struct gsmd *g, const char *buf, int len, const char *para
 		rc = i->parse(buf, len, colon, g);
 		if (rc == -EAGAIN)
 			return rc;
-		if (rc < 0) 
+		if (rc < 0)
 			gsmd_log(GSMD_ERROR, "error %d during parsing of "
 				 "an unsolicied response `%s'\n",
 				 rc, buf);
@@ -415,6 +430,8 @@ void unsolicited_init(struct gsmd *g)
 {
 	struct gsmd_vendor_plugin *vpl = g->vendorpl;
 
+	__us_ctx = talloc_named_const(gsmd_tallocs, 1, "gsmd_unsol");
+
 	/* register generic unsolicited code parser */
 	unsolicited_register_array(gsm0707_unsolicit,
 			ARRAY_SIZE(gsm0707_unsolicit));
@@ -443,7 +460,7 @@ static unsigned int errors_creating_events[] = {
 	GSM0707_CME_SIM_PIN2_REQUIRED,
 	GSM0707_CME_SIM_PUK2_REQUIRED,
 /*	GSM0707_CME_MEMORY_FULL,
-	GSM0707_CME_MEMORY_FAILURE,*/    
+	GSM0707_CME_MEMORY_FAILURE,*/
 	GSM0707_CME_NETPERS_PIN_REQUIRED,
 	GSM0707_CME_NETPERS_PUK_REQUIRED,
 	GSM0707_CME_NETSUBSET_PIN_REQUIRED,
@@ -499,8 +516,8 @@ int generate_event_from_cme(struct gsmd *g, unsigned int cme_error)
 	if (!is_in_array(cme_error, errors_creating_events,
 		ARRAY_SIZE(errors_creating_events))) {
 
-		int tmp = cme_error;
-		return tbus_emit_signal("ErrorCME", "i", &tmp);
+		int cme = cme_error, cms = -1;
+		return tbus_emit_signal("CMECMSError", "ii", &cme, &cms);
  	} else {
 		int pin_type = pintype_from_cme[cme_error];
 		if (cme_error >= GSM0707_CME_UNKNOWN ||
@@ -513,7 +530,7 @@ int generate_event_from_cme(struct gsmd *g, unsigned int cme_error)
 
 int generate_event_from_cms(struct gsmd *g, unsigned int cms_error)
 {
-	int tmp = cms_error;
-	return tbus_emit_signal("ErrorCMS", "i", &tmp);
+	int cme = -1, cms = cms_error;
+	return tbus_emit_signal("CMECMSError", "ii", &cme, &cms);
 }
 

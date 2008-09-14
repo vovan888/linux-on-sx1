@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "gsmd.h"
+#include "../gsmd.h"
 
 #include <gsmd/gsmd.h>
 #include <gsmd/usock.h>

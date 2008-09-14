@@ -13,9 +13,6 @@
 #include <flphone/debug.h>
 #include <flphone/theme.h>
 #include <ipc/shareddata.h>
-//#include <ipc/colosseum.h>
-#include <ipc/phoneserver.h>
-#include <ipc/alarmd.h>
 #include <ipc/tbus.h>
 
 typedef void (*event_callback_p) (GR_WINDOW_ID, GR_EVENT *);

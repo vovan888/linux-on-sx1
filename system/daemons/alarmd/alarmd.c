@@ -52,7 +52,6 @@ static void handle_rtc(int fd)
 	int retval;
 	unsigned long data;
 	struct rtc_time rtc_tm;
-	struct msg_alarm msg;
 
 	/* This read won't block */
 	retval = read(fd, &data, sizeof(unsigned long));

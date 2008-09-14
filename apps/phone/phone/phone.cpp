@@ -2,192 +2,338 @@
 
 #include "phone.h"
 
-extern "C" {
-#include <flphone_config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/select.h>
-//#include <nano-X.h>
-#include <flphone/debug.h>
-//#include <theme.h>
-#include <ipc/shareddata.h>
-#include <ipc/tbus.h>
-
-#include "phone_tbus.h"
-#include "gsm.h"
-
-#include <libgsmd/libgsmd.h>
-#include <libgsmd/voicecall.h>
+//---------------------------------------------------------------------------
+/**
+ * Removes all illegal characters from the phone number
+ * @param str string with number
+ * @param len string length
+*/
+void PhoneApp::RemoveIllegalChars(char *str, int len)
+{
+	int i,j;
+	char ch;
+	for(i = j = 0; i < len; i++) {
+		ch = str[i];
+		if( ( (ch>='0') && (ch<='9') ) ||
+		    (ch=='+') ) {
+			str[j] = ch;
+			j++;
+		}
+	}
+	str[j] = 0;
 }
 
-void UserInterface::cb_dial_num_i(Fl_Input*, void*) {
+//---------------------------------------------------------------------------
+void PhoneApp::ConnectSignals()
+{
+	tbus_connect_signal("PhoneServer", "CallProgress");
+	tbus_connect_signal("PhoneServer", "CMECMSError");
+	tbus_connect_signal("PhoneServer", "IncomingCall");
+	tbus_connect_signal("PhoneServer", "IncomingCLIP");
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::handle_signal(struct tbus_message *msg)
+{
+	DPRINT("handle_signal (%s/%s)\n", msg->service_sender, msg->object);
+
+	if(!strcmp("PhoneServer", msg->service_sender))
+	if(!strcmp("CallProgress", msg->object)) {
+		int ret, progress, call_id;
+		ret = tbus_get_message_args(msg, "ii", &progress, &call_id);
+		if(ret < 0)
+			return;
+		if( (AppState == STATE_DIALING) && (progress == GSMD_CALL_CONNECTED) ) {
+			GotoState(STATE_CALL_ACTIVE);
+		}
+		if( (AppState == STATE_CALL_ACTIVE) && (progress == GSMD_CALL_IDLE) ) {
+			GotoState(STATE_END_CALL);
+		}
+		if( (AppState == STATE_INCOMING) && (progress == GSMD_CALL_IDLE) ) {
+			GotoState(STATE_END_CALL);
+		}
+	} else
+	if(!strcmp("CMECMSError", msg->object)) {
+		// TODO - check error number
+		if(AppState == STATE_CALL_ACTIVE)
+			GotoState(STATE_END_CALL);
+	} else
+	if(!strcmp("IncomingCall", msg->object)) {
+		GotoState(STATE_INCOMING);
+	} else
+	if(!strcmp("IncomingCLIP", msg->object)) {
+		char *clip;
+		int ret;
+		ret = tbus_get_message_args(msg, "s", &clip);
+		Number->value(clip);
+		delete clip;
+	}
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::GreenButtonPressed()
+{
+	if(AppState == STATE_CALL_ACTIVE) {
+		//TODO Hold call
+		return;
+	} else
+	if(AppState == STATE_IDLE) {
+		// check if phone number is valid
+		PhoneNumber = strdup(NumberInput->value());
+		int NumLen = strlen(PhoneNumber);
+		RemoveIllegalChars(PhoneNumber, NumLen);
+		NumLen = strlen(PhoneNumber);
+		if(NumLen <= 0)
+			return;
+
+		// fill in call group Output`s
+		OpName->value("Operator");
+		ContactName->value("John Dow");
+		Number->value(PhoneNumber);
+
+		// activate call
+		tbus_call_method("PhoneServer","VoiceCall/Dial","s", &PhoneNumber);
+
+		// update application state
+		GotoState(STATE_DIALING);
+	} else
+	if(AppState == STATE_INCOMING) {
+		// answer an incoming call
+		tbus_call_method("PhoneServer","VoiceCall/Answer","");
+		GotoState(STATE_CALL_ACTIVE);
+	}
+}
+//---------------------------------------------------------------------------
+void PhoneApp::RedButtonPressed()
+{
+	if(AppState == STATE_IDLE) {
+		// exit the application
+		return;
+	} else {
+		tbus_call_method("PhoneServer","VoiceCall/HangUp","");
+		//TODO start end_call timer
+		GotoState(STATE_IDLE);
+	}
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::GotoState(int newAppState)
+{
+	DPRINT("GotoState (%d)\n", newAppState);
+
+	switch(newAppState) {
+	case STATE_IDLE:
+		// switch to the dial group
+		Number->value("");
+		ContactName->value("");
+		CallType->value("");
+		grp_dial->show();
+		grp_call->hide();
+		break;
+	case STATE_INCOMING:
+		// switch to the call group
+		CallType->value("Incoming call...");
+		grp_dial->hide();
+		grp_call->show();
+		break;
+	case STATE_DIALING:
+		// switch to the call group
+		CallType->value("Dialing...");
+		grp_dial->hide();
+		grp_call->show();
+		// possible TODO :
+		// play a dialing sound
+		// start a dialing animation
+		break;
+	case STATE_CALL_ACTIVE:
+		CallType->value("Talking...");
+		// TODO start call duration timer
+		break;
+	case STATE_END_CALL:
+		CallType->value("Call ended...");
+		break;
+	}
+
+	AppState = newAppState;
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::cb_NumberInput_i(Fl_Input*, void*) {
   // check value to fit to phone number
-// 0..9 , + , p , w
-// when the number is longer than 13 digits change
-// the font to smaller;
+// 0..9 , + , p , w;
 }
-void UserInterface::cb_dial_num(Fl_Input* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_dial_num_i(o,v);
+void PhoneApp::cb_NumberInput(Fl_Input* o, void* v) {
+  ((PhoneApp*)(o->parent()->parent()))->cb_NumberInput_i(o,v);
 }
 
-void UserInterface::cb_btn_dial_i(Fl_Button*, void*) {
-  // start a phone call
-// animate when ringing
-// activate Call tab when connected;
-	// Dial a number
-	struct lgsm_addr addr;
-	addr.type = (lgsm_addr_type)129;
-	strncpy(addr.addr, dial_num->value(), sizeof(addr.addr)-1);
-	addr.addr[sizeof(addr.addr)-1] = '\0';
-	lgsm_voice_out_init(lgsmh, &addr);
-
+//---------------------------------------------------------------------------
+void PhoneApp::cb_search_i(Fl_Text_Display*, void*) {
+  // keypress on search results;
 }
-void UserInterface::cb_btn_dial(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_btn_dial_i(o,v);
+void PhoneApp::cb_search(Fl_Text_Display* o, void* v) {
+  ((PhoneApp*)v)->cb_search_i(o,v);
 }
 
-void UserInterface::cb_btn_answer_i(Fl_Button*, void*) {
-  // answer the call;
-}
-void UserInterface::cb_btn_answer(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_btn_answer_i(o,v);
-}
-
-void UserInterface::cb_btn_end_call_i(Fl_Button*, void*) {
+//---------------------------------------------------------------------------
+void PhoneApp::cb_btn_end_call_i(Fl_Button*, void*) {
   // end call;
+	RedButtonPressed();
 }
-void UserInterface::cb_btn_end_call(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_btn_end_call_i(o,v);
-}
-
-void UserInterface::cb_history_i(Fl_Browser*, void*) {
-  // dial selected number;
-}
-void UserInterface::cb_history(Fl_Browser* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_history_i(o,v);
+void PhoneApp::cb_btn_end_call(Fl_Button* o, void* v) {
+  ((PhoneApp*)v)->cb_btn_end_call_i(o,v);
 }
 
-void UserInterface::cb_Dial_i(Fl_Menu_*, void*) {
+//---------------------------------------------------------------------------
+void PhoneApp::cb_Add_i(Fl_Menu_*, void*) {
+  // add recipient option;
+}
+void PhoneApp::cb_Add(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_Add_i(o,v);
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::cb_Call_i(Fl_Menu_*, void*) {
   // dial a number;
+	GreenButtonPressed();
 }
-void UserInterface::cb_Dial(Fl_Menu_* o, void* v) {
-  ((UserInterface*)(o->parent()->user_data()))->cb_Dial_i(o,v);
-}
-
-void UserInterface::cb_Copy_i(Fl_Menu_*, void*) {
-  // copy to clipboard;
-}
-void UserInterface::cb_Copy(Fl_Menu_* o, void* v) {
-  ((UserInterface*)(o->parent()->user_data()))->cb_Copy_i(o,v);
+void PhoneApp::cb_Call(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_Call_i(o,v);
 }
 
-Fl_Menu_Item UserInterface::menu_LeftSoft[] = {
- {"Dial", 0,  (Fl_Callback*)UserInterface::cb_Dial, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"Copy", 0,  (Fl_Callback*)UserInterface::cb_Copy, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"Speaker", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"End this call", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"Hold", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"Disable mic", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"New call", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"Send DTMF", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+//---------------------------------------------------------------------------
+void PhoneApp::cb_Copy_i(Fl_Menu_*, void*) {
+  // copy option;
+}
+void PhoneApp::cb_Copy(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_Copy_i(o,v);
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::cb_Speaker_i(Fl_Menu_*, void*) {
+  // turn Speaker on or off;
+}
+void PhoneApp::cb_Speaker(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_Speaker_i(o,v);
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::cb_Hold_i(Fl_Menu_*, void*) {
+  //hold this call;
+}
+void PhoneApp::cb_Hold(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_Hold_i(o,v);
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::cb_Disable_i(Fl_Menu_*, void*) {
+  //disable microphone;
+}
+void PhoneApp::cb_Disable(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_Disable_i(o,v);
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::cb_Send_i(Fl_Menu_*, void*) {
+  //send a DTMF string;
+}
+void PhoneApp::cb_Send(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_Send_i(o,v);
+}
+
+//---------------------------------------------------------------------------
+void PhoneApp::cb_End_i(Fl_Menu_*, void*) {
+  // end current call;
+	RedButtonPressed();
+}
+void PhoneApp::cb_End(Fl_Menu_* o, void* v) {
+  ((PhoneApp*)(o->parent()->user_data()))->cb_End_i(o,v);
+}
+
+//---------------------------------------------------------------------------
+Fl_Menu_Item PhoneApp::menu_LeftSoft[] = {
+ {"Add recipient", 0,  (Fl_Callback*)PhoneApp::cb_Add, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Call", Key_Green,  (Fl_Callback*)PhoneApp::cb_Call, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Copy", 0,  (Fl_Callback*)PhoneApp::cb_Copy, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Speaker", 0,  (Fl_Callback*)PhoneApp::cb_Speaker, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Hold", 0,  (Fl_Callback*)PhoneApp::cb_Hold, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Disable Mic", 0,  (Fl_Callback*)PhoneApp::cb_Disable, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Send DTMF", 0,  (Fl_Callback*)PhoneApp::cb_Send, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"End call", 0,  (Fl_Callback*)PhoneApp::cb_End, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0}
 };
 
-void UserInterface::cb_RightSoft_i(Fl_Menu_Button*, void*) {
+//---------------------------------------------------------------------------
+void PhoneApp::cb_RightSoft_i(Fl_Menu_Button*, void*) {
   // Close program;
 }
-void UserInterface::cb_RightSoft(Fl_Menu_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->user_data()))->cb_RightSoft_i(o,v);
+void PhoneApp::cb_RightSoft(Fl_Menu_Button* o, void* v) {
+  ((PhoneApp*)(o->parent()))->cb_RightSoft_i(o,v);
 }
+//---------------------------------------------------------------------------
+PhoneApp::PhoneApp(const char *L)
+  : Fl_App(L, true) {
+  user_data(this);
 
-Fl_Double_Window* UserInterface::make_window() {
-  Fl_Double_Window* w;
-  { Fl_Double_Window* o = win_phone = new Fl_Double_Window(176, 200, "Phone");
-    w = o;
-    o->user_data((void*)(this));
-    { Fl_Tabs* o = maintab = new Fl_Tabs(0, 0, 177, 180);
-      { Fl_Group* o = grp_dial = new Fl_Group(0, 20, 177, 160, "Dial");
-        { Fl_Input* o = dial_num = new Fl_Input(1, 101, 176, 34);
-          o->box(FL_FLAT_BOX);
-          o->textsize(18);
-          o->callback((Fl_Callback*)cb_dial_num);
-          o->when(FL_WHEN_CHANGED);
-        }
-        { Fl_Button* o = btn_dial = new Fl_Button(10, 145, 157, 25, "Call  @->");
-          o->shortcut(0xffc0);
-          o->callback((Fl_Callback*)cb_btn_dial);
-        }
-        o->end();
-      }
-      { Fl_Group* o = grp_call = new Fl_Group(0, 20, 176, 160, "Call");
-        o->hide();
-        { Fl_Text_Display* o = hint = new Fl_Text_Display(10, 30, 157, 25);
-          o->deactivate();
-        }
-        { Fl_Text_Display* o = contact_name = new Fl_Text_Display(10, 54, 157, 25);
-          o->labeltype(FL_NO_LABEL);
-          o->deactivate();
-        }
-        { Fl_Text_Display* o = phone_number = new Fl_Text_Display(10, 78, 157, 25);
-          o->deactivate();
-        }
-        { Fl_Button* o = btn_answer = new Fl_Button(10, 145, 60, 25, "Answer");
-          o->shortcut(0xffc0);
-          o->callback((Fl_Callback*)cb_btn_answer);
-        }
-        { Fl_Button* o = btn_end_call = new Fl_Button(105, 145, 60, 25, "End");
-          o->shortcut(0xffc1);
-          o->callback((Fl_Callback*)cb_btn_end_call);
-        }
-        o->end();
-      }
-      { Fl_Group* o = grp_history = new Fl_Group(4, 22, 169, 151, "History");
-        o->hide();
-        { Fl_Browser* o = history = new Fl_Browser(5, 25, 168, 148);
-          o->callback((Fl_Callback*)cb_history);
-          o->when(FL_WHEN_ENTER_KEY_ALWAYS);
-        }
-        o->end();
-      }
-      o->end();
-    }
-    { Fl_Menu_Button* o = LeftSoft = new Fl_Menu_Button(0, 180, 88, 20, "Options");
-      o->menu(menu_LeftSoft);
-    }
-    { Fl_Menu_Button* o = RightSoft = new Fl_Menu_Button(88, 180, 88, 20, "Close");
-      o->callback((Fl_Callback*)cb_RightSoft);
-      o->when(FL_WHEN_ENTER_KEY_ALWAYS);
-    }
-    o->end();
+{ Fl_Group* o = grp_dial = new Fl_Group(0, 0, 176, 174, "Dial");
+  { Fl_Input* o = NumberInput = new Fl_Input(0, 0, 176, 32);
+    o->box(FL_FLAT_BOX);
+    o->textfont(1);
+    o->textsize(20);
+    o->callback((Fl_Callback*)cb_NumberInput);
+    o->when(FL_WHEN_CHANGED);
   }
-  return w;
+  { Fl_Text_Display* o = search = new Fl_Text_Display(0, 34, 176, 140);
+    o->box(FL_FLAT_BOX);
+    o->callback((Fl_Callback*)cb_search, (void *)this);
+    o->when(FL_WHEN_CHANGED);
+  }
+  o->user_data(this);
+  o->end();
+}
+{ Fl_Group* o = grp_call = new Fl_Group(0, 0, 176, 174, "Call");
+  o->hide();
+  { Fl_Output* o = OpName = new Fl_Output(2, 2, 172, 25);
+    o->box(FL_FLAT_BOX);
+    o->textsize(12);
+  }
+  { Fl_Output* o = CallType = new Fl_Output(2, 24, 172, 25);
+    o->box(FL_FLAT_BOX);
+  }
+  { Fl_Output* o = ContactName = new Fl_Output(2, 66, 172, 25);
+    o->box(FL_FLAT_BOX);
+  }
+  { Fl_Output* o = Number = new Fl_Output(2, 91, 172, 25);
+    o->box(FL_FLAT_BOX);
+  }
+  { Fl_Button* o = btn_end_call = new Fl_Button(4, 150, 166, 25, "End call");
+    o->labelfont(1);
+    o->shortcut(Key_Red);
+    o->callback((Fl_Callback*)cb_btn_end_call, (void *)this);
+  }
+  o->user_data(this);
+  o->end();
+}
+  AppArea->add(grp_dial);
+  AppArea->add(grp_call);
+  LeftSoftMenu->menu(menu_LeftSoft);
+  RightSoft->callback((Fl_Callback*)cb_RightSoft, (void *)this);
+
+  AppState = STATE_IDLE;
+  PhoneNumber = "";
+
+  ConnectSignals();
 }
 
+//---------------------------------------------------------------------------
+PhoneApp::~PhoneApp()
+{
+	if(PhoneNumber)
+		delete PhoneNumber;
+}
+
+//---------------------------------------------------------------------------
 int main(int argc, char **argv) {
-
-	int fd_ipc;
-	int fd_lgsm;
-	UserInterface ui;
-
-	fd_ipc = tbus_register_service("Phone");
-	fd_lgsm = init_lgsm();
-
-	if(fd_ipc >= 0) {
-		// add fd of IPC messages
-		Fl::add_fd(fd_ipc, tbus_handle);
-	}
-	if(fd_lgsm >= 0) {
-		// add fd of libgsm
-		Fl::add_fd(fd_lgsm, lgsm_handle);
-	} else {
-		ui.dial_num -> value("no gsmd connection!");
-		ui.maintab->value(ui.grp_dial);
-	}
-	// UI construction
-	ui.make_window();
-	ui.win_phone->show(argc, argv);
-
-	return Fl::run();
+  PhoneApp app("Phone");
+  app.show();
+  return Fl::run();
 }

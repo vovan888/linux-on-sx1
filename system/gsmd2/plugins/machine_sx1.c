@@ -46,14 +46,12 @@ static int sx1_init(struct gsmd *g, int fd)
 {
     /* Modem is always powered on on SX1. Check EgoldWakeUp */
 	g->interpreter_ready = 1;
-    
+
 	return 0;
 }
 
 static int sx1_power(struct gsmd *g, int power)
 {
-	struct gsmd_atcmd *cmd = NULL;
-
 	switch (power) {
 		case GSMD_MODEM_POWERUP:
 			break;

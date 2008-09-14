@@ -66,7 +66,7 @@ enum gsmd_netreg_state {
 	GSMD_NETREG_REG_ROAMING,
 	__NUM_GSMD_NETREG
 };
-
+/*
 enum gsmd_call_progress {
 	GSMD_CALLPROG_SETUP		= 0,
 	GSMD_CALLPROG_DISCONNECT	= 1,
@@ -79,6 +79,18 @@ enum gsmd_call_progress {
 	GSMD_CALLPROG_REJECT		= 8,
 	GSMD_CALLPROG_UNKNOWN		= 9,
 	__NUM_GSMD_CALLPROG
+};
+*/
+enum gsmd_call_progress {
+	GSMD_CALL_IDLE		= 0,
+	GSMD_CALL_INCOMING	= 1,
+	GSMD_CALL_DIALING	= 2,
+	GSMD_CALL_RINGING	= 3,
+	GSMD_CALL_CONNECTED	= 4,
+	GSMD_CALL_HOLD		= 5,
+	GSMD_CALL_HANGUP	= 6,
+	GSMD_CALL_FAILURE	= 7,
+	__NUM_GSMD_CALL_STATUS
 };
 
 enum gsmd_call_direction {

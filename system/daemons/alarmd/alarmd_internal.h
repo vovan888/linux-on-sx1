@@ -13,7 +13,6 @@
 #include <flphone/debug.h>
 #include <flphone/theme.h>
 #include <ipc/shareddata.h>
-#include <ipc/alarmd.h>
 #include <ipc/tbus.h>
 
 extern struct SharedSystem *shdata;	/* shared memory segment */
