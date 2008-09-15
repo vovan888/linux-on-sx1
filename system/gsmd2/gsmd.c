@@ -209,7 +209,7 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 	rc |= gsmd_simplecmd(gsmd, "AT+CLIP=1");
 	/* use +COLP: to indicate COLP */
 	/* set it 0 to disable subscriber info and avoid cme err 512 ?FIXME?*/
-	rc |= gsmd_simplecmd(gsmd, "AT+COLP=0");
+	rc |= gsmd_simplecmd(gsmd, "AT+COLP=1");
 	/* use +CCWA: to indicate waiting call */
 	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
 	/* configure message format as PDU mode*/
@@ -385,6 +385,7 @@ static void sig_handler(int signr)
 	switch (signr) {
 	case SIGTERM:
 	case SIGINT:
+		tbus_close();
 		talloc_report_full(gsmd_tallocs, stderr);
 		exit(0);
 		break;
@@ -547,5 +548,6 @@ int main(int argc, char **argv)
 		}
 	}
 
+	tbus_close();
 	exit(0);
 }

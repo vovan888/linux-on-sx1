@@ -3,7 +3,6 @@
 target-y=
 
 #note! sequence dependent :), ipc should be listed first.
-target-$(CONFIG_IPC) += ipc
 target-$(CONFIG_TBUS) += tbus
 target-$(CONFIG_NANOWM) += nanowm
 target-$(CONFIG_DAEMONS) += daemons

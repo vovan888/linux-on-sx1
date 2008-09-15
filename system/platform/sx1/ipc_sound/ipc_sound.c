@@ -587,7 +587,7 @@ int main(int argc, char *argv[])
 	struct timeval timeout;
 
 #ifndef DEBUG
-	res = daemon(0, 0);
+	daemon(0, 0);
 #endif
 	/* SIGNALS treatment */
 	signal(SIGHUP, signal_treatment);

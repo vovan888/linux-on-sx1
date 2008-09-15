@@ -31,7 +31,7 @@ public:
   void RedButtonPressed();
   void ConnectSignals();
 
-  PhoneApp(const char *L = 0);
+  PhoneApp();
   ~PhoneApp();
   Fl_Group *grp_dial;
   Fl_Input *NumberInput;

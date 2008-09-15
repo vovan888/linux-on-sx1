@@ -725,6 +725,7 @@ int process_client(struct tbus_message *msg)
 		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_PREWARNING);
 		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_SWITCHOFF);
 	} else if(!strcmp(msg->object, "Reboot")) {
+		ret = tbus_get_message_args(msg, "i", &reason);
 		ret = ipc_message(IPC_GROUP_POWERUP, PWRUP_SYNCREQ);
 		ret = ipc_message_short(IPC_GROUP_POWERUP, PWROFF_SETSWSTARTUPREASON, reason);/*TODO*/
 		ret = ipc_message(IPC_GROUP_POWEROFF, PWROFF_SETSWSTARTUPREASON);

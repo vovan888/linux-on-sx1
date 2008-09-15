@@ -287,28 +287,28 @@ int fl_wait(double time_to_wait) {
 
   if (GrQueueLength()) {do_queued_events(); return 1;}
 
-  int msec = 0;
-  double mtime = 100.0 * time_to_wait;
+  double mtime = 1000.0 * time_to_wait;
+  int msec = int (mtime);
 
-  msec = int (mtime);
   if (msec < 0)
   	msec = 0;
 
   GR_EVENT ev;
   ev.general.type = GR_EVENT_TYPE_NONE;
 
-/*  fl_unlock_function(); TODO ?*/
+  fl_unlock_function();
 
   GrGetNextEventTimeout (&ev, msec);
 
-/*  fl_lock_function(); TODO ?*/
+  fl_lock_function();
 
+  if (ev.general.type == GR_EVENT_TYPE_TIMEOUT) {
+	return 0;
+  }
   if (ev.general.type > GR_EVENT_TYPE_NONE) {
   /*there was an event*/
      fl_handle (ev);
      return 1;
-  } else {
-  /*timeout*/
   }
   return 0;
 }
@@ -599,7 +599,8 @@ int fl_handle(const GR_EVENT & xevent) {
     	    }
 	}
 
-    return Fl::handle (event, window);
+//    return Fl::handle (event, window);
+    return 0;
   }
 
   if (window)
@@ -615,37 +616,40 @@ int fl_handle(const GR_EVENT & xevent) {
       update = 1;
       GR_WINDOW_INFO info;
       switch (xevent.update.utype) {
-      case GR_UPDATE_MAP:
+
+	case GR_UPDATE_MAP:
 	//fix_exposure = 1;
-	event = FL_SHOW;
-	GrGetWindowInfo(xid,&info);
-
+		event = FL_SHOW;
+		GrGetWindowInfo(xid,&info);
 	//printf("GR_UPDATE_MAP wid: %d\t%d, %d, %d, %d\n", xid,xevent.update.x, xevent.update.y, info.width, info.height);
-
 	//	if(!window->parent())
-
-	  window->Fl_Widget::resize(xevent.update.x, xevent.update.y,
-				    info.width, info.height);
+//v8		  window->Fl_Widget::resize(xevent.update.x, xevent.update.y,
+//v8					    info.width, info.height);
 //	window->resize_notify(xevent.update.x, xevent.update.y, info.width, info.height);
 	break;
-      case GR_UPDATE_SIZE:
+
+	case GR_UPDATE_UNMAP:
+		event = FL_HIDE;
+		break;
+
+	case GR_UPDATE_REPARENT:	//ReparentNotify
+		//ReparentNotify gives the new position of the window relative to
+		//the new parent. FLTK cares about the position on the root window.
+		resize_bug_fix = window;
+		window->position(xevent.update.x, xevent.update.y);
+		break;
+
+	case GR_UPDATE_SIZE:
 	GrGetWindowInfo(xid,&info);
-
 	//printf("GR_UPDATE_SIZE wid: %d\t%d, %d, %d, %d\n", xid, xevent.update.x, xevent.update.y, info.width, info.height);
-
 	//	if(!window->parent())
-
-
 	  window->resize(xevent.update.x, xevent.update.y, info.width, info.height);
 //	window->resize_notify(xevent.update.x, xevent.update.y, info.width, info.height);
-
 	//window->resize_notify(info.x, info.y, xevent.update.width, xevent.update.height);
 	break;
       case GR_UPDATE_MOVE:
 	GrGetWindowInfo(xid,&info);
-
 	//printf("GR_UPDATE_MOVE wid: %d\t%d, %d, %d, %d\n", xid, info.x, info.y, xevent.update.width, xevent.update.height);
-
 	/*
 	if(!window->parent())
 	  window->Fl_Widget::resize(xevent.update.x, xevent.update.y,
@@ -654,10 +658,8 @@ int fl_handle(const GR_EVENT & xevent) {
 	*/
 
 	//	if(!window->parent())
-
-
-	  window->Fl_Widget::resize(info.x, info.y,
-				    xevent.update.width, xevent.update.height);
+	  window->resize(info.x, info.y,
+			xevent.update.width, xevent.update.height);
 //	window->resize_notify(info.x, info.y, xevent.update.width, xevent.update.height);
 
 	break;
@@ -665,21 +667,27 @@ int fl_handle(const GR_EVENT & xevent) {
 	break;
       }
       break;
+
     case GR_EVENT_TYPE_EXPOSURE:
-
       Fl_X::i (window)->wait_for_expose = 0;
-
       //if ( !fix_exposure )
-      	window->damage (FL_DAMAGE_EXPOSE, xevent.exposure.x,
+	window->damage (FL_DAMAGE_EXPOSE, xevent.exposure.x,
 		      xevent.exposure.y, xevent.exposure.width,
 		      xevent.exposure.height);
       //fix_exposure = 0;
-
 
 /*      if (Fl::first_window ()->non_modal ()
 	  && window != Fl::first_window ())
 	Fl::first_window ()->show ();
 */
+      break;
+
+    case GR_EVENT_TYPE_FOCUS_IN:
+      event = FL_FOCUS;
+      break;
+
+    case GR_EVENT_TYPE_FOCUS_OUT:
+      event = FL_UNFOCUS;
       break;
 
     case GR_EVENT_TYPE_BUTTON_UP:	//tanghao
@@ -712,6 +720,10 @@ int fl_handle(const GR_EVENT & xevent) {
       event = FL_PUSH;
       break;
 
+	case GR_EVENT_TYPE_MOUSE_MOTION:
+		//TODO ???
+	break;
+
     case GR_EVENT_TYPE_MOUSE_POSITION:	//tanghao
       fl_window = xevent.mouse.wid;
       set_event_xy ();
@@ -725,14 +737,6 @@ int fl_handle(const GR_EVENT & xevent) {
       fl_xmousewin = window;
       break;
 #endif
-
-    case GR_EVENT_TYPE_FOCUS_IN:
-      event = FL_FOCUS;
-      break;
-
-    case GR_EVENT_TYPE_FOCUS_OUT:
-      event = FL_UNFOCUS;
-      break;
 
     case GR_EVENT_TYPE_KEY_UP:
       {
@@ -1047,7 +1051,7 @@ void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap)
     // Communicate all kinds 'o junk to the X Window Manager:
 
     w->label(w->label(), w->iconlabel());
- 
+
     // send size limits and border:
     x->sendxjunk();
 
@@ -1055,30 +1059,30 @@ void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap)
     if (w->xclass()) {
     /*TODO ?*/
     }
-    
+
     if (w->non_modal() && x->next && !fl_disable_transient_for) {
      /*TODO ?*/
       // find some other window to be "transient for":
       Fl_Window* wp = x->next->w;
       while (wp->parent()) wp = wp->window();
-      /*Set by application programs to indicate to the window manager 
+      /*Set by application programs to indicate to the window manager
          that a transient top-level window, such as a dialog box.*/
       /*XSetTransientForHint(fl_display, xp->xid, fl_xid(wp));*/
       if (!wp->visible()) showit = 0; // guess that wm will not show it
     }
-    
+
     // Make sure that borderless windows do not show in the task bar
     if (!w->border()) { /*TODO ?*/
 /*      Atom net_wm_state = XInternAtom (fl_display, "_NET_WM_STATE", 0);
       Atom net_wm_state_skip_taskbar = XInternAtom (fl_display, "_NET_WM_STATE_SKIP_TASKBAR", 0);
-      XChangeProperty (fl_display, xp->xid, net_wm_state, XA_ATOM, 32, 
+      XChangeProperty (fl_display, xp->xid, net_wm_state, XA_ATOM, 32,
           PropModeAppend, (unsigned char*) &net_wm_state_skip_taskbar, 1);*/
     }
 
     // Make it receptive to DnD:
     /*TODO*/
-  } 
- 
+  }
+
 /*    if (!mw_parent && Fl::grab ()) {
       mw_parent = 1;
       props.props = GR_WM_PROPS_NODECORATE;

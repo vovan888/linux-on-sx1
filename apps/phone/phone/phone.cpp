@@ -2,6 +2,8 @@
 
 #include "phone.h"
 
+PhoneApp app;
+
 //---------------------------------------------------------------------------
 /**
  * Removes all illegal characters from the phone number
@@ -265,13 +267,14 @@ Fl_Menu_Item PhoneApp::menu_LeftSoft[] = {
 //---------------------------------------------------------------------------
 void PhoneApp::cb_RightSoft_i(Fl_Menu_Button*, void*) {
   // Close program;
+	exit(1);
 }
 void PhoneApp::cb_RightSoft(Fl_Menu_Button* o, void* v) {
   ((PhoneApp*)(o->parent()))->cb_RightSoft_i(o,v);
 }
 //---------------------------------------------------------------------------
-PhoneApp::PhoneApp(const char *L)
-  : Fl_App(L, true) {
+PhoneApp::PhoneApp()
+  : Fl_App("Phone", true) {
   user_data(this);
 
 { Fl_Group* o = grp_dial = new Fl_Group(0, 0, 176, 174, "Dial");
@@ -333,7 +336,6 @@ PhoneApp::~PhoneApp()
 
 //---------------------------------------------------------------------------
 int main(int argc, char **argv) {
-  PhoneApp app("Phone");
   app.show();
   return Fl::run();
 }

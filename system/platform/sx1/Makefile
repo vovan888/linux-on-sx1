@@ -1,7 +1,7 @@
 # system/Makefile
 
 local-target-y=
-target-y= ipc_dsy ipc_ext ipc_sound
+target-y= ipc_dsy ipc_ext ipc_sound sx1_poweroff
 
 DIRS=$(target-y)
 

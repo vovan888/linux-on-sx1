@@ -86,14 +86,17 @@ int tbus_client_message (int socket_fd, int bus_id)
 	struct tbus_message msg;
 	struct tbus_client *dest_client, *sender_client;
 
-	ret = tbus_read_message (socket_fd, &msg);
-	if (ret < 0)
-		return -1;
-
 	/* try to find the target and source services in clients list */
 //      sender_client = tbus_client_find_by_service(msg.service_sender);
 	/* for some security - find the client by socket fd */
 	sender_client = tbus_client_find_by_socket (socket_fd);
+
+	ret = tbus_read_message (socket_fd, &msg);
+	if (ret < 0) {
+		// read returns error if client closed socket
+		tbus_client_del (sender_client);
+		return -1;
+	}
 
 	/* we have a message, decode it */
 	if (sender_client == NULL) {

@@ -304,6 +304,22 @@ static int usock_ringing_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
         return usock_cmd_cb(cmd, ctx, resp);
 }
 
+/* remove all non-phone number characters */
+static void strip_number(char *number)
+{
+	int i,j, len = strlen(number);
+	char ch;
+	for(i = j = 0; i < len; i++) {
+		ch = number[i];
+		if( ( (ch>='0') && (ch<='9') ) ||
+		    (ch=='+') ) {
+			number[j] = ch;
+			j++;
+		}
+	}
+	number[j] = 0;
+}
+
 /* VoiceCall method */
 static int usock_rcv_voicecall(struct gsmd_user *gu, struct tbus_message *msg)
 {
@@ -313,12 +329,20 @@ static int usock_rcv_voicecall(struct gsmd_user *gu, struct tbus_message *msg)
 //	struct gsmd_call_ctrl *gcc;
 //	struct gsmd_call_fwd_reg *gcfr;
 	char buf[64];
-	int  atcmd_len;
+	int  atcmd_len, err, numlen;
 
 	if(!strcmp("VoiceCall/Dial", msg->object)) {
 		char *number;
-		tbus_get_message_args(msg, "s", &number);
-		cmd = atcmd_fill("ATD", 5 + strlen(number),
+
+		err = tbus_get_message_args(msg, "s", &number);
+		if (err < 0)
+			return err;
+		strip_number(number);
+		numlen = strlen(number);
+		if(numlen <= 0)
+			return -1;
+
+		cmd = atcmd_fill("ATD", 5 + numlen,
 				 &usock_cmd_cb, gu, 0, NULL);
 		if (!cmd)
 			return -ENOMEM;

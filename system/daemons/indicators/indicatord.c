@@ -33,10 +33,12 @@ struct indicator indicators[16];
 GR_GC_ID gc;			/* current Graphic Context */
 
 static int indicators_number;
+static int terminate = 0;
 
 /* signal handler */
 void signal_handler(int param)
 {
+    terminate = 1;
 }
 
 static void mainloop(void)
@@ -45,7 +47,7 @@ static void mainloop(void)
 	GR_WINDOW_ID wid;
 	GR_EVENT event;
 
-	while (1) {
+	while (!terminate) {
 
 		GrGetNextEvent(&event);
 		switch (event.type) {
@@ -98,9 +100,9 @@ int main(int argc, char *argv[])
 	char buf[512];
 	int ret;
 
-//      signal(SIGINT, signal_handler);
-//      signal(SIGTERM, signal_handler);
-//      signal(SIGHUP, signal_handler);
+      signal(SIGINT, signal_handler);
+      signal(SIGTERM, signal_handler);
+      signal(SIGHUP, signal_handler);
 
 	memset(buf, 0, sizeof(buf));
 	pid = getpid();

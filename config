@@ -5,9 +5,9 @@
 #
 # Flphone Settings
 #
-# CONFIG_PLATFORM_SX1 is not set
-CONFIG_PLATFORM_X86DEMO=y
-CONFIG_CPU_INTEL=y
+CONFIG_PLATFORM_SX1=y
+# CONFIG_PLATFORM_X86DEMO is not set
+CONFIG_CPU_ARM=y
 # CONFIG_X11 is not set
 CONFIG_NANOX=y
 
@@ -21,10 +21,12 @@ CONFIG_SCREEN_HEIGHT=220
 #
 # Build Options
 #
+CROSS_COMPILE=y
+CROSS_COMPILER_PREFIX="arm-linux-"
 MW_PREFIX="/home/vovan/linux-on-sx1-dev/microwin/src"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set
-CONFIG_DEBUG=y
+# CONFIG_DEBUG is not set
 # WERROR is not set
 
 #
@@ -70,8 +72,9 @@ CONFIG_LIBTPL=y
 # System applications
 #
 CONFIG_NANOWM=y
-# CONFIG_IPC is not set
 CONFIG_TBUS=y
+CONFIG_GSMMUX=y
+CONFIG_GSMD2=y
 
 #
 # System daemons
@@ -79,5 +82,3 @@ CONFIG_TBUS=y
 CONFIG_DAEMONS=y
 CONFIG_ALARMD=y
 CONFIG_INDICATORD=y
-CONFIG_GSMMUX=y
-CONFIG_GSMD2=y

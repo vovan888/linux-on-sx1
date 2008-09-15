@@ -201,3 +201,38 @@ int tbus_client_emit_signal (struct tbus_client *sender_client,
 	} else
 		return -1;	/* no connected clients */
 }
+
+/**
+ * Remove all connections for specified client
+ * @param sender_client sender (emitter) of the signal
+ * @param msg	message struct
+ * @param args args
+ * @return 0 - OK, -1 - error
+ */
+int tbus_client_remove_connections (struct tbus_client *client)
+{
+	struct tbus_signal_conn *sc;
+	struct subscription 	*cur, *prev;
+
+	for(sc = signal_connections; sc != NULL; sc=sc->hh.next) {
+		cur = sc->clients_head;
+		prev = NULL;
+		while (cur != NULL) {
+			if(client == cur->client) {
+				/* delete from the list of subscriptions */
+				if (cur == sc->clients_head)
+					/* shift the header */
+					sc->clients_head = cur->next;
+				else
+					prev->next = cur->next;
+
+				free (cur);
+				break;
+			}
+			prev = cur;
+			cur = cur->next;
+		}
+	}
+
+	return 0;
+}

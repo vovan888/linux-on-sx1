@@ -4,6 +4,9 @@
 //#include <FL/fl_ask.H>
 
 #include <stdlib.h>
+
+UserInterface ui;
+
 //-----------------------------------------------------------------------------
 static const char *pin_type_names[__NUM_GSMD_PIN] = {
 	"READY", "SIM PIN", "SIM PUK", "Phone-to-SIM PIN",
@@ -40,13 +43,13 @@ void UserInterface::cb_pin_code(Fl_Input* o, void* v) {
 //-----------------------------------------------------------------------------
 void UserInterface::timer_callback(void *v)
 {
-	Fl::delete_widget((UserInterface*)v);// close program
+	exit(1);
 }
 
 //-----------------------------------------------------------------------------
 void UserInterface::cb_wait_animation(void *data)
 {
-	
+
 }
 
 //-----------------------------------------------------------------------------
@@ -60,7 +63,9 @@ void UserInterface::handle_method_return(struct tbus_message *msg)
 			return;
 		if(result == 0) {
 			message->value("PIN OK");
-			Fl::add_timeout(1.0, timer_callback, (void *)this);
+//			usleep(200000);	// 0.2 sec
+//			exit(1);
+			Fl::add_timeout(0.5, timer_callback, (void *)this);
 		} else {
 			message->value("PIN Error!");
 //			message->value(lgsm_pin_name(GetPINType()));
@@ -83,7 +88,7 @@ void UserInterface::cb_LeftSoft_i(Fl_Button*, void*) {
 
 	ret = tbus_call_method("PhoneServer", "PIN/Input", "ss",
 			&oldpin, &newpin);
-	Fl::add_timeout(1.0, cb_wait_animation);
+//	Fl::add_timeout(1.0, cb_wait_animation);
 }
 
 //-----------------------------------------------------------------------------
@@ -95,7 +100,7 @@ void UserInterface::cb_LeftSoft(Fl_Button* o, void* v) {
 void UserInterface::cb_RightSoft_i(Fl_Button*, void*) {
   // Cancel button;
 	message->value("Cancel");
-	Fl::delete_widget(this);// close program
+//	exit(1);
 	// Tell others to shutdown system!!!
 }
 //-----------------------------------------------------------------------------
@@ -113,7 +118,7 @@ UserInterface::UserInterface()
       o->color((Fl_Color)48);
       AppArea -> add(o);
     }
-    { 
+    {
       Fl_Secret_Input* o = pin_code = new Fl_Secret_Input(0, 127, 176, 34);
 
       o->box(FL_FLAT_BOX);
@@ -184,7 +189,6 @@ int main(int argc, char **argv)
 {
 	int type;
 // create GUI to PIN input
-	UserInterface ui;
 // ask phoneserver if some PIN is needed
 	type = ui.GetPINType();
 	if(type == GSMD_PIN_READY)

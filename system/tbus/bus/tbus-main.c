@@ -154,7 +154,7 @@ static void tbus_mainloop ()
 			} else {
 				/* handle message from client */
 				ret = tbus_client_message (i, 1);
-				if (ret == -1) {
+				if (ret < 0) {
 					/* error or client closed socket */
 					/*FIXME add debug message */
 					FD_CLR (i, &active_fd_set);
