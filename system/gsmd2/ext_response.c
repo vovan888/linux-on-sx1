@@ -47,8 +47,7 @@ int extrsp_supports(const struct gsm_extrsp *er, int index, int value)
 		return -EINVAL;
 
 	for (i = 0; i < er->tokens[index].u.range.num_items; i++) {
-		struct gsm_extrsp_range_item *ri =
-			&er->tokens[index].u.range.item[i];
+		struct gsm_extrsp_range_item *ri = &er->tokens[index].u.range.item[i];
 		if (value >= ri->min && value <= ri->max)
 			return 1;
 	}
@@ -146,16 +145,19 @@ struct gsm_extrsp *extrsp_parse(const void *ctx, const char *input)
 				cur_buf++;
 			} else if (*cur == '-') {
 				/* previous number has completed */
-				cur_token->u.range.item[cur_token->u.range.num_items].min = atoi(buf);
+				cur_token->u.range.item[cur_token->u.range.num_items].min =
+				    atoi(buf);
 				memset(buf, 0, sizeof(buf));
 				cur_buf = buf;
 			} else if (*cur == ',') {
 				/* previous number has completed */
-				cur_token->u.range.item[cur_token->u.range.num_items].max = atoi(buf);
+				cur_token->u.range.item[cur_token->u.range.num_items].max =
+				    atoi(buf);
 				cur_token->u.range.num_items++;
 			} else if (*cur == ')') {
 				/* previous number has completed */
-				cur_token->u.range.item[cur_token->u.range.num_items].max = atoi(buf);
+				cur_token->u.range.item[cur_token->u.range.num_items].max =
+				    atoi(buf);
 				cur_token->u.range.num_items++;
 				state = TOKEN_STRING_LASTQUOTE;
 				er->num_tokens++;
@@ -174,16 +176,15 @@ struct gsm_extrsp *extrsp_parse(const void *ctx, const char *input)
 		cur_token->u.numeric = atoi(buf);
 		er->num_tokens++;
 	}
-
 	//extrsp_dump(er);
 	return er;
 }
 
 static const char *er_tok_names[] = {
-	[GSMD_ECMD_RTT_EMPTY]	= "EMPTY",
-	[GSMD_ECMD_RTT_NUMERIC]	= "NUMERIC",
-	[GSMD_ECMD_RTT_STRING]	= "STRING",
-	[GSMD_ECMD_RTT_RANGE]	= "RANGE",
+	[GSMD_ECMD_RTT_EMPTY] = "EMPTY",
+	[GSMD_ECMD_RTT_NUMERIC] = "NUMERIC",
+	[GSMD_ECMD_RTT_STRING] = "STRING",
+	[GSMD_ECMD_RTT_RANGE] = "RANGE",
 };
 
 void extrsp_dump(const struct gsm_extrsp *er)
@@ -206,11 +207,11 @@ void extrsp_dump(const struct gsm_extrsp *er)
 			break;
 		case GSMD_ECMD_RTT_NONE:
 			break;
-		case GSMD_ECMD_RTT_RANGE: {
-			int j;
-			for (j = 0; j < tok->u.range.num_items; j++)
-				DEBUGP("%d-%d, ", tok->u.range.item[j].min,
-					tok->u.range.item[j].max);
+		case GSMD_ECMD_RTT_RANGE:{
+				int j;
+				for (j = 0; j < tok->u.range.num_items; j++)
+					DEBUGP("%d-%d, ", tok->u.range.item[j].min,
+					       tok->u.range.item[j].max);
 			}
 			break;
 		}

@@ -13,8 +13,8 @@
 #include <flphone/keys_flnx.h>
 #include <ipc/tbus.h>
 
-class Fl_App : public Fl_Window {
-public:
+class Fl_App:public Fl_Window {
+      public:
 	Fl_App(const char *L = 0, bool leftmenu = false, bool rightsoft = false);
 	~Fl_App();
 	Fl_Scroll *AppArea;
@@ -25,11 +25,11 @@ public:
 
 	int AppState;		// Current App state (user controlled)
 	int TBusWaitForMsg(struct tbus_message *msg, char *service, char *object, int timeout);
-private:
+      private:
 	int tbus_socket;	// Socket fd for T-BUS connection
 	static void handle_tbus_message(int fd, void *data);
-protected:
-	virtual void handle_signal(struct tbus_message *msg);
+      protected:
+	 virtual void handle_signal(struct tbus_message *msg);
 	virtual void handle_method(struct tbus_message *msg);
 	virtual void handle_method_return(struct tbus_message *msg);
 	virtual void handle_error(struct tbus_message *msg);

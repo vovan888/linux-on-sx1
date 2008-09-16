@@ -43,10 +43,8 @@ size_t strlcpy(char *dest, const char *src, size_t size)
 		size_t len;
 		if (ret >= size) {
 			len = size - 1;
-			DEBUGP("\"%s\" was truncated by %i characters\n", src,
-			       ret - len);
-		}
-		else
+			DEBUGP("\"%s\" was truncated by %i characters\n", src, ret - len);
+		} else
 			len = ret;
 		memcpy(dest, src, len);
 		dest[len] = '\0';
@@ -76,11 +74,9 @@ size_t strlcat(char *dest, const char *src, size_t count)
 	count -= dsize;
 	if (len >= count) {
 		len = count - 1;
-		DEBUGP("\"%s\" was truncated by %i characters\n", src,
-		       res - len);
+		DEBUGP("\"%s\" was truncated by %i characters\n", src, res - len);
 	}
 	memcpy(dest, src, len);
 	dest[len] = 0;
 	return res;
 }
-

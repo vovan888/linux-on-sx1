@@ -20,16 +20,16 @@ struct tbus_signal_conn *signal_connections = NULL;
  * @param length ouput - length of the string
  * @return pointer to the string
  */
-static char *service_signal_str (char *service, char *signal, int *length)
+static char *service_signal_str(char *service, char *signal, int *length)
 {
 	int len1, len2;
 	char *str;
 
-	len1 = strlen (service);
-	len2 = strlen (signal);
-	str = malloc (len1 + len2 + 1);
-	strcpy (str, service);
-	strcat (str, signal);
+	len1 = strlen(service);
+	len2 = strlen(signal);
+	str = malloc(len1 + len2 + 1);
+	strcpy(str, service);
+	strcat(str, signal);
 	*length = len1 + len2;
 
 	return str;
@@ -41,11 +41,11 @@ static char *service_signal_str (char *service, char *signal, int *length)
  * @param length length of the str
  * @return pointer to the struct tbus_signal_conn, or NULL if not found
  */
-static struct tbus_signal_conn *tbus_find_connection (char *str, int length)
+static struct tbus_signal_conn *tbus_find_connection(char *str, int length)
 {
 	struct tbus_signal_conn *conn_ptr;
 
-	HASH_FIND (hh, signal_connections, str, length, conn_ptr);
+	HASH_FIND(hh, signal_connections, str, length, conn_ptr);
 
 	return conn_ptr;
 }
@@ -56,21 +56,21 @@ static struct tbus_signal_conn *tbus_find_connection (char *str, int length)
  * @param msg	message struct
  * @return 0 - OK, -1 - error
  */
-int tbus_client_connect_signal (struct tbus_client *sender_client,
-				struct tbus_message *msg)
+int tbus_client_connect_signal(struct tbus_client *sender_client,
+			       struct tbus_message *msg)
 {
 	struct tbus_signal_conn *connection;
 	struct subscription *sub;
 	char *str;
 	int len;
 
-	str = service_signal_str (msg->service_dest, msg->object, &len);
+	str = service_signal_str(msg->service_dest, msg->object, &len);
 
-	connection = tbus_find_connection (str, len);
+	connection = tbus_find_connection(str, len);
 
-	DPRINT ("%s\n", str);
+	DPRINT("%s\n", str);
 
-	sub = malloc (sizeof (struct subscription));
+	sub = malloc(sizeof(struct subscription));
 	if (!sub)
 		goto connect_error;
 
@@ -80,14 +80,14 @@ int tbus_client_connect_signal (struct tbus_client *sender_client,
 
 	if (!connection) {
 		/* add new connection struct to the hashed list */
-		connection = malloc (sizeof (struct tbus_signal_conn));
+		connection = malloc(sizeof(struct tbus_signal_conn));
 		if (!connection)
 			goto connect_error;
 
 		connection->service_signal = str;
 		connection->clients_head = sub;
 
-		HASH_ADD_KEYPTR (hh, signal_connections, str, len, connection);
+		HASH_ADD_KEYPTR(hh, signal_connections, str, len, connection);
 	} else {
 		/* there is an connection in the list
 		 * add new client to this connection */
@@ -99,9 +99,9 @@ int tbus_client_connect_signal (struct tbus_client *sender_client,
 	return 0;
 
       connect_error:
-	free (str);
-	free (sub);
-	free (connection);
+	free(str);
+	free(sub);
+	free(connection);
 	return -1;
 }
 
@@ -111,19 +111,19 @@ int tbus_client_connect_signal (struct tbus_client *sender_client,
  * @param msg	message struct
  * @return 0 - OK, -1 - error
  */
-int tbus_client_disconnect_signal (struct tbus_client *sender_client,
-				   struct tbus_message *msg)
+int tbus_client_disconnect_signal(struct tbus_client *sender_client,
+				  struct tbus_message *msg)
 {
 	struct tbus_signal_conn *connection;
 	struct subscription *cur, *prev;
 	char *str;
 	int len;
 
-	str = service_signal_str (msg->service_dest, msg->object, &len);
+	str = service_signal_str(msg->service_dest, msg->object, &len);
 
-	connection = tbus_find_connection (str, len);
+	connection = tbus_find_connection(str, len);
 
-	DPRINT ("%s\n", str);
+	DPRINT("%s\n", str);
 
 	if (connection) {
 		/* find the exact client */
@@ -138,7 +138,7 @@ int tbus_client_disconnect_signal (struct tbus_client *sender_client,
 				else
 					prev->next = cur->next;
 
-				free (cur);
+				free(cur);
 				break;
 			}
 			prev = cur;
@@ -146,8 +146,8 @@ int tbus_client_disconnect_signal (struct tbus_client *sender_client,
 		}
 
 		if (connection->clients_head == NULL) {
-			HASH_DEL (signal_connections, connection);
-			free (connection);
+			HASH_DEL(signal_connections, connection);
+			free(connection);
 		}
 		return 0;	/* OK */
 	} else
@@ -161,8 +161,8 @@ int tbus_client_disconnect_signal (struct tbus_client *sender_client,
  * @param args args
  * @return 0 - OK, -1 - error
  */
-int tbus_client_emit_signal (struct tbus_client *sender_client,
-			     struct tbus_message *msg)
+int tbus_client_emit_signal(struct tbus_client *sender_client,
+			    struct tbus_message *msg)
 {
 	struct tbus_signal_conn *connection;
 	struct subscription *cur;
@@ -170,28 +170,29 @@ int tbus_client_emit_signal (struct tbus_client *sender_client,
 	char *str, *tmp1, *tmp2;
 	int len;
 
-	str = service_signal_str (sender_client->service, msg->object, &len);
+	str = service_signal_str(sender_client->service, msg->object, &len);
 
-	connection = tbus_find_connection (str, len);
-	DPRINT ("%s, %d\n", str, (int)connection);
+	connection = tbus_find_connection(str, len);
+	DPRINT("%s, %d\n", str, (int)connection);
 	free(str);
 
 	if (connection && (connection->clients_head != NULL)) {
 		tmp1 = msg->service_dest;
 		tmp2 = msg->service_sender;
-		msg->service_dest = msg->service_sender = sender_client->service;
-		DPRINT ("%s, %s\n", tmp2,
-			connection->clients_head->client->service);
+		msg->service_dest = msg->service_sender =
+		    sender_client->service;
+		DPRINT("%s, %s\n", tmp2,
+		       connection->clients_head->client->service);
 
 		cur = connection->clients_head;
 		while (cur != NULL) {
 			int sock = cur->client->socket_fd;
 			if (sock > 0) {
-				ret = tbus_write_message (sock, msg);
-				DPRINT ("sent to %s ,ret = %d\n",
-					cur->client->service, ret);
+				ret = tbus_write_message(sock, msg);
+				DPRINT("sent to %s ,ret = %d\n",
+				       cur->client->service, ret);
 			} else {
-				DPRINT ("empty client!\n");
+				DPRINT("empty client!\n");
 			}
 			cur = cur->next;
 		}
@@ -204,21 +205,19 @@ int tbus_client_emit_signal (struct tbus_client *sender_client,
 
 /**
  * Remove all connections for specified client
- * @param sender_client sender (emitter) of the signal
- * @param msg	message struct
- * @param args args
+ * @param client sender (emitter) of the signal
  * @return 0 - OK, -1 - error
  */
-int tbus_client_remove_connections (struct tbus_client *client)
+int tbus_remove_client_connections(struct tbus_client *client)
 {
 	struct tbus_signal_conn *sc;
-	struct subscription 	*cur, *prev;
+	struct subscription *cur, *prev;
 
-	for(sc = signal_connections; sc != NULL; sc=sc->hh.next) {
+	for (sc = signal_connections; sc != NULL; sc = sc->hh.next) {
 		cur = sc->clients_head;
 		prev = NULL;
 		while (cur != NULL) {
-			if(client == cur->client) {
+			if (client == cur->client) {
 				/* delete from the list of subscriptions */
 				if (cur == sc->clients_head)
 					/* shift the header */
@@ -226,7 +225,7 @@ int tbus_client_remove_connections (struct tbus_client *client)
 				else
 					prev->next = cur->next;
 
-				free (cur);
+				free(cur);
 				break;
 			}
 			prev = cur;

@@ -41,16 +41,15 @@ int new_client_window(GR_WINDOW_ID wid)
 	GR_WM_PROPS style;
 	GR_WM_PROPERTIES props;
 
-	/* get client window information*/
+	/* get client window information */
 	GrGetWindowInfo(wid, &winfo);
 	style = winfo.props;
 
-	/* if not redecorating or not child of root window, return*/
-	if (winfo.parent != GR_ROOT_WINDOW_ID ||
-	    (style & GR_WM_PROPS_NODECORATE))
+	/* if not redecorating or not child of root window, return */
+	if (winfo.parent != GR_ROOT_WINDOW_ID || (style & GR_WM_PROPS_NODECORATE))
 		return 0;
 #if 0
-	/* deal with replacing borders with window decorations*/
+	/* deal with replacing borders with window decorations */
 	if (winfo.bordersize) {
 		/*
 		 * For complex reasons, it's easier to unmap,
@@ -66,27 +65,27 @@ int new_client_window(GR_WINDOW_ID wid)
 		 */
 		GrUnmapWindow(wid);
 
-		/* remove client borders, if any*/
+		/* remove client borders, if any */
 		props.flags = style | GR_WM_FLAGS_BORDERSIZE;
 		props.bordersize = 0;
 		GrSetWMProperties(wid, &props);
 
-		/* remap the window without borders, call this routine again*/
+		/* remap the window without borders, call this routine again */
 		GrMapWindow(wid);
 		return 0;
 	}
-#endif	
-	/* if default decoration style asked for, set real draw bits*/
+#endif
+	/* if default decoration style asked for, set real draw bits */
 	if ((style & GR_WM_PROPS_APPMASK) == GR_WM_PROPS_APPWINDOW) {
 		GR_WM_PROPERTIES pr;
 
-		style = (style & ~GR_WM_PROPS_APPMASK)|DEFAULT_WINDOW_STYLE;
+		style = (style & ~GR_WM_PROPS_APPMASK) | DEFAULT_WINDOW_STYLE;
 		pr.flags = GR_WM_FLAGS_PROPS;
 		pr.props = style;
 		GrSetWMProperties(wid, &pr);
 	}
 
-	/* determine container widths and client child window offsets*/
+	/* determine container widths and client child window offsets */
 	if (style & GR_WM_PROPS_APPFRAME) {
 #if 0
 		width = winfo.width + CXFRAME;
@@ -116,37 +115,36 @@ int new_client_window(GR_WINDOW_ID wid)
 		yoffset += APPVIEW_STATUS_HEIGHT;
 #if 0
 		if (style & GR_WM_PROPS_APPFRAME) {
-			/* extra line under caption with appframe*/
+			/* extra line under caption with appframe */
 			++height;
 			++yoffset;
 		}
 #endif
 	}
 #if 0
-	/* determine x,y window location*/
+	/* determine x,y window location */
 	if (style & GR_WM_PROPS_NOAUTOMOVE) {
 		x = winfo.x;
 		y = winfo.y;
 	} else {
 		/* We could proably use a more intelligent algorithm here */
 		x = lastx + WINDOW_STEP;
-		if((x + width) > si.cols)
+		if ((x + width) > si.cols)
 			x = FIRST_WINDOW_LOCATION;
 		lastx = x;
 		y = lasty + WINDOW_STEP;
-		if((y + height) > si.rows)
+		if ((y + height) > si.rows)
 			y = FIRST_WINDOW_LOCATION;
 		lasty = y;
 	}
 #else
 	/* we assume that application window is already placed on the right location
-	here we set container window coords */
+	   here we set container window coords */
 	x = 0;
 	y = 0;
 #endif
-	/* create container window*/
-	pid = GrNewWindow(GR_ROOT_WINDOW_ID, x, y, width, height,
-		0, LTGRAY, BLACK);
+	/* create container window */
+	pid = GrNewWindow(GR_ROOT_WINDOW_ID, x, y, width, height, 0, LTGRAY, BLACK);
 	window.wid = pid;
 	window.pid = GR_ROOT_WINDOW_ID;
 	window.type = WINDOW_TYPE_CONTAINER;
@@ -156,7 +154,7 @@ int new_client_window(GR_WINDOW_ID wid)
 	window.clientid = wid;
 	add_window(&window);
 
-	/* don't erase background of container window*/
+	/* don't erase background of container window */
 	props.flags = GR_WM_FLAGS_PROPS;
 	props.props = style | GR_WM_PROPS_NOBACKGROUND;
 	GrSetWMProperties(pid, &props);
@@ -164,18 +162,18 @@ int new_client_window(GR_WINDOW_ID wid)
 	Dprintf("New client window %d container %d\n", wid, pid);
 
 	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE
-		| GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_BUTTON_DOWN
-		| GR_EVENT_MASK_MOUSE_POSITION | GR_EVENT_MASK_EXPOSURE);
+		       | GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_BUTTON_DOWN
+		       | GR_EVENT_MASK_MOUSE_POSITION | GR_EVENT_MASK_EXPOSURE);
 
-	/* reparent client to container window (child is already mapped)*/
+	/* reparent client to container window (child is already mapped) */
 	GrReparentWindow(wid, pid, xoffset, yoffset);
 
-	/* map container window*/
+	/* map container window */
 	GrMapWindow(pid);
 
-	GrSetFocus(wid);	/* force fixed focus*/
+	GrSetFocus(wid);	/* force fixed focus */
 
-	/* add client window*/
+	/* add client window */
 	window.wid = wid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_CLIENT;
@@ -186,9 +184,9 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 #if 0000
-	/* add system utility button*/
+	/* add system utility button */
 	nid = GrNewWindowWithTitle(pid, 0, 0, TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, 0,
-							LTGRAY, BLACK,"clients_b");
+				   LTGRAY, BLACK, "clients_b");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_UTILITYBUTTON;
@@ -197,15 +195,14 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_EXPOSURE
-				| GR_EVENT_MASK_MOUSE_EXIT);
+		       | GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_MOUSE_EXIT);
 	GrMapWindow(nid);
 	GrBitmap(nid, buttonsgc, 0, 0, TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT,
-						utilitybutton_notpressed);
+		 utilitybutton_notpressed);
 
 	nid = GrNewWindowWithTitle(pid, TITLE_BAR_HEIGHT + 1, 1, width - (4 *
-			TITLE_BAR_HEIGHT) - 3, TITLE_BAR_HEIGHT - 3, 1, LTGRAY,
-								BLACK,"clients_c");
+									  TITLE_BAR_HEIGHT) - 3,
+				   TITLE_BAR_HEIGHT - 3, 1, LTGRAY, BLACK, "clients_c");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_TOPBAR;
@@ -215,12 +212,12 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_EXPOSURE
-				| GR_EVENT_MASK_MOUSE_POSITION);
+		       | GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_MOUSE_POSITION);
 	GrMapWindow(nid);
 
 	nid = GrNewWindowWithTitle(pid, width - (3 * TITLE_BAR_HEIGHT), 0,
-			TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, 0, LTGRAY, BLACK,"clients_d");
+				   TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, 0, LTGRAY, BLACK,
+				   "clients_d");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_ICONISEBUTTON;
@@ -229,14 +226,14 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_EXPOSURE
-				| GR_EVENT_MASK_MOUSE_EXIT);
+		       | GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_MOUSE_EXIT);
 	GrMapWindow(nid);
 	GrBitmap(nid, buttonsgc, 0, 0, TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT,
-						iconisebutton_notpressed);
+		 iconisebutton_notpressed);
 
 	nid = GrNewWindowWithTitle(pid, width - (2 * TITLE_BAR_HEIGHT), 0,
-			TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, 0, LTGRAY, BLACK,"clients_e");
+				   TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, 0, LTGRAY, BLACK,
+				   "clients_e");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_MAXIMISEBUTTON;
@@ -245,14 +242,14 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_EXPOSURE
-				| GR_EVENT_MASK_MOUSE_EXIT);
+		       | GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_MOUSE_EXIT);
 	GrMapWindow(nid);
 	GrBitmap(nid, buttonsgc, 0, 0, TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT,
-						maximisebutton_notpressed);
+		 maximisebutton_notpressed);
 
 	nid = GrNewWindowWithTitle(pid, width - TITLE_BAR_HEIGHT, 0,
-			TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, 0, LTGRAY, BLACK,"clients_f");
+				   TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, 0, LTGRAY, BLACK,
+				   "clients_f");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_CLOSEBUTTON;
@@ -261,15 +258,13 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_EXPOSURE
-				| GR_EVENT_MASK_MOUSE_EXIT);
+		       | GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_MOUSE_EXIT);
 	GrMapWindow(nid);
-	GrBitmap(nid, buttonsgc, 0, 0, TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT,
-						closebutton_notpressed);
+	GrBitmap(nid, buttonsgc, 0, 0, TITLE_BAR_HEIGHT, TITLE_BAR_HEIGHT, closebutton_notpressed);
 
 	nid = GrNewWindowWithTitle(pid, 1, TITLE_BAR_HEIGHT + 1, BORDER_WIDTHS - 2,
-				height - TITLE_BAR_HEIGHT - BORDER_WIDTHS - 1,
-				1, LTGRAY, BLACK,"clients_g");
+				   height - TITLE_BAR_HEIGHT - BORDER_WIDTHS - 1,
+				   1, LTGRAY, BLACK, "clients_g");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_LEFTBAR;
@@ -279,38 +274,36 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSetCursor(nid, horizontal_resize_columns, horizontal_resize_rows,
-			horizontal_resize_hotx, horizontal_resize_hoty,
-			BLACK, WHITE, horizontal_resize_fg,
-			horizontal_resize_bg);
+		    horizontal_resize_hotx, horizontal_resize_hoty,
+		    BLACK, WHITE, horizontal_resize_fg, horizontal_resize_bg);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_MOUSE_POSITION);
+		       | GR_EVENT_MASK_MOUSE_POSITION);
 
 	GrMapWindow(nid);
 
 	nid = GrNewWindowWithTitle(pid, 1, height - BORDER_WIDTHS + 1, BORDER_WIDTHS - 2,
-					BORDER_WIDTHS - 2, 1, LTGRAY, BLACK,"clients_h");
+				   BORDER_WIDTHS - 2, 1, LTGRAY, BLACK, "clients_h");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_LEFTRESIZE;
 	window.active = GR_FALSE;
 	window.data = NULL;
 
-
 	add_window(&window);
 
 	GrSetCursor(nid, lefthand_resize_columns, lefthand_resize_rows,
-			lefthand_resize_hotx, lefthand_resize_hoty,
-			BLACK, WHITE, lefthand_resize_fg, lefthand_resize_bg);
+		    lefthand_resize_hotx, lefthand_resize_hoty,
+		    BLACK, WHITE, lefthand_resize_fg, lefthand_resize_bg);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_MOUSE_POSITION);
+		       | GR_EVENT_MASK_MOUSE_POSITION);
 
 	GrMapWindow(nid);
 
 	nid = GrNewWindowWithTitle(pid, BORDER_WIDTHS, height - BORDER_WIDTHS + 1,
-			width - (2 * BORDER_WIDTHS), BORDER_WIDTHS - 2, 1,
-							LTGRAY, BLACK,"clients_i");
+				   width - (2 * BORDER_WIDTHS), BORDER_WIDTHS - 2, 1,
+				   LTGRAY, BLACK, "clients_i");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_BOTTOMBAR;
@@ -319,17 +312,17 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSetCursor(nid, vertical_resize_columns, vertical_resize_rows,
-			vertical_resize_hotx, vertical_resize_hoty,
-			BLACK, WHITE, vertical_resize_fg, vertical_resize_bg);
+		    vertical_resize_hotx, vertical_resize_hoty,
+		    BLACK, WHITE, vertical_resize_fg, vertical_resize_bg);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_MOUSE_POSITION);
+		       | GR_EVENT_MASK_MOUSE_POSITION);
 
 	GrMapWindow(nid);
 
 	nid = GrNewWindowWithTitle(pid, width - BORDER_WIDTHS + 1,
-			height - BORDER_WIDTHS + 1, BORDER_WIDTHS - 2,
-					BORDER_WIDTHS - 2, 1, LTGRAY, BLACK,"clients_j");
+				   height - BORDER_WIDTHS + 1, BORDER_WIDTHS - 2,
+				   BORDER_WIDTHS - 2, 1, LTGRAY, BLACK, "clients_j");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_RIGHTRESIZE;
@@ -339,17 +332,17 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSetCursor(nid, righthand_resize_columns, righthand_resize_rows,
-			righthand_resize_hotx, righthand_resize_hoty,
-			BLACK, WHITE, righthand_resize_fg, righthand_resize_bg);
+		    righthand_resize_hotx, righthand_resize_hoty,
+		    BLACK, WHITE, righthand_resize_fg, righthand_resize_bg);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_MOUSE_POSITION);
+		       | GR_EVENT_MASK_MOUSE_POSITION);
 
 	GrMapWindow(nid);
 
 	nid = GrNewWindowWithTitle(pid, width - BORDER_WIDTHS + 1, TITLE_BAR_HEIGHT + 1,
-		BORDER_WIDTHS - 2, height - TITLE_BAR_HEIGHT - BORDER_WIDTHS -1,
-							 1, LTGRAY, BLACK,"clients_k");
+				   BORDER_WIDTHS - 2, height - TITLE_BAR_HEIGHT - BORDER_WIDTHS - 1,
+				   1, LTGRAY, BLACK, "clients_k");
 	window.wid = nid;
 	window.pid = pid;
 	window.type = WINDOW_TYPE_RIGHTBAR;
@@ -359,49 +352,48 @@ int new_client_window(GR_WINDOW_ID wid)
 	add_window(&window);
 
 	GrSetCursor(nid, horizontal_resize_columns, horizontal_resize_rows,
-			horizontal_resize_hotx, horizontal_resize_hoty,
-			BLACK, WHITE, horizontal_resize_fg,
-			horizontal_resize_bg);
+		    horizontal_resize_hotx, horizontal_resize_hoty,
+		    BLACK, WHITE, horizontal_resize_fg, horizontal_resize_bg);
 
 	GrSelectEvents(nid, GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP
-				| GR_EVENT_MASK_MOUSE_POSITION);
+		       | GR_EVENT_MASK_MOUSE_POSITION);
 	GrMapWindow(nid);
 #endif
 	return 0;
 }
 
-void client_window_remap(win *window) {
+void client_window_remap(win * window)
+{
 
-  GR_WINDOW_INFO winfo;
-  win *pwin;
+	GR_WINDOW_INFO winfo;
+	win *pwin;
 
-  if(!(pwin = find_window(window->pid))) {
-    fprintf(stderr, "Couldn't find parent of destroyed window "
-	    "%d\n", window->wid);
-    return;
-  }
-  
-  Dprintf("client_window_remap %d (parent %d)\n", window->wid, window->pid);
-  GrGetWindowInfo(pwin->wid, &winfo);
-  if (winfo.mapped == GR_FALSE) GrMapWindow(pwin->wid);
+	if (!(pwin = find_window(window->pid))) {
+		fprintf(stderr, "Couldn't find parent of destroyed window " "%d\n", window->wid);
+		return;
+	}
+
+	Dprintf("client_window_remap %d (parent %d)\n", window->wid, window->pid);
+	GrGetWindowInfo(pwin->wid, &winfo);
+	if (winfo.mapped == GR_FALSE)
+		GrMapWindow(pwin->wid);
 }
 
 /* If the client chooses to unmap the window, then we should also unmap the container */
 
-void client_window_unmap(win *window) {
-  win *pwin;
+void client_window_unmap(win * window)
+{
+	win *pwin;
 
-  if(!(pwin = find_window(window->pid))) {
-    fprintf(stderr, "Couldn't find parent of destroyed window "
-	    "%d\n", window->wid);
-    return;
-  }
-  
-  GrUnmapWindow(pwin->wid);
+	if (!(pwin = find_window(window->pid))) {
+		fprintf(stderr, "Couldn't find parent of destroyed window " "%d\n", window->wid);
+		return;
+	}
+
+	GrUnmapWindow(pwin->wid);
 }
 
-void
-client_window_resize(win *window)
+void client_window_resize(win * window)
 {
 	win *pwin;
 	GR_COORD width, height;
@@ -409,12 +401,12 @@ client_window_resize(win *window)
 	GR_WINDOW_INFO winfo;
 
 	Dprintf("client_window_resize %d (parent %d)\n", window->wid, window->pid);
-	if(!(pwin = find_window(window->pid))) {
+	if (!(pwin = find_window(window->pid))) {
 		fprintf(stderr, "Couldn't find parent of resize window %d\n", window->wid);
 		return;
 	}
 
-	/* get client window style and size, determine new container size*/
+	/* get client window style and size, determine new container size */
 	GrGetWindowInfo(pwin->clientid, &winfo);
 	style = winfo.props;
 
@@ -431,12 +423,12 @@ client_window_resize(win *window)
 	if (style & GR_WM_PROPS_CAPTION) {
 		height += APPVIEW_STATUS_HEIGHT;
 		if (style & GR_WM_PROPS_APPFRAME) {
-			/* extra line under caption with appframe*/
+			/* extra line under caption with appframe */
 			++height;
 		}
 	}
 
-	/* resize container window based on client size*/
+	/* resize container window based on client size */
 	GrResizeWindow(pwin->wid, width, height);
 }
 
@@ -444,16 +436,15 @@ client_window_resize(win *window)
  * We've just received an event notifying us that a client window has been
  * unmapped, so we need to destroy all of the decorations.
  */
-void client_window_destroy(win *window)
+void client_window_destroy(win * window)
 {
 	win *pwin;
 	GR_WINDOW_ID pid;
 
 	Dprintf("Client window %d has been destroyed\n", window->wid);
 
-	if(!(pwin = find_window(window->pid))) {
-		fprintf(stderr, "Couldn't find parent of destroyed window "
-				"%d\n", window->wid);
+	if (!(pwin = find_window(window->pid))) {
+		fprintf(stderr, "Couldn't find parent of destroyed window " "%d\n", window->wid);
 		return;
 	}
 

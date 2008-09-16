@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <dlfcn.h>
 #include <errno.h>
@@ -53,7 +53,7 @@ int gsmd_vendor_plugin_find(struct gsmd *g)
 
 	if (g->vendorpl)
 		return -EEXIST;
-	
+
 	llist_for_each_entry(pl, &vendorpl_list, list) {
 		if (pl->detect(g) == 1) {
 			DEBUGP("selecting vendor plugin \"%s\"\n", pl->name);
@@ -70,7 +70,7 @@ int gsmd_vendor_plugin_load(char *name)
 	int rc = -1;
 	void *lib;
 	struct gsmd_vendor_plugin *pl;
-	char buf[PATH_MAX+1];
+	char buf[PATH_MAX + 1];
 
 	DEBUGP("loading vendor plugin \"%s\"\n", name);
 

@@ -41,7 +41,7 @@ void UserInterface::cb_pin_code(Fl_Input* o, void* v) {
 }
 
 //-----------------------------------------------------------------------------
-void UserInterface::timer_callback(void *v)
+void UserInterface::cb_pin_ok_timer(void *v)
 {
 	exit(1);
 }
@@ -63,9 +63,9 @@ void UserInterface::handle_method_return(struct tbus_message *msg)
 			return;
 		if(result == 0) {
 			message->value("PIN OK");
+			Fl::add_timeout(1.0, cb_pin_ok_timer, (void *)this);
 //			usleep(200000);	// 0.2 sec
 //			exit(1);
-			Fl::add_timeout(0.5, timer_callback, (void *)this);
 		} else {
 			message->value("PIN Error!");
 //			message->value(lgsm_pin_name(GetPINType()));
@@ -164,9 +164,6 @@ int UserInterface::GetPINType()
 	int ret, counter = 0, type = -1;
 	struct tbus_message tmsg;
 
-/*	ret = tbus_call_method("PhoneServer", "Connect", "");
-	if(ret)
-		return ret;*/
 	do {
 		ret = tbus_call_method_and_wait(&tmsg, "PhoneServer", "PIN/GetStatus", "");
 		if(ret < 0)

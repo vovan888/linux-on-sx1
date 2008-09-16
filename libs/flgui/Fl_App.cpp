@@ -20,12 +20,13 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 	AppArea->end();
 	if (leftsoft) {
 		LeftSoftMenu = new Fl_Menu_Button(0, APPVIEW_AREA_HEIGHT,
-				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Options");
+						  APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT,
+						  "Options");
 		LeftSoftMenu->box(FL_FLAT_BOX);
 		LeftSoft = NULL;
 	} else {
 		LeftSoft = new Fl_Button(0, APPVIEW_AREA_HEIGHT,
-				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "OK");
+					 APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "OK");
 		LeftSoftMenu = NULL;
 		LeftSoft->shortcut(Key_LeftSoft);
 		LeftSoft->box(FL_FLAT_BOX);
@@ -33,12 +34,13 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 	// Fl_Menu_Button* LeftSoft
 	if (rightsoft) {
 		RightSoftMenu = new Fl_Menu_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
-				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Close");
+						   APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT,
+						   "Close");
 		RightSoftMenu->box(FL_FLAT_BOX);
 		RightSoft = NULL;
 	} else {
 		RightSoft = new Fl_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
-				APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Close");
+					  APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Close");
 		RightSoftMenu = NULL;
 		RightSoft->shortcut(Key_RightSoft);
 		RightSoft->box(FL_FLAT_BOX);
@@ -65,43 +67,47 @@ void Fl_App::handle_tbus_message(int fd, void *data)
 	ret = tbus_get_message(&msg);
 	if (ret < 0)
 		return;
-	switch(ret) {
-		case TBUS_MSG_EMIT_SIGNAL:
-			app->handle_signal(&msg);
-			break;
-		case TBUS_MSG_CALL_METHOD:
-			app->handle_method(&msg);
-			break;
-		case TBUS_MSG_RETURN_METHOD:
-			app->handle_method_return(&msg);
-			break;
-		case TBUS_MSG_ERROR:
-			app->handle_error(&msg);
-			break;
+	switch (ret) {
+	case TBUS_MSG_EMIT_SIGNAL:
+		app->handle_signal(&msg);
+		break;
+	case TBUS_MSG_CALL_METHOD:
+		app->handle_method(&msg);
+		break;
+	case TBUS_MSG_RETURN_METHOD:
+		app->handle_method_return(&msg);
+		break;
+	case TBUS_MSG_ERROR:
+		app->handle_error(&msg);
+		break;
 	}
 
 	tbus_msg_free(&msg);
 	return;
 }
 
+#define WAIT_TIME_SLICE		500
+
 int Fl_App::TBusWaitForMsg(struct tbus_message *msg, char *service, char *object, int timeout)
 {
-	int wait_result, type;
+	int wait_result, type, tries, i = 0;
 
-	Fl::check();	/* let FLTK process events */
-
+	tries = timeout / WAIT_TIME_SLICE;
 	do {
-		wait_result = tbus_wait_message(timeout);
-		if( (wait_result == 0) ||	/*timeout*/
-			(wait_result == -1) )	/*error*/
-			return wait_result;
+		Fl::check();	/* let FLTK process events */
+		wait_result = tbus_wait_message(WAIT_TIME_SLICE);
+		if ((wait_result == 0) ||	/*timeout */
+		    (wait_result == -1))	/*error */
+			continue;
 
-		type = tbus_get_message (msg);
-		if( !strcmp(object, msg->object) && !strcmp(service, msg->service_sender) ) {
+		type = tbus_get_message(msg);
+		if (!strcmp(object, msg->object) && !strcmp(service, msg->service_sender)) {
 			return 0;
 		}
 		tbus_msg_free(msg);
-	} while(1);
+	} while (i++ < tries);
+
+	return -1;		/* timeout or error */
 }
 
 void Fl_App::handle_signal(struct tbus_message *msg)

@@ -9,26 +9,26 @@ Fl_Grid::Fl_Grid(int x, int y, int w, int h, const char *label)
 :  Fl_Scroll(x, y, w, h, label)
 {
 	_cols = 3;
-	_hspace = (APPVIEW_WIDTH - GRID_ICON_WIDTH * 3 ) / (3 + 1);
-	_vspace = (APPVIEW_AREA_HEIGHT - GRID_ICON_HEIGHT * 4 ) / (4 + 1);
+	_hspace = (APPVIEW_WIDTH - GRID_ICON_WIDTH * 3) / (3 + 1);
+	_vspace = (APPVIEW_AREA_HEIGHT - GRID_ICON_HEIGHT * 4) / (4 + 1);
 
 	type(Fl_Scroll::VERTICAL);
 }
 
-void Fl_Grid::add_item(Fl_Widget *w)
+void Fl_Grid::add_item(Fl_Widget * w)
 {
 	// horizontal spacing between items in the grid
-//	_hspace = (w()  - w->w() * _cols) / (_cols + 1);
-	int childs = children() - 2; // minus scrollbars
-	printf("children=%d\n",childs);
-	int newx = _hspace + ((childs) % 3) * ( GRID_ICON_WIDTH + _hspace);
-	int newy = _vspace + ((childs) / 3) * ( GRID_ICON_HEIGHT + _vspace);
+//      _hspace = (w()  - w->w() * _cols) / (_cols + 1);
+	int childs = children() - 2;	// minus scrollbars
+	printf("children=%d\n", childs);
+	int newx = _hspace + ((childs) % 3) * (GRID_ICON_WIDTH + _hspace);
+	int newy = _vspace + ((childs) / 3) * (GRID_ICON_HEIGHT + _vspace);
 
 	add(w);
 	w->position(newx, newy);
 }
 
-void Fl_Grid::remove_item(Fl_Widget *w)
+void Fl_Grid::remove_item(Fl_Widget * w)
 {
 	remove(w);
 }

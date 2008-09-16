@@ -8,11 +8,11 @@
 *
 */
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
-void tbus_handle(int fd, void * data);
+	void tbus_handle(int fd, void *data);
 
 #ifdef __cplusplus
- }
+}
 #endif

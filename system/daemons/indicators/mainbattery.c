@@ -20,7 +20,7 @@ static GR_IMAGE_ID battery_image;
 static int battery_frame_width;
 static int battery_frame_height;
 static int battery_current = 0;
-/*FIXME*/ static int xcoord, ycoord;	/* XY coordinates of indicator */
+ /*FIXME*/ static int xcoord, ycoord;	/* XY coordinates of indicator */
 #define MAINBATTERY_NUMFRAMES	6
 
 static int mainbattery_show(int frame);
@@ -76,18 +76,17 @@ static int mainbattery_show(int frame)
 
 	if (frame >= MAINBATTERY_NUMFRAMES)
 		frame = MAINBATTERY_NUMFRAMES - 1;
-	else  if (frame < 0)
+	else if (frame < 0)
 		frame = 0;
 
 	/* draw frame (part) of the image */
 	/* clear the area under the indicator to background pixmap */
 	GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
-			battery_frame_width, battery_frame_height, 0);
+		    battery_frame_width, battery_frame_height, 0);
 	/* Draw the indicator */
 	GrDrawImagePartToFit(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord,
-				battery_frame_width, battery_frame_height,
-				battery_frame_width * frame, 0,
-				battery_frame_width, battery_frame_height,
-				battery_image);
+			     battery_frame_width, battery_frame_height,
+			     battery_frame_width * frame, 0,
+			     battery_frame_width, battery_frame_height, battery_image);
 	return 0;
 }

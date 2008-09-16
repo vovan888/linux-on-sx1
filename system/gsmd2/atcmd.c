@@ -41,7 +41,7 @@
 #include <gsmd/unsolicited.h>
 
 static void *__atcmd_ctx;
-static int remove_timer(struct gsmd_atcmd * cmd);
+static int remove_timer(struct gsmd_atcmd *cmd);
 
 enum final_result_codes {
 	GSMD_RESULT_OK = 0,
@@ -205,53 +205,52 @@ static int parse_final_result(const char *res)
 }
 #endif
 
-void atcmd_wake_pending_queue (struct gsmd *g)
+void atcmd_wake_pending_queue(struct gsmd *g)
 {
-        g->gfd_uart.when |= GSMD_FD_WRITE;
+	g->gfd_uart.when |= GSMD_FD_WRITE;
 }
 
-void atcmd_wait_pending_queue (struct gsmd *g)
+void atcmd_wait_pending_queue(struct gsmd *g)
 {
-        g->gfd_uart.when &= ~GSMD_FD_WRITE;
+	g->gfd_uart.when &= ~GSMD_FD_WRITE;
 }
-
 
 static int atcmd_done(struct gsmd *g, struct gsmd_atcmd *cmd, const char *buf)
 {
-        int rc = 0;
+	int rc = 0;
 	/* remove timer if get respond before timeout */
 	remove_timer(cmd);
-        if (!cmd->cb) {
-                gsmd_log(GSMD_NOTICE, "command without cb!!!\n");
-        } else {
-                DEBUGP("Calling final cmd->cb()\n");
-                /* send final result code if there is no information
-                * response in mlbuf */
-                if (g->mlbuf_len) {
-                        cmd->resp = (char *) g->mlbuf;
-                        g->mlbuf[g->mlbuf_len] = 0;
-                } else {
-                        cmd->resp = (char *) buf;
-                }
-                rc = cmd->cb(cmd, cmd->ctx, cmd->resp);
-                DEBUGP("Clearing mlbuf\n");
-                memset(g->mlbuf, 0, MLPARSE_BUF_SIZE);
-                g->mlbuf_len = 0;
-        }
+	if (!cmd->cb) {
+		gsmd_log(GSMD_NOTICE, "command without cb!!!\n");
+	} else {
+		DEBUGP("Calling final cmd->cb()\n");
+		/* send final result code if there is no information
+		 * response in mlbuf */
+		if (g->mlbuf_len) {
+			cmd->resp = (char *)g->mlbuf;
+			g->mlbuf[g->mlbuf_len] = 0;
+		} else {
+			cmd->resp = (char *)buf;
+		}
+		rc = cmd->cb(cmd, cmd->ctx, cmd->resp);
+		DEBUGP("Clearing mlbuf\n");
+		memset(g->mlbuf, 0, MLPARSE_BUF_SIZE);
+		g->mlbuf_len = 0;
+	}
 
-        /* remove from list of currently executing cmds */
-        llist_del(&cmd->list);
-        talloc_free(cmd);
+	/* remove from list of currently executing cmds */
+	llist_del(&cmd->list);
+	talloc_free(cmd);
 
-        /* if we're finished with current commands, but still have pending
-        * commands: we want to WRITE again */
-        if (llist_empty(&g->busy_atcmds)) {
-                //g->clear_to_send = 1;
-                if (!llist_empty(&g->pending_atcmds)) {
-                        atcmd_wake_pending_queue(g);
-                }
-        }
-        return rc;
+	/* if we're finished with current commands, but still have pending
+	 * commands: we want to WRITE again */
+	if (llist_empty(&g->busy_atcmds)) {
+		//g->clear_to_send = 1;
+		if (!llist_empty(&g->pending_atcmds)) {
+			atcmd_wake_pending_queue(g);
+		}
+	}
+	return rc;
 }
 
 static int ml_parse(const char *buf, int len, void *ctx)
@@ -266,8 +265,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 
 	/* FIXME: This needs to be part of the vendor plugin. If we receive
 	 * an empty string or that 'ready' string, we need to init the modem */
-	if (strlen(buf) == 0 ||
-	    !strcmp(buf, "AT-Command Interpreter ready")) {
+	if (strlen(buf) == 0 || !strcmp(buf, "AT-Command Interpreter ready")) {
 		g->interpreter_ready = 1;
 		gsmd_initsettings(g);
 		gsmd_alive_start(g);
@@ -277,8 +275,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	/* responses come in order, so first response has to be for first
 	 * command we sent, i.e. first entry in list */
 	if (!llist_empty(&g->busy_atcmds))
-		cmd = llist_entry(g->busy_atcmds.next,
-				  struct gsmd_atcmd, list);
+		cmd = llist_entry(g->busy_atcmds.next, struct gsmd_atcmd, list);
 
 	if (cmd && !strcmp(buf, cmd->buf)) {
 		DEBUGP("ignoring echo\n");
@@ -303,44 +300,43 @@ static int ml_parse(const char *buf, int len, void *ctx)
 		/* an extended response */
 		const char *colon = strchr(buf, ':');
 		if (!colon) {
-			gsmd_log(GSMD_ERROR, "no colon in extd response `%s'\n",
-				buf);
+			gsmd_log(GSMD_ERROR, "no colon in extd response `%s'\n", buf);
 			return -EINVAL;
 		}
-		if (!strncmp(buf+1, "CME ERROR", 9)) {
+		if (!strncmp(buf + 1, "CME ERROR", 9)) {
 			/* Part of Case 'C' */
 			unsigned long err_nr;
-			err_nr = strtoul(colon+1, NULL, 10);
+			err_nr = strtoul(colon + 1, NULL, 10);
 			DEBUGP("error number %lu\n", err_nr);
 			if (cmd)
 				cmd->ret = err_nr;
 			cme_error = 1;
 			goto final_cb;
 		}
-		if (!strncmp(buf+1, "CMS ERROR", 9)) {
+		if (!strncmp(buf + 1, "CMS ERROR", 9)) {
 			/* Part of Case 'C' */
 			unsigned long err_nr;
-			err_nr = strtoul(colon+1, NULL, 10);
+			err_nr = strtoul(colon + 1, NULL, 10);
 			DEBUGP("error number %lu\n", err_nr);
 			if (cmd)
 				cmd->ret = err_nr;
 			cms_error = 1;
 			goto final_cb;
 		}
-// 		if (!strncmp(buf+1, "CPIN: TRUE", 10)) {
-// 			/* Part of Case 'A' */
-// 			DEBUGP("PIN OK\n");
-// 			if (cmd)
-// 				cmd->ret = 0;
-// 			goto final_cb;
-// 		}
+//              if (!strncmp(buf+1, "CPIN: TRUE", 10)) {
+//                      /* Part of Case 'A' */
+//                      DEBUGP("PIN OK\n");
+//                      if (cmd)
+//                              cmd->ret = 0;
+//                      goto final_cb;
+//              }
 
-		if (!cmd || strncmp(buf, &cmd->buf[2], colon-buf)) {
+		if (!cmd || strncmp(buf, &cmd->buf[2], colon - buf)) {
 			/* Assuming Case 'B' */
 			DEBUGP("extd reply `%s' to cmd `%s', must be "
 			       "unsolicited\n", buf, cmd ? &cmd->buf[2] : "NONE");
 			colon++;
-			if (colon > buf+len)
+			if (colon > buf + len)
 				colon = NULL;
 			rc = unsolicited_parse(g, buf, len, colon);
 			if (rc == -EAGAIN) {
@@ -363,7 +359,8 @@ static int ml_parse(const char *buf, int len, void *ctx)
 		}
 
 		if (cmd) {
-			if (cmd->buf[2] != '+' && strchr(g->vendorpl->ext_chars, cmd->buf[2]) == NULL) {
+			if (cmd->buf[2] != '+'
+			    && strchr(g->vendorpl->ext_chars, cmd->buf[2]) == NULL) {
 				gsmd_log(GSMD_ERROR, "extd reply to non-extd command?\n");
 				return -EINVAL;
 			}
@@ -378,7 +375,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 					gsmd_log(GSMD_NOTICE, "command without cb!!!\n");
 				} else {
 					DEBUGP("Calling cmd->cb()\n");
-					cmd->resp = (char *) g->mlbuf;
+					cmd->resp = (char *)g->mlbuf;
 					rc = cmd->cb(cmd, cmd->ctx, cmd->resp);
 					DEBUGP("Clearing mlbuf\n");
 					memset(g->mlbuf, 0, MLPARSE_BUF_SIZE);
@@ -389,15 +386,13 @@ static int ml_parse(const char *buf, int len, void *ctx)
 			/* the current buf will be appended to mlbuf below */
 		}
 	} else {
-		if (!strcmp(buf, "RING") ||
-		    ((g->flags & GSMD_FLAG_V0) && buf[0] == '2')) {
+		if (!strcmp(buf, "RING") || ((g->flags & GSMD_FLAG_V0) && buf[0] == '2')) {
 			/* this is the only non-extended unsolicited return
 			 * code, part of Case 'B' */
 			return unsolicited_parse(g, buf, len, NULL);
 		}
 
-		if (!strcmp(buf, "ERROR") ||
-		    ((g->flags & GSMD_FLAG_V0) && buf[0] == '4')) {
+		if (!strcmp(buf, "ERROR") || ((g->flags & GSMD_FLAG_V0) && buf[0] == '4')) {
 			/* Part of Case 'C' */
 			DEBUGP("unspecified error\n");
 			if (cmd)
@@ -405,8 +400,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 			goto final_cb;
 		}
 
-		if (!strncmp(buf, "OK", 2) ||
-		    ((g->flags & GSMD_FLAG_V0) && buf[0] == '0')) {
+		if (!strncmp(buf, "OK", 2) || ((g->flags & GSMD_FLAG_V0) && buf[0] == '0')) {
 			/* Part of Case 'C' */
 			if (cmd)
 				cmd->ret = 0;
@@ -415,14 +409,12 @@ static int ml_parse(const char *buf, int len, void *ctx)
 
 		/* FIXME: handling of those special commands in response to
 		 * ATD / ATA */
-		if (!strncmp(buf, "NO CARRIER", 10) ||
-		    ((g->flags & GSMD_FLAG_V0) && buf[0] == '3')) {
+		if (!strncmp(buf, "NO CARRIER", 10) || ((g->flags & GSMD_FLAG_V0) && buf[0] == '3')) {
 			/* Part of Case 'D' */
 			goto final_cb;
 		}
 
-		if (!strncmp(buf, "BUSY", 4) ||
-		    ((g->flags & GSMD_FLAG_V0) && buf[0] == '7')) {
+		if (!strncmp(buf, "BUSY", 4) || ((g->flags & GSMD_FLAG_V0) && buf[0] == '7')) {
 			/* Part of Case 'D' */
 			goto final_cb;
 		}
@@ -438,7 +430,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	 * passed on */
 
 	if (g->mlbuf_len)
-		g->mlbuf[g->mlbuf_len ++] = '\n';
+		g->mlbuf[g->mlbuf_len++] = '\n';
 	DEBUGP("Appending buf to mlbuf\n");
 	if (len > MLPARSE_BUF_SIZE - g->mlbuf_len)
 		len = MLPARSE_BUF_SIZE - g->mlbuf_len;
@@ -446,8 +438,8 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	g->mlbuf_len += len;
 
 	if (g->mlunsolicited) {
-		rc = unsolicited_parse(g, (const char*) g->mlbuf, (int) g->mlbuf_len,
-				strchr((const char*)g->mlbuf, ':') + 1);
+		rc = unsolicited_parse(g, (const char *)g->mlbuf, (int)g->mlbuf_len,
+				       strchr((const char *)g->mlbuf, ':') + 1);
 		if (rc == -EAGAIN) {
 			/* The parser wants one more line of
 			 * input.  Wait for the next line, concatenate
@@ -460,7 +452,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	}
 	return rc;
 
-final_cb:
+      final_cb:
 	/* if reach here, the final result code of a command has been reached */
 	DEBUGP("final_cb, cmd=%d\n", (int)cmd);
 	if (!cmd)
@@ -480,7 +472,7 @@ static int atcmd_prompt(void *data)
 {
 	struct gsmd *g = data;
 
-        atcmd_wake_pending_queue(g);
+	atcmd_wake_pending_queue(g);
 	return 0;
 }
 
@@ -498,9 +490,9 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 			if (len < 0) {
 				if (errno == EAGAIN)
 					return 0;
-				gsmd_log(GSMD_NOTICE, "ERROR reading from fd %u: %d (%s)\n", fd, len,
-					strerror(errno));
-					return len;
+				gsmd_log(GSMD_NOTICE, "ERROR reading from fd %u: %d (%s)\n", fd,
+					 len, strerror(errno));
+				return len;
 			}
 			rc = llparse_string(&g->llp, rxbuf, len);
 			if (rc < 0) {
@@ -518,8 +510,8 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 			if (cr)
 				len = cr - pos->cur;
 			else
-				len = pos->buflen - 1;  /* assuming zero-terminated strings */
-//				len = strlen(pos->cur);  /* assuming zero-terminated strings */
+				len = pos->buflen - 1;	/* assuming zero-terminated strings */
+//                              len = strlen(pos->cur);  /* assuming zero-terminated strings */
 //DEBUGP("Send to UART=");
 //int i;
 //for(i=0;i<len;i++) printf("%x ",pos->cur[i]);
@@ -529,12 +521,11 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 				gsmd_log(GSMD_ERROR, "write returns 0, aborting\n");
 				break;
 			} else if (rc < 0) {
-				gsmd_log(GSMD_ERROR, "error during write to fd %d: %d\n",
-					fd, rc);
+				gsmd_log(GSMD_ERROR, "error during write to fd %d: %d\n", fd, rc);
 				return rc;
 			}
 			if (!cr || rc == len)
-				rc ++;	/* Skip the \n or \0 */
+				rc++;	/* Skip the \n or \0 */
 			pos->buflen -= rc;
 			pos->cur += rc;
 			write(fd, "\r", 1);
@@ -560,7 +551,7 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 		}
 
 		/* Either pending_atcmds is empty or a command has to wait */
-                atcmd_wait_pending_queue(g);
+		atcmd_wait_pending_queue(g);
 	}
 
 	return 0;
@@ -568,29 +559,28 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 
 static void discard_timeout(struct gsmd_timer *tmr, void *data)
 {
-        struct gsmd *g=data;
-        struct gsmd_atcmd *cmd=NULL;
-        DEBUGP("discard time out!!\n");
-        if (!llist_empty(&g->busy_atcmds)) {
-                cmd = llist_entry(g->busy_atcmds.next,struct gsmd_atcmd, list);
-        }
-        if (!cmd) {
-                DEBUGP("ERROR!! busy_atcmds is NULL\n");
-                return;
-        }
-        if (cmd->timeout != tmr) {
-                DEBUGP("ERROR!! cmd->timeout != tmr\n");
-                return;
-        }
+	struct gsmd *g = data;
+	struct gsmd_atcmd *cmd = NULL;
+	DEBUGP("discard time out!!\n");
+	if (!llist_empty(&g->busy_atcmds)) {
+		cmd = llist_entry(g->busy_atcmds.next, struct gsmd_atcmd, list);
+	}
+	if (!cmd) {
+		DEBUGP("ERROR!! busy_atcmds is NULL\n");
+		return;
+	}
+	if (cmd->timeout != tmr) {
+		DEBUGP("ERROR!! cmd->timeout != tmr\n");
+		return;
+	}
 
-        gsmd_timer_free(cmd->timeout);
-        cmd->timeout = NULL;
+	gsmd_timer_free(cmd->timeout);
+	cmd->timeout = NULL;
 
 	if (cmd->cb) {
 		cmd->resp = "Timeout";
-                cmd->cb(cmd, cmd->ctx, cmd->resp);
+		cmd->cb(cmd, cmd->ctx, cmd->resp);
 	}
-
 	// discard the timeout at command
 	llist_del(&cmd->list);
 	talloc_free(cmd);
@@ -601,7 +591,7 @@ static void discard_timeout(struct gsmd_timer *tmr, void *data)
 	}
 }
 
-static struct gsmd_timer * discard_timer(struct gsmd *g)
+static struct gsmd_timer *discard_timer(struct gsmd *g)
 {
 
 	struct timeval tv;
@@ -614,8 +604,7 @@ static struct gsmd_timer * discard_timer(struct gsmd *g)
 }
 
 struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
-			      atcmd_cb_t cb, void *ctx, u_int16_t id,
-			      create_timer_t ct)
+			      atcmd_cb_t cb, void *ctx, u_int16_t id, create_timer_t ct)
 {
 	int buflen = strlen(cmd);
 	struct gsmd_atcmd *atcmd;
@@ -623,7 +612,7 @@ struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 	if (rlen > buflen)
 		buflen = rlen;
 
-	atcmd = talloc_size(__atcmd_ctx, sizeof(*atcmd)+ buflen);
+	atcmd = talloc_size(__atcmd_ctx, sizeof(*atcmd) + buflen);
 	if (!atcmd)
 		return NULL;
 
@@ -632,12 +621,12 @@ struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 	atcmd->flags = 0;
 	atcmd->ret = -255;
 	atcmd->buflen = buflen;
-	atcmd->buf[buflen-1] = '\0';
+	atcmd->buf[buflen - 1] = '\0';
 	atcmd->cur = atcmd->buf;
 	atcmd->cb = cb;
 	atcmd->resp = NULL;
 	atcmd->timeout = NULL;
-	strncpy(atcmd->buf, cmd, buflen-1);
+	strncpy(atcmd->buf, cmd, buflen - 1);
 	if (!ct)
 		atcmd->create_timer_func = discard_timer;
 	else
@@ -646,7 +635,7 @@ struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 	return atcmd;
 }
 
-static int remove_timer(struct gsmd_atcmd * cmd)
+static int remove_timer(struct gsmd_atcmd *cmd)
 {
 	if (cmd->timeout) {
 		DEBUGP("Get respond before timeout, remove timer!\n");
@@ -659,7 +648,6 @@ static int remove_timer(struct gsmd_atcmd * cmd)
 
 	return 0;
 }
-
 
 /* submit an atcmd in the global queue of pending atcmds */
 int atcmd_submit(struct gsmd *g, struct gsmd_atcmd *cmd)
@@ -683,20 +671,20 @@ int atcmd_submit(struct gsmd *g, struct gsmd_atcmd *cmd)
  * parameter, usually AT ot ATH.  */
 int cancel_atcmd(struct gsmd *g, struct gsmd_atcmd *cmd)
 {
-        struct gsmd_atcmd *cur;
-        if (llist_empty(&g->busy_atcmds)) {
-                return atcmd_submit(g, cmd);
-        }
-        cur = llist_entry(g->busy_atcmds.next, struct gsmd_atcmd, list);
-        DEBUGP("cancelling command `%s' with an `%s'\n", cur->buf, cmd->buf);
+	struct gsmd_atcmd *cur;
+	if (llist_empty(&g->busy_atcmds)) {
+		return atcmd_submit(g, cmd);
+	}
+	cur = llist_entry(g->busy_atcmds.next, struct gsmd_atcmd, list);
+	DEBUGP("cancelling command `%s' with an `%s'\n", cur->buf, cmd->buf);
 
-        if (g->mlbuf_len) {
-                DEBUGP("Discarding mlbuf: %.*s\n", g->mlbuf_len, g->mlbuf);
-                g->mlbuf_len = 0;
-        }
+	if (g->mlbuf_len) {
+		DEBUGP("Discarding mlbuf: %.*s\n", g->mlbuf_len, g->mlbuf);
+		g->mlbuf_len = 0;
+	}
 
-        llist_add(&cmd->list, &g->pending_atcmds);
-        return atcmd_done(g, cur, "ERROR");
+	llist_add(&cmd->list, &g->pending_atcmds);
+	return atcmd_done(g, cur, "ERROR");
 }
 
 void atcmd_drain(int fd)
@@ -706,7 +694,7 @@ void atcmd_drain(int fd)
 	rc = tcflush(fd, TCIOFLUSH);
 	rc = tcgetattr(fd, &t);
 	DEBUGP("c_iflag = 0x%08x, c_oflag = 0x%08x, c_cflag = 0x%08x, c_lflag = 0x%08x\n",
-		t.c_iflag, t.c_oflag, t.c_cflag, t.c_lflag);
+	       t.c_iflag, t.c_oflag, t.c_cflag, t.c_lflag);
 	t.c_iflag = t.c_oflag = 0;
 	cfmakeraw(&t);
 	rc = tcsetattr(fd, TCSANOW, &t);
@@ -725,7 +713,7 @@ int atcmd_init(struct gsmd *g, int sockfd)
 	INIT_LLIST_HEAD(&g->pending_atcmds);
 	INIT_LLIST_HEAD(&g->busy_atcmds);
 
-	llparse_init (&g->llp);
+	llparse_init(&g->llp);
 
 	g->mlbuf_len = 0;
 	g->mlunsolicited = 0;
@@ -748,22 +736,22 @@ int atcmd_terminate_matching(struct gsmd *g, void *ctx)
 	struct gsmd_atcmd *cmd, *pos;
 
 	llist_for_each_entry_safe(cmd, pos, &g->busy_atcmds, list)
-		if (cmd->ctx == ctx) {
-			cmd->ret = -ESHUTDOWN;
-			cmd->cb(cmd, cmd->ctx, "ERROR");
-			cmd->cb = NULL;
-			cmd->ctx = NULL;
-			num ++;
-		}
+	    if (cmd->ctx == ctx) {
+		cmd->ret = -ESHUTDOWN;
+		cmd->cb(cmd, cmd->ctx, "ERROR");
+		cmd->cb = NULL;
+		cmd->ctx = NULL;
+		num++;
+	}
 
 	llist_for_each_entry_safe(cmd, pos, &g->pending_atcmds, list)
-		if (cmd->ctx == ctx) {
-			llist_del(&cmd->list);
-			cmd->ret = -ESHUTDOWN;
-			cmd->cb(cmd, cmd->ctx, "ERROR");
-			talloc_free(cmd);
-			num ++;
-		}
+	    if (cmd->ctx == ctx) {
+		llist_del(&cmd->list);
+		cmd->ret = -ESHUTDOWN;
+		cmd->cb(cmd, cmd->ctx, "ERROR");
+		talloc_free(cmd);
+		num++;
+	}
 
 	return num;
 }

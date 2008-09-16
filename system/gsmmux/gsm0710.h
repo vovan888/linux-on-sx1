@@ -29,7 +29,7 @@
 #ifdef DEBUG
 #  define PDEBUG(fmt, args...) fprintf(stderr, fmt, ## args)
 #else
-#  define PDEBUG(fmt, args...) /* not debugging: nothing */
+#  define PDEBUG(fmt, args...)	/* not debugging: nothing */
 #endif
 
 // basic mode flag for frame start and end
@@ -77,8 +77,8 @@
 // Channel status tells if the DLC is open and what were the last
 // v.24 signals sent
 typedef struct Channel_Status {
-  int opened;
-  unsigned char v24_signals;
+	int opened;
+	unsigned char v24_signals;
 } Channel_Status;
 
 // for debugging
@@ -88,8 +88,3 @@ typedef struct Channel_Status {
 			     ((n&1) == 1));
 
 #endif /* _GSM0710_H_ */
-
-
-
-
-

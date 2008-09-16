@@ -42,24 +42,24 @@ int ipc_start(char *servername)
 /* handle signals */
 static int ipc_signal(struct tbus_message *msg)
 {
-	DPRINT("%d,%s->%s/%s (%s)\n",msg->type, msg->service_sender,
-		msg->service_dest, msg->object, (char *)msg->data);
+	DPRINT("%d,%s->%s/%s (%s)\n", msg->type, msg->service_sender,
+	       msg->service_dest, msg->object, (char *)msg->data);
 
-	if(!strcmp(msg->service_dest, "PhoneServer")) {
-		if(!strcmp(msg->object,"NetworkBars"))
+	if (!strcmp(msg->service_dest, "PhoneServer")) {
+		if (!strcmp(msg->object, "NetworkBars"))
 			indicators[THEME_MAINSIGNAL].changed(0);
-		else if(!strcmp(msg->object,"BatteryBars"))
+		else if (!strcmp(msg->object, "BatteryBars"))
 			indicators[THEME_MAINBATTERY].changed(0);
 	}
 
-	if(!strcmp(msg->service_dest, "AlarmServer")) {
-		if(!strcmp(msg->object,"PPM"))
+	if (!strcmp(msg->service_dest, "AlarmServer")) {
+		if (!strcmp(msg->object, "PPM"))
 			indicators[THEME_DATETIME].changed(0);
 	}
 
 /*DEBUG signal*/
-	if(!strcmp(msg->service_dest, "nanowm")) {
-		if(!strcmp(msg->object,"debugkey")) {
+	if (!strcmp(msg->service_dest, "nanowm")) {
+		if (!strcmp(msg->object, "debugkey")) {
 			int tmp;
 			char *str;
 			tbus_get_message_args(msg, "is", &tmp, &str);
@@ -87,11 +87,11 @@ int ipc_handle(GR_EVENT * e)
 	ret = tbus_get_message(&msg);
 	if (ret < 0)
 		return -1;
-	switch(msg.type) {
-		case TBUS_MSG_EMIT_SIGNAL:
-			/* we received a signal */
-			ipc_signal(&msg);
-			break;
+	switch (msg.type) {
+	case TBUS_MSG_EMIT_SIGNAL:
+		/* we received a signal */
+		ipc_signal(&msg);
+		break;
 	}
 
 	tbus_msg_free(&msg);

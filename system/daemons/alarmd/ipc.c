@@ -29,11 +29,11 @@ int ipc_handle(int fd)
 	ret = tbus_get_message(&msg);
 	if (ret < 0)
 		return -1;
-	switch(msg.type) {
-		case TBUS_MSG_EMIT_SIGNAL:
-			/* we received a signal */
-//			ipc_signal(&msg);
-			break;
+	switch (msg.type) {
+	case TBUS_MSG_EMIT_SIGNAL:
+		/* we received a signal */
+//                      ipc_signal(&msg);
+		break;
 	}
 
 	tbus_msg_free(&msg);

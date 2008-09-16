@@ -8,7 +8,7 @@
 *
 */
 
-void tbus_handle(int fd, void * data)
+void tbus_handle(int fd, void *data)
 {
 
 }

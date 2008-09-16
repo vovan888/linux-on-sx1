@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #define _GNU_SOURCE
 #include <stdlib.h>
@@ -47,8 +47,7 @@ static void *__ucmd_ctx, *__gu_ctx;
 
 struct gsmd_ucmd *ucmd_alloc(int extra_size)
 {
-	return talloc_size(__ucmd_ctx, 
-			   sizeof(struct gsmd_ucmd) + extra_size);
+	return talloc_size(__ucmd_ctx, sizeof(struct gsmd_ucmd) + extra_size);
 }
 
 void usock_cmd_enqueue(struct gsmd_ucmd *ucmd, struct gsmd_user *gu)
@@ -66,14 +65,14 @@ void usock_cmd_enqueue(struct gsmd_ucmd *ucmd, struct gsmd_user *gu)
 static int usock_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
-	int rlen = strlen(resp)+1;
+	int rlen = strlen(resp) + 1;
 	struct gsmd_ucmd *ucmd = ucmd_alloc(rlen);
 
 	DEBUGP("entering(cmd=%p, gu=%p)\n", cmd, gu);
 
 	if (!ucmd)
 		return -ENOMEM;
-	
+
 	/* FIXME: pass error values back somehow */
 	ucmd->hdr.version = GSMD_PROTO_VERSION;
 	ucmd->hdr.msg_type = GSMD_MSG_PASSTHROUGH;
@@ -92,7 +91,7 @@ typedef int usock_msg_handler(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, in
 static int usock_rcv_passthrough(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 {
 	struct gsmd_atcmd *cmd;
-	cmd = atcmd_fill((char *)gph+sizeof(*gph), gph->len, &usock_cmd_cb, gu, gph->id, NULL);
+	cmd = atcmd_fill((char *)gph + sizeof(*gph), gph->len, &usock_cmd_cb, gu, gph->id, NULL);
 	if (!cmd)
 		return -ENOMEM;
 
@@ -115,7 +114,7 @@ static int usock_rcv_event(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int l
 	return 0;
 }
 
-static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp) 
+static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
 	struct gsmd_call_status gcs;
@@ -125,28 +124,26 @@ static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	er = extrsp_parse(cmd, resp);
 
-	if ( !er )
+	if (!er)
 		return -ENOMEM;
 
-	gcs.is_last = (cmd->ret == 0 || cmd->ret == 4)? 1:0;
-	
-	if ( !strncmp(resp, "OK", 2) ) {
+	gcs.is_last = (cmd->ret == 0 || cmd->ret == 4) ? 1 : 0;
+
+	if (!strncmp(resp, "OK", 2)) {
 		/* No existing call */
 		gcs.idx = 0;
-	}
-	else if ( !strncmp(resp, "+CME", 4) ) {
+	} else if (!strncmp(resp, "+CME", 4)) {
 		/* +CME ERROR: <err> */
 		DEBUGP("+CME error\n");
 		gcs.idx = 0 - atoi(strpbrk(resp, "0123456789"));
-	}
-	else if ( er->num_tokens == 7 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC && 
-			er->tokens[4].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[5].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[6].type == GSMD_ECMD_RTT_NUMERIC ) {
+	} else if (er->num_tokens == 7 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[4].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[5].type == GSMD_ECMD_RTT_STRING &&
+		   er->tokens[6].type == GSMD_ECMD_RTT_NUMERIC) {
 		/*
 		 * [+CLCC: <id1>,<dir>,<stat>,<mode>,<mpty>[,
 		 * <number>,<type>[,<alpha>]]
@@ -160,18 +157,17 @@ static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		gcs.stat = er->tokens[2].u.numeric;
 		gcs.mode = er->tokens[3].u.numeric;
 		gcs.mpty = er->tokens[4].u.numeric;
-		strlcpy(gcs.number, er->tokens[5].u.string, GSMD_ADDR_MAXLEN+1);
+		strlcpy(gcs.number, er->tokens[5].u.string, GSMD_ADDR_MAXLEN + 1);
 		gcs.type = er->tokens[6].u.numeric;
-	}
-	else if ( er->num_tokens == 8 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC && 
-			er->tokens[4].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[5].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[6].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[7].type == GSMD_ECMD_RTT_STRING ) {
+	} else if (er->num_tokens == 8 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[4].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[5].type == GSMD_ECMD_RTT_STRING &&
+		   er->tokens[6].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[7].type == GSMD_ECMD_RTT_STRING) {
 
 		/*
 		 * [+CLCC: <id1>,<dir>,<stat>,<mode>,<mpty>[,
@@ -186,56 +182,55 @@ static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		gcs.stat = er->tokens[2].u.numeric;
 		gcs.mode = er->tokens[3].u.numeric;
 		gcs.mpty = er->tokens[4].u.numeric;
-		strlcpy(gcs.number, er->tokens[5].u.string, GSMD_ADDR_MAXLEN+1);
+		strlcpy(gcs.number, er->tokens[5].u.string, GSMD_ADDR_MAXLEN + 1);
 		gcs.type = er->tokens[6].u.numeric;
-		strlcpy(gcs.alpha, er->tokens[7].u.string, GSMD_ALPHA_MAXLEN+1);
-	}
-	else {
+		strlcpy(gcs.alpha, er->tokens[7].u.string, GSMD_ALPHA_MAXLEN + 1);
+	} else {
 		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
 	}
-	
+
 	talloc_free(er);
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_VOICECALL, GSMD_VOICECALL_GET_STAT,
-			cmd->id, sizeof(gcs), &gcs);
+				cmd->id, sizeof(gcs), &gcs);
 }
 
-static int voicecall_ctrl_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp) 
+static int voicecall_ctrl_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
 	int ret = 0;
-	
+
 	DEBUGP("resp: %s\n", resp);
-	
-	if ( !strncmp(resp, "+CME", 4) ) {
+
+	if (!strncmp(resp, "+CME", 4)) {
 		/* +CME ERROR: <err> */
 		DEBUGP("+CME error\n");
 		ret = atoi(strpbrk(resp, "0123456789"));
 	}
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_VOICECALL, GSMD_VOICECALL_CTRL,
-			cmd->id, sizeof(ret), &ret);
+				cmd->id, sizeof(ret), &ret);
 }
 
-static int voicecall_fwd_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp) 
+static int voicecall_fwd_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
 	struct gsm_extrsp *er;
 	struct gsmd_call_fwd_stat gcfs;
-	
+
 	DEBUGP("resp: %s\n", resp);
-	
+
 	er = extrsp_parse(cmd, resp);
 
-	if ( !er )
+	if (!er)
 		return -ENOMEM;
 
-	gcfs.is_last = (cmd->ret == 0 || cmd->ret == 4)? 1:0;
+	gcfs.is_last = (cmd->ret == 0 || cmd->ret == 4) ? 1 : 0;
 
-	if ( er->num_tokens == 2 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC ) {
+	if (er->num_tokens == 2 &&
+	    er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+	    er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC) {
 
 		/*
 		 * +CCFC: <status>,<class1>[,<number>,<type>
@@ -248,75 +243,70 @@ static int voicecall_fwd_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		gcfs.status = er->tokens[0].u.numeric;
 		gcfs.classx = er->tokens[1].u.numeric;
 		gcfs.addr.number[0] = '\0';
-	}
-	else if ( er->num_tokens == 4 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[2].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC ) {
-		
+	} else if (er->num_tokens == 4 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_STRING &&
+		   er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC) {
+
 		gcfs.status = er->tokens[0].u.numeric;
 		gcfs.classx = er->tokens[1].u.numeric;
-		strlcpy(gcfs.addr.number, er->tokens[2].u.string, GSMD_ADDR_MAXLEN+1);
+		strlcpy(gcfs.addr.number, er->tokens[2].u.string, GSMD_ADDR_MAXLEN + 1);
 		gcfs.addr.type = er->tokens[3].u.numeric;
-	}
-	else if ( er->num_tokens == 7 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[2].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC && 
-			er->tokens[4].type == GSMD_ECMD_RTT_EMPTY &&
-			er->tokens[5].type == GSMD_ECMD_RTT_EMPTY &&
-			er->tokens[6].type == GSMD_ECMD_RTT_NUMERIC ) {
-		
+	} else if (er->num_tokens == 7 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_STRING &&
+		   er->tokens[3].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[4].type == GSMD_ECMD_RTT_EMPTY &&
+		   er->tokens[5].type == GSMD_ECMD_RTT_EMPTY &&
+		   er->tokens[6].type == GSMD_ECMD_RTT_NUMERIC) {
+
 		gcfs.status = er->tokens[0].u.numeric;
 		gcfs.classx = er->tokens[1].u.numeric;
-		strlcpy(gcfs.addr.number, er->tokens[2].u.string, GSMD_ADDR_MAXLEN+1);
+		strlcpy(gcfs.addr.number, er->tokens[2].u.string, GSMD_ADDR_MAXLEN + 1);
 		gcfs.addr.type = er->tokens[3].u.numeric;
 		gcfs.time = er->tokens[6].u.numeric;
-	}
-	else {
+	} else {
 		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
 	}
-	
+
 	talloc_free(er);
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_VOICECALL, GSMD_VOICECALL_FWD_STAT,
-			cmd->id, sizeof(gcfs), &gcfs);
+				cmd->id, sizeof(gcfs), &gcfs);
 }
 
 static int usock_ringing_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
-        struct gsmd_user *gu = ctx;
+	struct gsmd_user *gu = ctx;
 
-        /* If the incoming call answer/rejection succeeded then we
-        * know the modem isn't ringing and we update the state info.  */
-        if (cmd->ret == 0)
-                gu->gsmd->dev_state.ringing = 0;
-        return usock_cmd_cb(cmd, ctx, resp);
+	/* If the incoming call answer/rejection succeeded then we
+	 * know the modem isn't ringing and we update the state info.  */
+	if (cmd->ret == 0)
+		gu->gsmd->dev_state.ringing = 0;
+	return usock_cmd_cb(cmd, ctx, resp);
 }
 
-static int usock_rcv_voicecall(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
-				int len)
+static int usock_rcv_voicecall(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 {
 	struct gsmd_atcmd *cmd = NULL;
 	struct gsmd_addr *ga;
 	struct gsmd_dtmf *gd;
-	struct gsmd_call_ctrl *gcc; 
+	struct gsmd_call_ctrl *gcc;
 	struct gsmd_call_fwd_reg *gcfr;
 	char buf[64];
 	int atcmd_len;
 	int *reason;
-		
+
 	switch (gph->msg_subtype) {
 	case GSMD_VOICECALL_DIAL:
 		if (len < sizeof(*gph) + sizeof(*ga))
 			return -EINVAL;
-		ga = (struct gsmd_addr *) ((void *)gph + sizeof(*gph));
+		ga = (struct gsmd_addr *)((void *)gph + sizeof(*gph));
 		ga->number[GSMD_ADDR_MAXLEN] = '\0';
-		cmd = atcmd_fill("ATD", 5 + strlen(ga->number),
-				 &usock_cmd_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("ATD", 5 + strlen(ga->number), &usock_cmd_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "ATD%s;", ga->number);
@@ -325,24 +315,23 @@ static int usock_rcv_voicecall(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 	case GSMD_VOICECALL_HANGUP:
 		/* ATH0 is not supported by QC, we hope ATH is supported by everone */
 		cmd = atcmd_fill("ATH", 4,
-                                gu->gsmd->dev_state.ringing ?
-                                usock_ringing_cb : usock_cmd_cb,
-                                gu, gph->id,NULL);
-                
-                /* This command is special because it needs to be sent to
-                * the MS even if a command is currently executing.  */
-                if (cmd) {
-                        return cancel_atcmd(gu->gsmd, cmd);
-                }
+				 gu->gsmd->dev_state.ringing ?
+				 usock_ringing_cb : usock_cmd_cb, gu, gph->id, NULL);
+
+		/* This command is special because it needs to be sent to
+		 * the MS even if a command is currently executing.  */
+		if (cmd) {
+			return cancel_atcmd(gu->gsmd, cmd);
+		}
 		break;
 	case GSMD_VOICECALL_ANSWER:
-                cmd = atcmd_fill("ATA", 4, &usock_ringing_cb, gu, gph->id,NULL);
+		cmd = atcmd_fill("ATA", 4, &usock_ringing_cb, gu, gph->id, NULL);
 		break;
 	case GSMD_VOICECALL_DTMF:
 		if (len < sizeof(*gph) + sizeof(*gd))
 			return -EINVAL;
 
-		gd = (struct gsmd_dtmf *) ((void *)gph + sizeof(*gph));
+		gd = (struct gsmd_dtmf *)((void *)gph + sizeof(*gph));
 		if (len < sizeof(*gph) + sizeof(*gd) + gd->len)
 			return -EINVAL;
 
@@ -351,16 +340,14 @@ static int usock_rcv_voicecall(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 			return -EINVAL;
 
 		atcmd_len = 1 + strlen("AT+VTS=") + (gd->len * 2);
-		cmd = atcmd_fill("AT+VTS=", atcmd_len, &usock_cmd_cb,
-				 gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+VTS=", atcmd_len, &usock_cmd_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 
 		sprintf(cmd->buf, "AT+VTS=%c;", gd->dtmf[0]);
 		break;
 	case GSMD_VOICECALL_GET_STAT:
-		cmd = atcmd_fill("AT+CLCC", 7+1, &voicecall_get_stat_cb, 
-				 gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CLCC", 7 + 1, &voicecall_get_stat_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		break;
@@ -368,110 +355,104 @@ static int usock_rcv_voicecall(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 		if (len < sizeof(*gph) + sizeof(*gcc))
 			return -EINVAL;
 
-		gcc = (struct gsmd_call_ctrl *) ((void *)gph + sizeof(*gph));
+		gcc = (struct gsmd_call_ctrl *)((void *)gph + sizeof(*gph));
 
 		atcmd_len = 1 + strlen("AT+CHLD=") + 2;
-		cmd = atcmd_fill("AT+CHLD=", atcmd_len, &voicecall_ctrl_cb,
-				 gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CHLD=", atcmd_len, &voicecall_ctrl_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 
 		switch (gcc->proc) {
-			case GSMD_CALL_CTRL_R_HLDS:			
-			case GSMD_CALL_CTRL_UDUB:			
-				sprintf(cmd->buf, "AT+CHLD=%d", 0);
-				break;
-			case GSMD_CALL_CTRL_R_ACTS_A_HLD_WAIT:	
-				sprintf(cmd->buf, "AT+CHLD=%d", 1);
-				break;
-			case GSMD_CALL_CTRL_R_ACT_X:
-				sprintf(cmd->buf, "AT+CHLD=%d%d", 1, gcc->idx);
-				break;
-			case GSMD_CALL_CTRL_H_ACTS_A_HLD_WAIT:
-				sprintf(cmd->buf, "AT+CHLD=%d", 2);
-				break;
-			case GSMD_CALL_CTRL_H_ACTS_EXCEPT_X:
-				sprintf(cmd->buf, "AT+CHLD=%d%d", 2, gcc->idx);
-				break;
-			case GSMD_CALL_CTRL_M_HELD:
-				sprintf(cmd->buf, "AT+CHLD=%d", 3);
-				break;
-			default:
-				return -EINVAL;
+		case GSMD_CALL_CTRL_R_HLDS:
+		case GSMD_CALL_CTRL_UDUB:
+			sprintf(cmd->buf, "AT+CHLD=%d", 0);
+			break;
+		case GSMD_CALL_CTRL_R_ACTS_A_HLD_WAIT:
+			sprintf(cmd->buf, "AT+CHLD=%d", 1);
+			break;
+		case GSMD_CALL_CTRL_R_ACT_X:
+			sprintf(cmd->buf, "AT+CHLD=%d%d", 1, gcc->idx);
+			break;
+		case GSMD_CALL_CTRL_H_ACTS_A_HLD_WAIT:
+			sprintf(cmd->buf, "AT+CHLD=%d", 2);
+			break;
+		case GSMD_CALL_CTRL_H_ACTS_EXCEPT_X:
+			sprintf(cmd->buf, "AT+CHLD=%d%d", 2, gcc->idx);
+			break;
+		case GSMD_CALL_CTRL_M_HELD:
+			sprintf(cmd->buf, "AT+CHLD=%d", 3);
+			break;
+		default:
+			return -EINVAL;
 		}
 
 		break;
 	case GSMD_VOICECALL_FWD_DIS:
-		if(len < sizeof(*gph) + sizeof(int))
+		if (len < sizeof(*gph) + sizeof(int))
 			return -EINVAL;
-		
-		reason = (int *) ((void *)gph + sizeof(*gph));
+
+		reason = (int *)((void *)gph + sizeof(*gph));
 
 		sprintf(buf, "%d,0", *reason);
 
 		atcmd_len = 1 + strlen("AT+CCFC=") + strlen(buf);
-		cmd = atcmd_fill("AT+CCFC=", atcmd_len,
-				 &usock_cmd_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CCFC=", atcmd_len, &usock_cmd_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CCFC=%s", buf);
 		break;
 	case GSMD_VOICECALL_FWD_EN:
-		if(len < sizeof(*gph) + sizeof(int))
+		if (len < sizeof(*gph) + sizeof(int))
 			return -EINVAL;
-		
-		reason = (int *) ((void *)gph + sizeof(*gph));
+
+		reason = (int *)((void *)gph + sizeof(*gph));
 
 		sprintf(buf, "%d,1", *reason);
 
 		atcmd_len = 1 + strlen("AT+CCFC=") + strlen(buf);
-		cmd = atcmd_fill("AT+CCFC=", atcmd_len,
-				 &usock_cmd_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CCFC=", atcmd_len, &usock_cmd_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CCFC=%s", buf);
 		break;
 	case GSMD_VOICECALL_FWD_STAT:
-		if(len < sizeof(*gph) + sizeof(int))
+		if (len < sizeof(*gph) + sizeof(int))
 			return -EINVAL;
-		
-		reason = (int *) ((void *)gph + sizeof(*gph));
+
+		reason = (int *)((void *)gph + sizeof(*gph));
 
 		sprintf(buf, "%d,2", *reason);
 
 		atcmd_len = 1 + strlen("AT+CCFC=") + strlen(buf);
-		cmd = atcmd_fill("AT+CCFC=", atcmd_len,
-				 &voicecall_fwd_stat_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CCFC=", atcmd_len, &voicecall_fwd_stat_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CCFC=%s", buf);
 		break;
 	case GSMD_VOICECALL_FWD_REG:
-		if(len < sizeof(*gph) + sizeof(int))
+		if (len < sizeof(*gph) + sizeof(int))
 			return -EINVAL;
-		
-		gcfr = (struct gsmd_call_fwd_reg *) ((void *)gph + sizeof(*gph));
+
+		gcfr = (struct gsmd_call_fwd_reg *)((void *)gph + sizeof(*gph));
 
 		sprintf(buf, "%d,3,\"%s\"", gcfr->reason, gcfr->addr.number);
 
 		atcmd_len = 1 + strlen("AT+CCFC=") + strlen(buf);
-		cmd = atcmd_fill("AT+CCFC=", atcmd_len,
-				 &usock_cmd_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CCFC=", atcmd_len, &usock_cmd_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CCFC=%s", buf);
 		break;
 	case GSMD_VOICECALL_FWD_ERAS:
-		if(len < sizeof(*gph) + sizeof(int))
+		if (len < sizeof(*gph) + sizeof(int))
 			return -EINVAL;
-		
-		reason = (int *) ((void *)gph + sizeof(*gph));
+
+		reason = (int *)((void *)gph + sizeof(*gph));
 
 		sprintf(buf, "%d,4", *reason);
 
 		atcmd_len = 1 + strlen("AT+CCFC=") + strlen(buf);
-		cmd = atcmd_fill("AT+CCFC=", atcmd_len,
-				 &usock_cmd_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CCFC=", atcmd_len, &usock_cmd_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CCFC=%s", buf);
@@ -499,7 +480,7 @@ static int pin_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	int ret = cmd->ret;
 
 	/* Siemens modems return `+CPIN: TRUE` after valid PIN entry 
-	  and CME 16 if PIN is incorrect */
+	   and CME 16 if PIN is incorrect */
 	if (!strncmp(resp, "+CPIN: TRUE", 11)) {
 		ret = 0;
 	}
@@ -507,27 +488,26 @@ static int pin_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	/* Pass a GSM07.07 CME code directly, don't issue a new PIN
 	 * request because the client waits for a response to her
 	 * PIN submission rather than an event.  */
-	return gsmd_ucmd_submit(gu, GSMD_MSG_PIN, GSMD_PIN_INPUT,
-			cmd->id, sizeof(ret), &ret);
+	return gsmd_ucmd_submit(gu, GSMD_MSG_PIN, GSMD_PIN_INPUT, cmd->id, sizeof(ret), &ret);
 }
 
 static const char *pin_type_names[__NUM_GSMD_PIN] = {
-	[GSMD_PIN_READY]	= "READY",
-	[GSMD_PIN_SIM_PIN]	= "SIM PIN",
-	[GSMD_PIN_SIM_PUK]	= "SIM PUK",
-	[GSMD_PIN_PH_SIM_PIN]	= "Phone-to-SIM PIN",
-	[GSMD_PIN_PH_FSIM_PIN]	= "Phone-to-very-first SIM PIN",
-	[GSMD_PIN_PH_FSIM_PUK]	= "Phone-to-very-first SIM PUK",
-	[GSMD_PIN_SIM_PIN2]	= "SIM PIN2",
-	[GSMD_PIN_SIM_PUK2]	= "SIM PUK2",
-	[GSMD_PIN_PH_NET_PIN]	= "Network personalization PIN",
-	[GSMD_PIN_PH_NET_PUK]	= "Network personalizaiton PUK",
-	[GSMD_PIN_PH_NETSUB_PIN]= "Network subset personalisation PIN",
-	[GSMD_PIN_PH_NETSUB_PUK]= "Network subset personalisation PUK",
-	[GSMD_PIN_PH_SP_PIN]	= "Service provider personalisation PIN",
-	[GSMD_PIN_PH_SP_PUK]	= "Service provider personalisation PUK",
-	[GSMD_PIN_PH_CORP_PIN]	= "Corporate personalisation PIN",
-	[GSMD_PIN_PH_CORP_PUK]	= "Corporate personalisation PUK",
+	[GSMD_PIN_READY] = "READY",
+	[GSMD_PIN_SIM_PIN] = "SIM PIN",
+	[GSMD_PIN_SIM_PUK] = "SIM PUK",
+	[GSMD_PIN_PH_SIM_PIN] = "Phone-to-SIM PIN",
+	[GSMD_PIN_PH_FSIM_PIN] = "Phone-to-very-first SIM PIN",
+	[GSMD_PIN_PH_FSIM_PUK] = "Phone-to-very-first SIM PUK",
+	[GSMD_PIN_SIM_PIN2] = "SIM PIN2",
+	[GSMD_PIN_SIM_PUK2] = "SIM PUK2",
+	[GSMD_PIN_PH_NET_PIN] = "Network personalization PIN",
+	[GSMD_PIN_PH_NET_PUK] = "Network personalizaiton PUK",
+	[GSMD_PIN_PH_NETSUB_PIN] = "Network subset personalisation PIN",
+	[GSMD_PIN_PH_NETSUB_PUK] = "Network subset personalisation PUK",
+	[GSMD_PIN_PH_SP_PIN] = "Service provider personalisation PIN",
+	[GSMD_PIN_PH_SP_PUK] = "Service provider personalisation PUK",
+	[GSMD_PIN_PH_CORP_PIN] = "Corporate personalisation PIN",
+	[GSMD_PIN_PH_CORP_PUK] = "Corporate personalisation PUK",
 };
 
 static int get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -538,53 +518,51 @@ static int get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		unsigned int i;
 		resp += 7;
 		for (i = 0; i < __NUM_GSMD_PIN; i++) {
-			if(!strcmp(resp,pin_type_names[i]))
+			if (!strcmp(resp, pin_type_names[i]))
 				type = i;
 		}
 	}
 
 	return gsmd_ucmd_submit(ctx, GSMD_MSG_PIN, GSMD_PIN_GET_STATUS,
-			cmd->id, sizeof(type), &type);
+				cmd->id, sizeof(type), &type);
 }
 
-static int usock_rcv_pin(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, 
-			 int len)
+static int usock_rcv_pin(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 {
-	struct gsmd_pin *gp = (struct gsmd_pin *) ((void *)gph + sizeof(*gph));
+	struct gsmd_pin *gp = (struct gsmd_pin *)((void *)gph + sizeof(*gph));
 	struct gsmd_atcmd *cmd;
 
 	switch (gph->msg_subtype) {
 	case GSMD_PIN_INPUT:
-		if (gph->len < sizeof(*gp) || len < sizeof(*gp)+sizeof(*gph))
+		if (gph->len < sizeof(*gp) || len < sizeof(*gp) + sizeof(*gph))
 			return -EINVAL;
 
 		gsmd_log(GSMD_DEBUG, "pin type=%u, pin='%s', newpin='%s'\n",
 			 gp->type, gp->pin, gp->newpin);
 
-		cmd = atcmd_fill("AT+CPIN=", 9+GSMD_PIN_MAXLEN+3+GSMD_PIN_MAXLEN+2,
-			 &pin_cmd_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CPIN=", 9 + GSMD_PIN_MAXLEN + 3 + GSMD_PIN_MAXLEN + 2,
+				 &pin_cmd_cb, gu, 0, NULL);
 		if (!cmd)
 			return -ENOMEM;
 
 		strlcat(cmd->buf, gp->pin, cmd->buflen);
 
 		switch (gp->type) {
-			case GSMD_PIN_SIM_PUK:
-			case GSMD_PIN_SIM_PUK2:
-				/*strlcat(cmd->buf, "\",\"", cmd->buflen);*/
-				strlcat(cmd->buf, gp->newpin, cmd->buflen);
+		case GSMD_PIN_SIM_PUK:
+		case GSMD_PIN_SIM_PUK2:
+			/*strlcat(cmd->buf, "\",\"", cmd->buflen); */
+			strlcat(cmd->buf, gp->newpin, cmd->buflen);
 			break;
 		default:
 			break;
 		}
-	/*	strlcat(cmd->buf, "\"", cmd->buflen);*/
+		/*      strlcat(cmd->buf, "\"", cmd->buflen); */
 		break;
 	case GSMD_PIN_GET_STATUS:
 		cmd = atcmd_fill("AT+CPIN?", 8 + 1, &get_cpin_cb, gu, 0, NULL);
 		break;
 	default:
-		gsmd_log(GSMD_ERROR, "unknown pin type %u\n",
-			 gph->msg_subtype);
+		gsmd_log(GSMD_ERROR, "unknown pin type %u\n", gph->msg_subtype);
 		return -EINVAL;
 	}
 
@@ -608,15 +586,14 @@ static int phone_powerup_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		break;
 	}
 
-	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_POWERUP,
-			cmd->id, sizeof(ret), &ret);
+	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_POWERUP, cmd->id, sizeof(ret), &ret);
 }
 
 static int phone_powerdown_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	int ret = cmd->ret;
 	return gsmd_ucmd_submit(ctx, GSMD_MSG_PHONE, GSMD_PHONE_POWERDOWN,
-			cmd->id, sizeof(ret), &ret);
+				cmd->id, sizeof(ret), &ret);
 }
 
 static int phone_power_status_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -625,7 +602,7 @@ static int phone_power_status_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (!strncmp(resp, "+CFUN: ", 7))
 		resp += 7;
 	return gsmd_ucmd_submit(ctx, GSMD_MSG_PHONE, GSMD_PHONE_POWER_STATUS,
-			cmd->id, strlen(resp) + 1, resp);
+				cmd->id, strlen(resp) + 1, resp);
 }
 
 static int phone_get_manuf_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -636,7 +613,7 @@ static int phone_get_manuf_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (!strncmp(resp, "+CGMI: ", 7))
 		resp += 7;
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_MANUF,
-			cmd->id, strlen(resp) + 1, resp);
+				cmd->id, strlen(resp) + 1, resp);
 }
 
 static int phone_get_model_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -647,7 +624,7 @@ static int phone_get_model_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (!strncmp(resp, "+CGMM: ", 7))
 		resp += 7;
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_MODEL,
-			cmd->id, strlen(resp) + 1, resp);
+				cmd->id, strlen(resp) + 1, resp);
 }
 
 static int phone_get_revision_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -658,7 +635,7 @@ static int phone_get_revision_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (!strncmp(resp, "+CGMR: ", 7))
 		resp += 7;
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_REVISION,
-			cmd->id, strlen(resp) + 1, resp);
+				cmd->id, strlen(resp) + 1, resp);
 }
 
 static int phone_get_serial_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -669,7 +646,7 @@ static int phone_get_serial_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (!strncmp(resp, "+CGSN: ", 7))
 		resp += 7;
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_SERIAL,
-			cmd->id, strlen(resp) + 1, resp);
+				cmd->id, strlen(resp) + 1, resp);
 }
 
 static int phone_get_battery_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -680,18 +657,18 @@ static int phone_get_battery_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
 	er = extrsp_parse(gsmd_tallocs, resp);
-	if(!er)
+	if (!er)
 		return -ENOMEM;
 	/* +CBC: 0,0 */
-	if((er->num_tokens == 2) &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC ) {
-				gbs.bcs = er->tokens[0].u.numeric;
-				gbs.bcl = er->tokens[1].u.numeric;
+	if ((er->num_tokens == 2) &&
+	    er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+	    er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC) {
+		gbs.bcs = er->tokens[0].u.numeric;
+		gbs.bcl = er->tokens[1].u.numeric;
 	}
 	talloc_free(er);
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_BATTERY,
-		cmd -> id, sizeof(gbs), &gbs);
+				cmd->id, sizeof(gbs), &gbs);
 }
 
 static int phone_vibrator_enable_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -699,7 +676,7 @@ static int phone_vibrator_enable_cb(struct gsmd_atcmd *cmd, void *ctx, char *res
 	struct gsmd_user *gu = ctx;
 	int ret = cmd->ret;
 
-	switch(ret) {
+	switch (ret) {
 	case 0:
 		gsmd_log(GSMD_DEBUG, "Vibrator enabled\n");
 		gu->gsmd->dev_state.vibrator = 1;
@@ -708,7 +685,7 @@ static int phone_vibrator_enable_cb(struct gsmd_atcmd *cmd, void *ctx, char *res
 		gsmd_log(GSMD_DEBUG, "AT+CVIB=1 operation failed\n");
 		break;
 	}
-	
+
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_VIB_ENABLE,
 				cmd->id, sizeof(ret), &ret);
 }
@@ -719,56 +696,48 @@ static int phone_vibrator_disable_cb(struct gsmd_atcmd *cmd, void *ctx, char *re
 	return gsmd_ucmd_submit(ctx, GSMD_MSG_PHONE, GSMD_PHONE_VIB_DISABLE,
 				cmd->id, sizeof(ret), &ret);
 }
-	
-static int usock_rcv_phone(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, 
-			   int len)
+
+static int usock_rcv_phone(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 {
 	struct gsmd_atcmd *cmd;
 
 	switch (gph->msg_subtype) {
 	case GSMD_PHONE_POWERUP:
-		cmd = atcmd_fill("AT+CFUN=1", 9+1,
-				&phone_powerup_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CFUN=1", 9 + 1, &phone_powerup_cb, gu, 0, NULL);
 		break;
 
 	case GSMD_PHONE_POWERDOWN:
-		cmd = atcmd_fill("AT+CFUN=0", 9+1,
-				&phone_powerdown_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CFUN=0", 9 + 1, &phone_powerdown_cb, gu, 0, NULL);
 		gu->gsmd->dev_state.on = 0;
 		break;
 	case GSMD_PHONE_POWER_STATUS:
-		cmd = atcmd_fill("AT+CFUN?", 8+1,
-				&phone_power_status_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CFUN?", 8 + 1, &phone_power_status_cb, gu, 0, NULL);
 		break;
 
 	case GSMD_PHONE_GET_IMSI:
 		return gsmd_ucmd_submit(gu, GSMD_MSG_PHONE, GSMD_PHONE_GET_IMSI,
-			0, strlen(gu->gsmd->imsi) + 1, gu->gsmd->imsi);
+					0, strlen(gu->gsmd->imsi) + 1, gu->gsmd->imsi);
 		break;
 	case GSMD_PHONE_GET_MANUF:
-		cmd = atcmd_fill("AT+CGMI", 7+1,
-				&phone_get_manuf_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CGMI", 7 + 1, &phone_get_manuf_cb, gu, 0, NULL);
 		break;
 	case GSMD_PHONE_GET_MODEL:
-		cmd = atcmd_fill("AT+CGMM", 7+1,
-				&phone_get_model_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CGMM", 7 + 1, &phone_get_model_cb, gu, 0, NULL);
 		break;
 	case GSMD_PHONE_GET_REVISION:
-		cmd = atcmd_fill("AT+CGMR", 7+1,
-				&phone_get_revision_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CGMR", 7 + 1, &phone_get_revision_cb, gu, 0, NULL);
 		break;
 	case GSMD_PHONE_GET_SERIAL:
-		cmd = atcmd_fill("AT+CGSN", 7+1,
-				&phone_get_serial_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CGSN", 7 + 1, &phone_get_serial_cb, gu, 0, NULL);
 		break;
 	case GSMD_PHONE_GET_BATTERY:
-		cmd = atcmd_fill("AT+CBC", 6+1, &phone_get_battery_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CBC", 6 + 1, &phone_get_battery_cb, gu, 0, NULL);
 		break;
 	case GSMD_PHONE_VIB_ENABLE:
-		cmd = atcmd_fill("AT+CVIB=1", 9+1, &phone_vibrator_enable_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CVIB=1", 9 + 1, &phone_vibrator_enable_cb, gu, 0, NULL);
 		break;
 	case GSMD_PHONE_VIB_DISABLE:
-		cmd = atcmd_fill("AT+CVIB=0", 9+1, &phone_vibrator_disable_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CVIB=0", 9 + 1, &phone_vibrator_disable_cb, gu, 0, NULL);
 		gu->gsmd->dev_state.vibrator = 0;
 		break;
 	default:
@@ -781,8 +750,7 @@ static int usock_rcv_phone(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 	return atcmd_submit(gu->gsmd, cmd);
 }
 
-static int usock_rcv_modem(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, 
-			   int len)
+static int usock_rcv_modem(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 {
 	struct gsmd *g = gu->gsmd;
 
@@ -790,7 +758,7 @@ static int usock_rcv_modem(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 		g->machinepl->power(g, gph->msg_subtype);
 	}
 
-	return 0; 
+	return 0;
 }
 
 static int network_query_reg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -805,19 +773,19 @@ static int network_query_reg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		return -EINVAL;
 
 	er = extrsp_parse(gsmd_tallocs, resp);
-	if(!er)
+	if (!er)
 		return -ENOMEM;
 	//extrsp_dump(er);
 	/* +CREG: <n>,<stat>[,<lac>,<ci>] */
-	if((er->num_tokens == 4 || er->num_tokens == 2 ) &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC ) {
-				state = er->tokens[1].u.numeric;
+	if ((er->num_tokens == 4 || er->num_tokens == 2) &&
+	    er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+	    er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC) {
+		state = er->tokens[1].u.numeric;
 	}
 
 	talloc_free(er);
 	return gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_QUERY_REG,
-		cmd->id, sizeof(state), &state);
+				cmd->id, sizeof(state), &state);
 }
 
 static int network_vmail_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -832,33 +800,33 @@ static int network_vmail_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	if (cmd->buf[7] == '=') {
 		/* response to set command */
-		rc = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, 
-				GSMD_NETWORK_VMAIL_SET,cmd->id, sizeof(ret), &ret);
+		rc = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK,
+				      GSMD_NETWORK_VMAIL_SET, cmd->id, sizeof(ret), &ret);
 	} else {
 		/* response to get command */
 		if (strncmp(resp, "+CSVM: ", 7))
 			return -EINVAL;
 		resp += 7;
 		er = extrsp_parse(gsmd_tallocs, resp);
-		if(!er)
+		if (!er)
 			return -ENOMEM;
-		if(er->num_tokens == 3 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC) {
-				vmail.enable = er->tokens[0].u.numeric;
-				strlcpy(vmail.addr.number, er->tokens[1].u.string, GSMD_ADDR_MAXLEN+1);
-				vmail.addr.type = er->tokens[2].u.numeric;
+		if (er->num_tokens == 3 &&
+		    er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		    er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
+		    er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC) {
+			vmail.enable = er->tokens[0].u.numeric;
+			strlcpy(vmail.addr.number, er->tokens[1].u.string, GSMD_ADDR_MAXLEN + 1);
+			vmail.addr.type = er->tokens[2].u.numeric;
 		}
 		rc = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_VMAIL_GET,
-			cmd->id, sizeof(vmail), &vmail);
+				      cmd->id, sizeof(vmail), &vmail);
 		talloc_free(er);
 	}
 	return rc;
 }
 
 int gsmd_ucmd_submit(struct gsmd_user *gu, u_int8_t msg_type,
-		u_int8_t msg_subtype, u_int16_t id, int len, const void *data)
+		     u_int8_t msg_subtype, u_int16_t id, int len, const void *data)
 {
 	struct gsmd_ucmd *ucmd = ucmd_alloc(len);
 
@@ -883,15 +851,13 @@ static int network_sigq_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	gsq.rssi = atoi(resp + 6);
 	comma = strchr(resp, ',');
-	if (!comma ++)
+	if (!comma++)
 		return -EIO;
 	gsq.ber = atoi(comma);
 
 	return gsmd_ucmd_submit(ctx, GSMD_MSG_NETWORK, GSMD_NETWORK_SIGQ_GET,
-			cmd->id, sizeof(gsq), &gsq);
+				cmd->id, sizeof(gsq), &gsq);
 }
-
-
 
 static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
@@ -911,8 +877,7 @@ static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		 * have in this case.  */
 		if (format != 0)
 			gsmd_log(GSMD_NOTICE, "+COPS response in a format "
-					" different than long alphanumeric - "
-					" returning as is!\n");
+				 " different than long alphanumeric - " " returning as is!\n");
 		opname = resp + s;
 		end = strchr(opname, '"');
 		if (!end)
@@ -921,7 +886,7 @@ static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	buf = strndup(opname, end - opname);
 	ret = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_OPER_GET,
-			cmd->id, end - opname + 1, buf);
+			       cmd->id, end - opname + 1, buf);
 	free(buf);
 	return ret;
 }
@@ -929,39 +894,36 @@ static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 static int network_oper_n_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
-	char buf[16+1] = {'\0'};
+	char buf[16 + 1] = { '\0' };
 	struct gsm_extrsp *er;
 
 	er = extrsp_parse(cmd, resp);
 
-	if ( !er )
+	if (!er)
 		return -ENOMEM;
 
-	//extrsp_dump(er);	
+	//extrsp_dump(er);      
 
 	/* Format: <mode>[,<format>,<oper>] */
-	if ( er->num_tokens == 1 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC ) {
-		
+	if (er->num_tokens == 1 && er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC) {
+
 		/* In case we're not registered, return an empty string */
 		buf[0] = '\0';
-	}
-	else if ( er->num_tokens >= 3 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[2].type == GSMD_ECMD_RTT_STRING ) {
+	} else if (er->num_tokens >= 3 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_STRING) {
 
 		strlcpy(buf, er->tokens[2].u.string, sizeof(buf));
-	}
-	else {
+	} else {
 		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
 	}
-	
+
 	talloc_free(er);
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_OPER_N_GET,
-			cmd->id, sizeof(buf), buf);
+				cmd->id, sizeof(buf), buf);
 }
 
 static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
@@ -979,16 +941,15 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 	 * don't want to scan them for operators.
 	 */
 	ptr = strstr(str, ",,");
-	if(ptr)
+	if (ptr)
 		ptr[0] = '\0';
 
-	ptr = (char *) str;
+	ptr = (char *)str;
 	while (*str) {
-		if ( *str == '(' && isdigit(*(str+1)) ) {
-			len++;	
-			str+=2;
-		}
-		else
+		if (*str == '(' && isdigit(*(str + 1))) {
+			len++;
+			str += 2;
+		} else
 			str++;
 	}
 
@@ -1001,34 +962,34 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 	str = ptr;
 
 	while (*str) {
-		if ( *str == '(' )
-			head = (char *) str;
-		else if ( *str == ')' ) {
-			tail = (char *) str;
-			
+		if (*str == '(')
+			head = (char *)str;
+		else if (*str == ')') {
+			tail = (char *)str;
+
 			memset(buf, '\0', sizeof(buf));
-			strncpy(buf, head+1, (tail-head-1));
+			strncpy(buf, head + 1, (tail - head - 1));
 
 			DEBUGP("buf: %s\n", buf);
 
 			er = extrsp_parse(gsmd_tallocs, buf);
 
-			if ( !er )
+			if (!er)
 				return -ENOMEM;
 
-			//extrsp_dump(er);	
-				
-			if ( er->num_tokens >= 4 &&
-					er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-					er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
-					er->tokens[2].type == GSMD_ECMD_RTT_STRING &&
-					er->tokens[3].type == GSMD_ECMD_RTT_STRING ) {
-				
+			//extrsp_dump(er);      
+
+			if (er->num_tokens >= 4 &&
+			    er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+			    er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
+			    er->tokens[2].type == GSMD_ECMD_RTT_STRING &&
+			    er->tokens[3].type == GSMD_ECMD_RTT_STRING) {
+
 				/*
 				 * +COPS=? +COPS: [list of supported (<stat>,long alphanumeric <oper>
 				 *       ,short alphanumeric <oper>,numeric <oper>)s]
 				 */
-				
+
 				out2->stat = er->tokens[0].u.numeric;
 				strlcpy(out2->opname_longalpha, er->tokens[1].u.string,
 					sizeof(out2->opname_longalpha));
@@ -1036,8 +997,7 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 					sizeof(out2->opname_shortalpha));
 				strlcpy(out2->opname_num, er->tokens[3].u.string,
 					sizeof(out2->opname_num));
-			}
-			else {
+			} else {
 				DEBUGP("Invalid Input : Parse error\n");
 				talloc_free(*out);
 				return -EINVAL;
@@ -1045,10 +1005,10 @@ static int network_opers_parse(const char *str, struct gsmd_msg_oper **out)
 
 			talloc_free(er);
 			out2->is_last = 0;
-			out2 ++;
+			out2++;
 		}
 
-		str ++;
+		str++;
 	}
 
 	out2->is_last = 1;
@@ -1062,18 +1022,18 @@ static int network_opers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	int len, ret;
 
 	len = network_opers_parse(resp, &buf);
-	if(len < 0)
+	if (len < 0)
 		return len;	/* error we got from network_opers_parse */
 
 	ret = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_OPER_LIST,
-			cmd->id, sizeof(*buf) * (len + 1), buf);
+			       cmd->id, sizeof(*buf) * (len + 1), buf);
 	talloc_free(buf);
 	return ret;
 }
 
 static int network_pref_opers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
-	struct gsmd_user *gu = (struct gsmd_user *) ctx;
+	struct gsmd_user *gu = (struct gsmd_user *)ctx;
 	struct gsmd_msg_prefoper entry;
 	int index;
 	char opname[17];
@@ -1089,12 +1049,12 @@ static int network_pref_opers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	memcpy(entry.opname_longalpha, opname, sizeof(entry.opname_longalpha));
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_PREF_LIST,
-			cmd->id, sizeof(entry), &entry);
+				cmd->id, sizeof(entry), &entry);
 }
 
 static int network_pref_num_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
-	struct gsmd_user *gu = (struct gsmd_user *) ctx;
+	struct gsmd_user *gu = (struct gsmd_user *)ctx;
 	int min_index, max_index, size;
 
 	if (cmd->ret)
@@ -1108,12 +1068,12 @@ static int network_pref_num_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	size = max_index - min_index + 1;
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_PREF_SPACE,
-			cmd->id, sizeof(size), &size);
+				cmd->id, sizeof(size), &size);
 }
 
 static int network_ownnumbers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
-	struct gsmd_user *gu = (struct gsmd_user *) ctx;
+	struct gsmd_user *gu = (struct gsmd_user *)ctx;
 	struct gsmd_own_number *num;
 	int len, ret, type;
 	char dummy;
@@ -1129,12 +1089,10 @@ static int network_ownnumbers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	num = talloc_size(__gu_ctx, sizeof(*num) + len + 1);
 	if (len)
 		ret = sscanf(resp, "+CNUM: \"%[^\"]\",\"%32[^\"]\",%i,%*i,%i,",
-				num->name, num->addr.number,
-				&type, &num->service) - 1;
+			     num->name, num->addr.number, &type, &num->service) - 1;
 	else
 		ret = sscanf(resp, "+CNUM: ,\"%32[^\"]\",%i,%*i,%i,",
-				num->addr.number,
-				&type, &num->service);
+			     num->addr.number, &type, &num->service);
 	if (ret < 2) {
 		talloc_free(num);
 		return -EINVAL;	/* TODO: Send a response */
@@ -1146,16 +1104,15 @@ static int network_ownnumbers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	num->is_last = (cmd->ret == 0);
 
 	ret = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_GET_NUMBER,
-			cmd->id, sizeof(*num) + len + 1, num);
+			       cmd->id, sizeof(*num) + len + 1, num);
 	talloc_free(num);
 	return ret;
 }
 
-static int usock_rcv_network(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, 
-			     int len)
+static int usock_rcv_network(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
 {
 	struct gsmd_atcmd *cmd;
-	struct gsmd_voicemail *vmail = (struct gsmd_voicemail *) gph->data;
+	struct gsmd_voicemail *vmail = (struct gsmd_voicemail *)gph->data;
 	gsmd_oper_numeric *oper = (gsmd_oper_numeric *) gph->data;
 	char buffer[15 + sizeof(gsmd_oper_numeric)];
 	int cmdlen;
@@ -1164,66 +1121,62 @@ static int usock_rcv_network(struct gsmd_user *gu, struct gsmd_msg_hdr *gph,
 	case GSMD_NETWORK_REGISTER:
 		if ((*oper)[0])
 			cmdlen = sprintf(buffer, "AT+COPS=1,2,\"%.*s\"",
-					sizeof(gsmd_oper_numeric), (char *)oper);
+					 sizeof(gsmd_oper_numeric), (char *)oper);
 		else
 			cmdlen = sprintf(buffer, "AT+COPS=0");
 		cmd = atcmd_fill(buffer, cmdlen + 1, &null_cmd_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_DEREGISTER:
-		cmd = atcmd_fill("AT+COPS=2", 9+1, &null_cmd_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+COPS=2", 9 + 1, &null_cmd_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_QUERY_REG:
-		cmd = atcmd_fill("AT+CREG?", 8+1, &network_query_reg_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CREG?", 8 + 1, &network_query_reg_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_VMAIL_GET:
-		cmd = atcmd_fill("AT+CSVM?", 8+1, &network_vmail_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CSVM?", 8 + 1, &network_vmail_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_VMAIL_SET:
 		cmdlen = sprintf(buffer, "AT+CSVM=1,\"%s\",%d",
-			vmail->addr.number, vmail->addr.type);
+				 vmail->addr.number, vmail->addr.type);
 		cmd = atcmd_fill(buffer, cmdlen + 1, &network_vmail_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_SIGQ_GET:
-		cmd = atcmd_fill("AT+CSQ", 6+1, &network_sigq_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CSQ", 6 + 1, &network_sigq_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_OPER_GET:
 		/* Set long alphanumeric format */
-		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,0", 11+1,
-					&null_cmd_cb, gu, 0, NULL));
-		cmd = atcmd_fill("AT+COPS?", 8+1, &network_oper_cb, gu, 0, NULL);
+		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,0", 11 + 1,
+						  &null_cmd_cb, gu, 0, NULL));
+		cmd = atcmd_fill("AT+COPS?", 8 + 1, &network_oper_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_OPER_N_GET:
 		/* Set numeric format */
-		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,2", 11+1,
-					&null_cmd_cb, gu, 0, NULL));
-		cmd = atcmd_fill("AT+COPS?", 8+1, &network_oper_n_cb, gu, 0, NULL);
+		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,2", 11 + 1,
+						  &null_cmd_cb, gu, 0, NULL));
+		cmd = atcmd_fill("AT+COPS?", 8 + 1, &network_oper_n_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_OPER_LIST:
-		cmd = atcmd_fill("AT+COPS=?", 9+1, &network_opers_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+COPS=?", 9 + 1, &network_opers_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_PREF_LIST:
 		/* Set long alphanumeric format */
-		atcmd_submit(gu->gsmd, atcmd_fill("AT+CPOL=,0", 10 + 1,
-					&null_cmd_cb, gu, 0, NULL));
-		cmd = atcmd_fill("AT+CPOL?", 8 + 1,
-				&network_pref_opers_cb, gu, 0, NULL);
+		atcmd_submit(gu->gsmd, atcmd_fill("AT+CPOL=,0", 10 + 1, &null_cmd_cb, gu, 0, NULL));
+		cmd = atcmd_fill("AT+CPOL?", 8 + 1, &network_pref_opers_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_PREF_DEL:
-		cmdlen = sprintf(buffer, "AT+CPOL=%i", *(int *) gph->data);
+		cmdlen = sprintf(buffer, "AT+CPOL=%i", *(int *)gph->data);
 		cmd = atcmd_fill(buffer, cmdlen + 1, &null_cmd_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_PREF_ADD:
 		cmdlen = sprintf(buffer, "AT+CPOL=,2,\"%.*s\"",
-				sizeof(gsmd_oper_numeric), (char *)oper);
+				 sizeof(gsmd_oper_numeric), (char *)oper);
 		cmd = atcmd_fill(buffer, cmdlen + 1, &null_cmd_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_PREF_SPACE:
-		cmd = atcmd_fill("AT+CPOL=?", 9 + 1,
-				&network_pref_num_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CPOL=?", 9 + 1, &network_pref_num_cb, gu, 0, NULL);
 		break;
 	case GSMD_NETWORK_GET_NUMBER:
-		cmd = atcmd_fill("AT+CNUM", 7 + 1,
-				&network_ownnumbers_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CNUM", 7 + 1, &network_ownnumbers_cb, gu, 0, NULL);
 		break;
 	default:
 		return -EINVAL;
@@ -1244,25 +1197,23 @@ static int phonebook_find_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	er = extrsp_parse(cmd, resp);
 
-	if ( !er )
+	if (!er)
 		return -ENOMEM;
 
-	gps.is_last = (cmd->ret == 0 || cmd->ret == 4)? 1:0;
+	gps.is_last = (cmd->ret == 0 || cmd->ret == 4) ? 1 : 0;
 
-	if ( !strncmp(resp, "OK", 2) ) {
+	if (!strncmp(resp, "OK", 2)) {
 		/* The record is empty or could not read yet */
 		gps.pb.index = 0;
-	}
-	else if ( !strncmp(resp, "+CME", 4) ) {
+	} else if (!strncmp(resp, "+CME", 4)) {
 		DEBUGP("== +CME error\n");
 		/* +CME ERROR: 21 */
 		gps.pb.index = 0 - atoi(strpbrk(resp, "0123456789"));
-	}
-	else if ( er->num_tokens == 4 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[3].type == GSMD_ECMD_RTT_STRING ) {
+	} else if (er->num_tokens == 4 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[3].type == GSMD_ECMD_RTT_STRING) {
 
 		/*
 		 * [+CPBR: <index1>,<number>,<type>,<text>[[...]
@@ -1270,19 +1221,18 @@ static int phonebook_find_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		 */
 
 		gps.pb.index = er->tokens[0].u.numeric;
-		strlcpy(gps.pb.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN+1);
+		strlcpy(gps.pb.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN + 1);
 		gps.pb.type = er->tokens[2].u.numeric;
-		strlcpy(gps.pb.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN+1);
-	}
-	else {
+		strlcpy(gps.pb.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN + 1);
+	} else {
 		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
 	}
-	
+
 	talloc_free(er);
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_FIND,
-			cmd->id, sizeof(gps), &gps);
+				cmd->id, sizeof(gps), &gps);
 }
 
 static int phonebook_read_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -1292,26 +1242,24 @@ static int phonebook_read_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	struct gsm_extrsp *er;
 
 	DEBUGP("resp: %s\n", resp);
-	
+
 	er = extrsp_parse(cmd, resp);
 
-	if ( !er )
+	if (!er)
 		return -ENOMEM;
-	
-	if ( !strncmp(resp, "OK", 2) ) {
+
+	if (!strncmp(resp, "OK", 2)) {
 		/* The record is empty or could not read yet */
 		gp.index = 0;
-	}
-	else if ( !strncmp(resp, "+CME", 4) ) {
+	} else if (!strncmp(resp, "+CME", 4)) {
 		DEBUGP("+CME error\n");
 		/* +CME ERROR: 21 */
 		gp.index = 0 - atoi(strpbrk(resp, "0123456789"));
-	}
-	else if ( er->num_tokens == 4 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[3].type == GSMD_ECMD_RTT_STRING ) {
+	} else if (er->num_tokens == 4 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[3].type == GSMD_ECMD_RTT_STRING) {
 
 		/*
 		 * [+CPBR: <index1>,<number>,<type>,<text>[[...]
@@ -1319,19 +1267,18 @@ static int phonebook_read_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		 */
 
 		gp.index = er->tokens[0].u.numeric;
-		strlcpy(gp.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN+1);
+		strlcpy(gp.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN + 1);
 		gp.type = er->tokens[2].u.numeric;
-		strlcpy(gp.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN+1);
-	}
-	else {
+		strlcpy(gp.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN + 1);
+	} else {
 		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
 	}
-	
+
 	talloc_free(er);
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_READ,
-			cmd->id, sizeof(gp), &gp);
+				cmd->id, sizeof(gp), &gp);
 }
 
 static int phonebook_readrg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -1344,25 +1291,23 @@ static int phonebook_readrg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	er = extrsp_parse(cmd, resp);
 
-	if ( !er )
+	if (!er)
 		return -ENOMEM;
 
-	gps.is_last = (cmd->ret == 0 || cmd->ret == 4)? 1:0;
+	gps.is_last = (cmd->ret == 0 || cmd->ret == 4) ? 1 : 0;
 
-	if ( !strncmp(resp, "OK", 2) ) {
+	if (!strncmp(resp, "OK", 2)) {
 		/* The record is empty or could not read yet */
 		gps.pb.index = 0;
-	}
-	else if ( !strncmp(resp, "+CME", 4) ) {
+	} else if (!strncmp(resp, "+CME", 4)) {
 		DEBUGP("+CME error\n");
 		/* +CME ERROR: 21 */
 		gps.pb.index = 0 - atoi(strpbrk(resp, "0123456789"));
-	}
-	else if ( er->num_tokens == 4 &&
-			er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
-			er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
-			er->tokens[3].type == GSMD_ECMD_RTT_STRING ) {
+	} else if (er->num_tokens == 4 &&
+		   er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[1].type == GSMD_ECMD_RTT_STRING &&
+		   er->tokens[2].type == GSMD_ECMD_RTT_NUMERIC &&
+		   er->tokens[3].type == GSMD_ECMD_RTT_STRING) {
 
 		/*
 		 * [+CPBR: <index1>,<number>,<type>,<text>[[...]
@@ -1370,19 +1315,18 @@ static int phonebook_readrg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		 */
 
 		gps.pb.index = er->tokens[0].u.numeric;
-		strlcpy(gps.pb.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN+1);
+		strlcpy(gps.pb.numb, er->tokens[1].u.string, GSMD_PB_NUMB_MAXLEN + 1);
 		gps.pb.type = er->tokens[2].u.numeric;
-		strlcpy(gps.pb.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN+1);
-	}
-	else {
+		strlcpy(gps.pb.text, er->tokens[3].u.string, GSMD_PB_TEXT_MAXLEN + 1);
+	} else {
 		DEBUGP("Invalid Input : Parse error\n");
 		return -EINVAL;
 	}
-	
+
 	talloc_free(er);
 
 	return gsmd_ucmd_submit(gu, GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_READRG,
-			cmd->id, sizeof(gps), &gps);
+				cmd->id, sizeof(gps), &gps);
 }
 
 static int phonebook_write_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -1390,7 +1334,7 @@ static int phonebook_write_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	DEBUGP("resp: %s\n", resp);
 
 	return gsmd_ucmd_submit(ctx, GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_WRITE,
-			cmd->id, strlen(resp) + 1, resp);
+				cmd->id, strlen(resp) + 1, resp);
 }
 
 static int phonebook_delete_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -1398,7 +1342,7 @@ static int phonebook_delete_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	DEBUGP("resp: %s\n", resp);
 
 	return gsmd_ucmd_submit(ctx, GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_DELETE,
-			cmd->id, strlen(resp) + 1, resp);
+				cmd->id, strlen(resp) + 1, resp);
 }
 
 static int phonebook_get_support_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -1420,20 +1364,19 @@ static int phonebook_get_support_cb(struct gsmd_atcmd *cmd, void *ctx, char *res
 	fcomma = strchr(resp, ',');
 	if (!fcomma)
 		return -EIO;	/* TODO: Send a response */
-	gps.nlength = atoi(fcomma+1);
+	gps.nlength = atoi(fcomma + 1);
 
 	lcomma = strrchr(resp, ',');
 	if (!lcomma)
 		return -EIO;	/* TODO: Send a response */
-	gps.tlength = atoi(lcomma+1);
+	gps.tlength = atoi(lcomma + 1);
 
 	return gsmd_ucmd_submit(gu,
-			GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_GET_SUPPORT,
-			cmd->id, sizeof(gps), &gps);
+				GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_GET_SUPPORT,
+				cmd->id, sizeof(gps), &gps);
 }
 
-static int phonebook_list_storage_cb(struct gsmd_atcmd *cmd,
-		void *ctx, char *resp)
+static int phonebook_list_storage_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	/* TODO; using link list ; need to handle command error */
 	struct gsmd_user *gu = ctx;
@@ -1448,7 +1391,7 @@ static int phonebook_list_storage_cb(struct gsmd_atcmd *cmd,
 	gps.num = 0;
 
 	if (!strncmp(resp, "+CPBS", 5)) {
-		char* delim = "(,";
+		char *delim = "(,";
 		ptr = strpbrk(resp, delim);
 		while (ptr) {
 			strncpy(gps.mem[gps.num].type, ptr + 2, 2);
@@ -1459,14 +1402,12 @@ static int phonebook_list_storage_cb(struct gsmd_atcmd *cmd,
 	}
 
 	return gsmd_ucmd_submit(gu,
-			GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_LIST_STORAGE,
-			cmd->id, sizeof(gps), &gps);
+				GSMD_MSG_PHONEBOOK, GSMD_PHONEBOOK_LIST_STORAGE,
+				cmd->id, sizeof(gps), &gps);
 }
 
-
-static int usock_rcv_phonebook(struct gsmd_user *gu,
-		struct gsmd_msg_hdr *gph,int len)
-{	
+static int usock_rcv_phonebook(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, int len)
+{
 	struct gsmd_atcmd *cmd = NULL;
 	struct gsmd_phonebook_readrg *gpr;
 	struct gsmd_phonebook *gp;
@@ -1478,20 +1419,17 @@ static int usock_rcv_phonebook(struct gsmd_user *gu,
 
 	switch (gph->msg_subtype) {
 	case GSMD_PHONEBOOK_LIST_STORAGE:
-		cmd = atcmd_fill("AT+CPBS=?", 9 + 1,
-				&phonebook_list_storage_cb,
-				gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CPBS=?", 9 + 1, &phonebook_list_storage_cb, gu, gph->id, NULL);
 		break;
 	case GSMD_PHONEBOOK_SET_STORAGE:
 		if (len < sizeof(*gph) + 3)
 			return -EINVAL;
 
-		storage = (char*) ((void *)gph + sizeof(*gph));
+		storage = (char *)((void *)gph + sizeof(*gph));
 
 		/* ex. AT+CPBS="ME" */
 		atcmd_len = 1 + strlen("AT+CPBS=\"") + 2 + strlen("\"");
-		cmd = atcmd_fill("AT+CPBS=\"", atcmd_len,
-				&usock_cmd_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CPBS=\"", atcmd_len, &usock_cmd_cb, gu, gph->id, NULL);
 
 		if (!cmd)
 			return -ENOMEM;
@@ -1499,86 +1437,78 @@ static int usock_rcv_phonebook(struct gsmd_user *gu,
 		sprintf(cmd->buf, "AT+CPBS=\"%s\"", storage);
 		break;
 	case GSMD_PHONEBOOK_FIND:
-		if(len < sizeof(*gph) + sizeof(*gpf))
+		if (len < sizeof(*gph) + sizeof(*gpf))
 			return -EINVAL;
-		gpf = (struct gsmd_phonebook_find *) ((void *)gph + sizeof(*gph));
+		gpf = (struct gsmd_phonebook_find *)((void *)gph + sizeof(*gph));
 
-		atcmd_len = 1 + strlen("AT+CPBF=\"") +
-			strlen(gpf->findtext) + strlen("\"");
-		cmd = atcmd_fill("AT+CPBF=\"", atcmd_len,
-				 &phonebook_find_cb, gu, gph->id, NULL);
+		atcmd_len = 1 + strlen("AT+CPBF=\"") + strlen(gpf->findtext) + strlen("\"");
+		cmd = atcmd_fill("AT+CPBF=\"", atcmd_len, &phonebook_find_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CPBF=\"%s\"", gpf->findtext);
 		break;
 	case GSMD_PHONEBOOK_READ:
-		if(len < sizeof(*gph) + sizeof(int))
+		if (len < sizeof(*gph) + sizeof(int))
 			return -EINVAL;
-		
-		index = (int *) ((void *)gph + sizeof(*gph));
+
+		index = (int *)((void *)gph + sizeof(*gph));
 
 		sprintf(buf, "%d", *index);
 
 		/* ex, AT+CPBR=23 */
 		atcmd_len = 1 + strlen("AT+CPBR=") + strlen(buf);
-		cmd = atcmd_fill("AT+CPBR=", atcmd_len,
-				 &phonebook_read_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CPBR=", atcmd_len, &phonebook_read_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CPBR=%d", *index);
 		break;
-	case GSMD_PHONEBOOK_READRG:		
-		if(len < sizeof(*gph) + sizeof(*gpr))
+	case GSMD_PHONEBOOK_READRG:
+		if (len < sizeof(*gph) + sizeof(*gpr))
 			return -EINVAL;
-		gpr = (struct gsmd_phonebook_readrg *) ((void *)gph + sizeof(*gph));
+		gpr = (struct gsmd_phonebook_readrg *)((void *)gph + sizeof(*gph));
 
-		sprintf(buf, "%d,%d", gpr->index1, gpr->index2);		
+		sprintf(buf, "%d,%d", gpr->index1, gpr->index2);
 
 		/* ex, AT+CPBR=1,100 */
 		atcmd_len = 1 + strlen("AT+CPBR=") + strlen(buf);
-		cmd = atcmd_fill("AT+CPBR=", atcmd_len,
-				 &phonebook_readrg_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CPBR=", atcmd_len, &phonebook_readrg_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CPBR=%s", buf);
 		break;
 	case GSMD_PHONEBOOK_WRITE:
-		if(len < sizeof(*gph) + sizeof(*gp))
+		if (len < sizeof(*gph) + sizeof(*gp))
 			return -EINVAL;
-		gp = (struct gsmd_phonebook *) ((void *)gph + sizeof(*gph));
+		gp = (struct gsmd_phonebook *)((void *)gph + sizeof(*gph));
 
-		sprintf(buf, "%d,\"%s\",%d,\"%s\"",
-				gp->index, gp->numb, gp->type, gp->text);
+		sprintf(buf, "%d,\"%s\",%d,\"%s\"", gp->index, gp->numb, gp->type, gp->text);
 
 		atcmd_len = 1 + strlen("AT+CPBW=") + strlen(buf);
-		cmd = atcmd_fill("AT+CPBW=", atcmd_len,
-				 &phonebook_write_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CPBW=", atcmd_len, &phonebook_write_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CPBW=%s", buf);
 		break;
 	case GSMD_PHONEBOOK_DELETE:
-		if(len < sizeof(*gph) + sizeof(int))
+		if (len < sizeof(*gph) + sizeof(int))
 			return -EINVAL;
-		index = (int *) ((void *)gph + sizeof(*gph));
-	    	
+		index = (int *)((void *)gph + sizeof(*gph));
+
 		sprintf(buf, "%d", *index);
-		
-		/* ex, AT+CPBW=3*/
+
+		/* ex, AT+CPBW=3 */
 		atcmd_len = 1 + strlen("AT+CPBW=") + strlen(buf);
-		cmd = atcmd_fill("AT+CPBW=", atcmd_len,
-				 &phonebook_delete_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CPBW=", atcmd_len, &phonebook_delete_cb, gu, gph->id, NULL);
 		if (!cmd)
 			return -ENOMEM;
 		sprintf(cmd->buf, "AT+CPBW=%s", buf);
-		break;	
+		break;
 	case GSMD_PHONEBOOK_GET_SUPPORT:
-		cmd = atcmd_fill("AT+CPBR=?", 9+1,
-				 &phonebook_get_support_cb, gu, gph->id, NULL);
+		cmd = atcmd_fill("AT+CPBR=?", 9 + 1, &phonebook_get_support_cb, gu, gph->id, NULL);
 		break;
 	default:
 		return -EINVAL;
-	}	
+	}
 
 	if (cmd)
 		return atcmd_submit(gu->gsmd, cmd);
@@ -1587,16 +1517,16 @@ static int usock_rcv_phonebook(struct gsmd_user *gu,
 }
 
 static usock_msg_handler *pcmd_type_handlers[__NUM_GSMD_MSGS] = {
-	[GSMD_MSG_PASSTHROUGH]	= &usock_rcv_passthrough,
-	[GSMD_MSG_EVENT]	= &usock_rcv_event,
-	[GSMD_MSG_VOICECALL]	= &usock_rcv_voicecall,
-	[GSMD_MSG_PIN]		= &usock_rcv_pin,
-	[GSMD_MSG_PHONE]	= &usock_rcv_phone,
-	[GSMD_MSG_NETWORK]	= &usock_rcv_network,
-	[GSMD_MSG_SMS]		= &usock_rcv_sms,
-	[GSMD_MSG_CB]		= &usock_rcv_cb,
-	[GSMD_MSG_PHONEBOOK]	= &usock_rcv_phonebook,
-	[GSMD_MSG_MODEM]	= &usock_rcv_modem,
+	[GSMD_MSG_PASSTHROUGH] = &usock_rcv_passthrough,
+	[GSMD_MSG_EVENT] = &usock_rcv_event,
+	[GSMD_MSG_VOICECALL] = &usock_rcv_voicecall,
+	[GSMD_MSG_PIN] = &usock_rcv_pin,
+	[GSMD_MSG_PHONE] = &usock_rcv_phone,
+	[GSMD_MSG_NETWORK] = &usock_rcv_network,
+	[GSMD_MSG_SMS] = &usock_rcv_sms,
+	[GSMD_MSG_CB] = &usock_rcv_cb,
+	[GSMD_MSG_PHONEBOOK] = &usock_rcv_phonebook,
+	[GSMD_MSG_MODEM] = &usock_rcv_modem,
 };
 
 static int usock_rcv_pcmd(struct gsmd_user *gu, char *buf, int len)
@@ -1609,7 +1539,7 @@ static int usock_rcv_pcmd(struct gsmd_user *gu, char *buf, int len)
 
 	if (gph->msg_type >= __NUM_GSMD_MSGS)
 		return -EINVAL;
-	
+
 	umh = pcmd_type_handlers[gph->msg_type];
 	if (!umh)
 		return -EINVAL;
@@ -1650,8 +1580,7 @@ static int gsmd_usock_user_cb(int fd, unsigned int what, void *data)
 	if (what & GSMD_FD_WRITE) {
 		/* write data from pending replies to socket */
 		struct gsmd_ucmd *ucmd, *uctmp;
-		llist_for_each_entry_safe(ucmd, uctmp, &gu->finished_ucmds,
-					  list) {
+		llist_for_each_entry_safe(ucmd, uctmp, &gu->finished_ucmds, list) {
 			int rc;
 
 			rc = write(fd, &ucmd->hdr, sizeof(ucmd->hdr) + ucmd->hdr.len);
@@ -1691,11 +1620,10 @@ static int gsmd_usock_cb(int fd, unsigned int what, void *data)
 		newuser = talloc(__gu_ctx, struct gsmd_user);
 		if (!newuser)
 			return -ENOMEM;
-		
+
 		newuser->gfd.fd = accept(fd, NULL, 0);
 		if (newuser->gfd.fd < 0) {
-			DEBUGP("error accepting incoming conn: `%s'\n",
-				strerror(errno));
+			DEBUGP("error accepting incoming conn: `%s'\n", strerror(errno));
 			talloc_free(newuser);
 		}
 		newuser->gfd.when = GSMD_FD_READ;
@@ -1724,7 +1652,7 @@ int usock_init(struct gsmd *g)
 	fd = socket(PF_UNIX, GSMD_UNIX_SOCKET_TYPE, 0);
 	if (fd < 0)
 		return fd;
-	
+
 	memset(&sun, 0, sizeof(sun));
 	sun.sun_family = AF_UNIX;
 	memcpy(sun.sun_path, GSMD_UNIX_SOCKET, sizeof(GSMD_UNIX_SOCKET));

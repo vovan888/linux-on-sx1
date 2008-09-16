@@ -20,7 +20,7 @@ static GR_IMAGE_ID signal_image;
 static int signal_frame_width;
 static int signal_frame_height;
 static int signal_current = 0;
-/*FIXME*/ static int xcoord, ycoord;	/* XY coordinates of indicator */
+ /*FIXME*/ static int xcoord, ycoord;	/* XY coordinates of indicator */
 #define MAINSIGNAL_NUMFRAMES	6
 
 static int mainsignal_show(int frame);
@@ -76,18 +76,16 @@ static int mainsignal_show(int frame)
 
 	if (frame >= MAINSIGNAL_NUMFRAMES)
 		frame = MAINSIGNAL_NUMFRAMES - 1;
-	else  if (frame < 0)
+	else if (frame < 0)
 		frame = 0;
 
 	/* draw frame (part) of the image */
 	/* clear the area under the indicator to background pixmap */
-	GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
-			signal_frame_width, signal_frame_height, 0);
+	GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord, signal_frame_width, signal_frame_height, 0);
 	/* Draw the indicator */
 	GrDrawImagePartToFit(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord,
-				signal_frame_width, signal_frame_height,
-				signal_frame_width * frame, 0,
-				signal_frame_width, signal_frame_height,
-				signal_image);
+			     signal_frame_width, signal_frame_height,
+			     signal_frame_width * frame, 0,
+			     signal_frame_width, signal_frame_height, signal_image);
 	return 0;
 }

@@ -20,10 +20,10 @@ enum gsmd_cipher_ind {
 };
 
 struct gsmd_vendorspecific {
-	/* callback function to parse unknown unsolicited responses */	
-	int (*parse_unsolicit)(void);
-	int (*getopt)(struct gsmd *gh, int optname, void *optval, int *optlen);
-	int (*setopt)(struct gsmd *gh, int optname, const void *optval, int optlen);
+	/* callback function to parse unknown unsolicited responses */
+	int (*parse_unsolicit) (void);
+	int (*getopt) (struct gsmd * gh, int optname, void *optval, int *optlen);
+	int (*setopt) (struct gsmd * gh, int optname, const void *optval, int optlen);
 };
 
 /* ciphering indications */

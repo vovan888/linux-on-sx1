@@ -29,13 +29,13 @@ static int tbus_socket_sys = -1;
  * Free all the parts of the message
  * @param msg pointer to the message
  */
-DLLEXPORT void tbus_msg_free (struct tbus_message *msg)
+DLLEXPORT void tbus_msg_free(struct tbus_message *msg)
 {
-	free (msg->service_sender);
-	free (msg->service_dest);
-	free (msg->object);
-	if(msg->datalen > 0) {
-		free (msg->data);
+	free(msg->service_sender);
+	free(msg->service_dest);
+	free(msg->object);
+	if (msg->datalen > 0) {
+		free(msg->data);
 		msg->datalen = 0;
 	}
 }
@@ -45,22 +45,22 @@ DLLEXPORT void tbus_msg_free (struct tbus_message *msg)
  * @param fd file descriptor of destination
  * @param msg message struct
  */
-static int tbus_write_message (int fd, struct tbus_message *msg)
+static int tbus_write_message(int fd, struct tbus_message *msg)
 {
 	int err;
 	tpl_node *tn;
 	tpl_bin tb;
 
-	tn = tpl_map (TBUS_MESSAGE_FORMAT, msg, &tb);
+	tn = tpl_map(TBUS_MESSAGE_FORMAT, msg, &tb);
 	tb.sz = msg->datalen;
 	tb.addr = msg->data;
-	tpl_pack (tn, 0);	/* copies message data into the tpl */
-	err = tpl_dump (tn, TPL_FD, fd);	/* write the tpl image to file descriptor */
-	tpl_free (tn);
+	tpl_pack(tn, 0);	/* copies message data into the tpl */
+	err = tpl_dump(tn, TPL_FD, fd);	/* write the tpl image to file descriptor */
+	tpl_free(tn);
 
 	/* free data - it is always malloc`ed */
-	if(msg->datalen > 0) {
-		free (msg->data);
+	if (msg->datalen > 0) {
+		free(msg->data);
 		msg->datalen = 0;
 	}
 
@@ -79,24 +79,24 @@ static int tbus_write_message (int fd, struct tbus_message *msg)
  *
  * Buffers for the data in the structure are allocated automatically!
  */
-static int tbus_read_message (int fd, struct tbus_message *msg)
+static int tbus_read_message(int fd, struct tbus_message *msg)
 {
 	tpl_node *tn;
 	tpl_bin tb;
 
-	tn = tpl_map (TBUS_MESSAGE_FORMAT, msg, &tb);
-	if (tpl_load (tn, TPL_FD, fd))
+	tn = tpl_map(TBUS_MESSAGE_FORMAT, msg, &tb);
+	if (tpl_load(tn, TPL_FD, fd))
 		goto error_msg;
-	tpl_unpack (tn, 0);	/* allocates space and unpacks data */
-	tpl_free (tn);
+	tpl_unpack(tn, 0);	/* allocates space and unpacks data */
+	tpl_free(tn);
 
 	msg->datalen = tb.sz;
 	msg->data = tb.addr;
 
 	return 0;
       error_msg:
-	free (msg);
-	tpl_free (tn);
+	free(msg);
+	tpl_free(tn);
 	return -1;
 }
 
@@ -131,7 +131,7 @@ static int tbus_pack_args(struct tbus_message *msg, char *fmt, va_list ap)
  * @param socket_path filename for the UNIX socket
  * @return file descriptor of the socket, or -1 for error
  */
-static int tbus_connect_socket (char *socket_path)
+static int tbus_connect_socket(char *socket_path)
 {
 	int sock;
 	struct sockaddr_un saddr;
@@ -139,35 +139,35 @@ static int tbus_connect_socket (char *socket_path)
 
 	/* try 5 times to connect to server */
 	do {
-		sock = socket (AF_UNIX, SOCK_STREAM, 0);
+		sock = socket(AF_UNIX, SOCK_STREAM, 0);
 		if (sock == -1)
 			goto init_socket_error;
 
 		saddr.sun_family = AF_UNIX;
-		strncpy (saddr.sun_path, socket_path, sizeof (saddr.sun_path));
+		strncpy(saddr.sun_path, socket_path, sizeof(saddr.sun_path));
 
 		/* Try to connect.  If the connection is refused, then we will */
 		/* assume that no server is available */
-		if (connect (sock, (struct sockaddr *)&saddr, sizeof (saddr))
+		if (connect(sock, (struct sockaddr *)&saddr, sizeof(saddr))
 		    == -1) {
-			close (sock);
+			close(sock);
 			sock = 0;
-			DPRINT ("Waiting for TBUS server - %d\n", tries);
-			sleep (1);	/* 1 second */
+			DPRINT("Waiting for TBUS server - %d\n", tries);
+			sleep(1);	/* 1 second */
 		} else
 			return sock;
 
 		if (tries++ == 5) {
 			/* no tries left */
-			DPRINT ("No TBUS server!\n");
+			DPRINT("No TBUS server!\n");
 			goto init_socket_error;
 		}
 	} while (1);
 
       init_socket_error:
-	perror ("tbus_init_socket");
+	perror("tbus_init_socket");
 	if (sock >= 0)
-		close (sock);
+		close(sock);
 	return -1;
 }
 
@@ -175,14 +175,14 @@ static int tbus_connect_socket (char *socket_path)
  * Register service to the message bus
  * @param service name of the service to register
  */
-DLLEXPORT int tbus_register_service (char *service)
+DLLEXPORT int tbus_register_service(char *service)
 {
 	struct tbus_message msg;
 
 	if (!service)
 		return -1;
 
-	tbus_socket_sys = tbus_connect_socket (TBUS_SOCKET_SYS);
+	tbus_socket_sys = tbus_connect_socket(TBUS_SOCKET_SYS);
 	if (tbus_socket_sys < 0)
 		return -1;
 
@@ -193,12 +193,12 @@ DLLEXPORT int tbus_register_service (char *service)
 	msg.data = NULL;
 	msg.datalen = 0;
 
-	tbus_write_message (tbus_socket_sys, &msg);
+	tbus_write_message(tbus_socket_sys, &msg);
 
-	memset (&msg, 0, sizeof (struct tbus_message));
-	tbus_read_message (tbus_socket_sys, &msg);
+	memset(&msg, 0, sizeof(struct tbus_message));
+	tbus_read_message(tbus_socket_sys, &msg);
 
-	tbus_msg_free (&msg);
+	tbus_msg_free(&msg);
 
 	if (msg.type == TBUS_MSG_REGISTERED)
 		return tbus_socket_sys;
@@ -209,7 +209,7 @@ DLLEXPORT int tbus_register_service (char *service)
 /**
  * Close connection to the TBUS server
  */
-DLLEXPORT int tbus_close (void)
+DLLEXPORT int tbus_close(void)
 {
 	int err;
 	struct tbus_message msg;
@@ -224,7 +224,9 @@ DLLEXPORT int tbus_close (void)
 	msg.data = NULL;
 	msg.datalen = 0;
 
-	err = tbus_write_message (tbus_socket_sys, &msg);
+	err = tbus_write_message(tbus_socket_sys, &msg);
+
+	close(tbus_socket_sys);
 
 	return err;
 }
@@ -235,22 +237,22 @@ DLLEXPORT int tbus_close (void)
  *
  * returns msg->type, or -1 if error
  */
-DLLEXPORT int tbus_get_message (struct tbus_message *msg)
+DLLEXPORT int tbus_get_message(struct tbus_message *msg)
 {
 	int err;
 
 	if (!msg || (tbus_socket_sys == -1))
 		return -1;
 
-	err = tbus_read_message (tbus_socket_sys, msg);
+	err = tbus_read_message(tbus_socket_sys, msg);
 
 	if (err < 0) {
 		/* some error happened */
-		tbus_msg_free (msg);
+		tbus_msg_free(msg);
 		return -1;
-	} else {
-		return msg->type;
 	}
+
+	return msg->type;
 }
 
 /**
@@ -259,7 +261,7 @@ DLLEXPORT int tbus_get_message (struct tbus_message *msg)
  *
  * returns msg->type, or -1 if error
  */
-DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...)
+DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, char *fmt, ...)
 {
 	int err;
 	va_list ap;
@@ -272,9 +274,11 @@ DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...)
 		tpl_node *tn;
 		tn = tpl_vmap(fmt, ap);
 		err = tpl_load(tn, TPL_MEM, msg->data, msg->datalen);
-		if(err < 0) return err;
+		if (err < 0)
+			return err;
 		err = tpl_unpack(tn, 0);
-		if(err < 0) return err;
+		if (err < 0)
+			return err;
 		tpl_free(tn);
 	}
 	return 0;
@@ -286,7 +290,7 @@ DLLEXPORT int tbus_get_message_args (struct tbus_message *msg, char *fmt, ...)
  * @param fmt format string for the arguments, as in libtpl
  * @param args method arguments, should be pointers to variables!
  */
-DLLEXPORT int tbus_call_method (char *service, char *method, char *fmt, ...)
+DLLEXPORT int tbus_call_method(char *service, char *method, char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;
@@ -302,7 +306,7 @@ DLLEXPORT int tbus_call_method (char *service, char *method, char *fmt, ...)
 	msg.service_dest = service;
 	msg.object = method;
 
-	err = tbus_write_message (tbus_socket_sys, &msg);
+	err = tbus_write_message(tbus_socket_sys, &msg);
 
 	return err;
 }
@@ -329,7 +333,7 @@ DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...)
 	msg.service_dest = service;
 	msg.object = method;
 
-	err = tbus_write_message (tbus_socket_sys, &msg);
+	err = tbus_write_message(tbus_socket_sys, &msg);
 
 	return err;
 }
@@ -338,20 +342,20 @@ DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...)
   * @param millisec timeout in Milliseconds
   * Returns 0 if timeout, 1 if input available, -1 if error
 **/
-DLLEXPORT int tbus_wait_message (int millisec)
+DLLEXPORT int tbus_wait_message(int millisec)
 {
 	int seconds;
 	fd_set set;
 	struct timeval timeout;
 
-	FD_ZERO (&set);
-	FD_SET (tbus_socket_sys, &set);
+	FD_ZERO(&set);
+	FD_SET(tbus_socket_sys, &set);
 	seconds = (millisec * 1000) / 1000000;
 	timeout.tv_sec = seconds;
-	 /*Microseconds*/
-	timeout.tv_usec =(millisec * 1000 - seconds * 1000000);
+	/*Microseconds */
+	timeout.tv_usec = (millisec * 1000 - seconds * 1000000);
 
-	return TEMP_FAILURE_RETRY (select (FD_SETSIZE, &set, NULL, NULL, &timeout));
+	return TEMP_FAILURE_RETRY(select(FD_SETSIZE, &set, NULL, NULL, &timeout));
 }
 
 /** Call method and wait for the method return
@@ -363,7 +367,8 @@ DLLEXPORT int tbus_wait_message (int millisec)
  * @param fmt format string for the arguments, as in libtpl
  * @param args arguments to pass to the method
  */
-DLLEXPORT int tbus_call_method_and_wait (struct tbus_message *answer, char *service, char *method, char *fmt, ...)
+DLLEXPORT int tbus_call_method_and_wait(struct tbus_message *answer, char *service, char *method,
+					char *fmt, ...)
 {
 	int err, type, counter = 0;
 	struct tbus_message msg;
@@ -379,19 +384,20 @@ DLLEXPORT int tbus_call_method_and_wait (struct tbus_message *answer, char *serv
 	msg.service_dest = service;
 	msg.object = method;
 
-	err = tbus_write_message (tbus_socket_sys, &msg);
-	if(err < 0)
+	err = tbus_write_message(tbus_socket_sys, &msg);
+	if (err < 0)
 		return err;
 
 	do {
-		type = tbus_get_message (answer);
+		type = tbus_get_message(answer);
 		/* check the answer */
-		if(type == TBUS_MSG_RETURN_METHOD)
-			if( !strcmp(method, answer->object) && !strcmp(service, answer->service_sender) ) {
+		if (type == TBUS_MSG_RETURN_METHOD)
+			if (!strcmp(method, answer->object) &&
+			    !strcmp(service, answer->service_sender)) {
 				return 0;
 			}
 		tbus_msg_free(answer);
-	} while(counter++ < 16);
+	} while (counter++ < 16);
 
 	return -EPROTO;
 }
@@ -401,7 +407,7 @@ DLLEXPORT int tbus_call_method_and_wait (struct tbus_message *answer, char *serv
  * @param service service name of the method
  * @param object signal name to connect
  */
-DLLEXPORT int tbus_connect_signal (char *service, char *object)
+DLLEXPORT int tbus_connect_signal(char *service, char *object)
 {
 	int err;
 	struct tbus_message msg;
@@ -416,7 +422,7 @@ DLLEXPORT int tbus_connect_signal (char *service, char *object)
 	msg.data = NULL;
 	msg.datalen = 0;
 
-	err = tbus_write_message (tbus_socket_sys, &msg);
+	err = tbus_write_message(tbus_socket_sys, &msg);
 
 	return err;
 }
@@ -426,7 +432,7 @@ DLLEXPORT int tbus_connect_signal (char *service, char *object)
  * @param service service name of the method
  * @param object signal name to connect
  */
-DLLEXPORT int tbus_disconnect_signal (char *service, char *object)
+DLLEXPORT int tbus_disconnect_signal(char *service, char *object)
 {
 	int err;
 	struct tbus_message msg;
@@ -441,7 +447,7 @@ DLLEXPORT int tbus_disconnect_signal (char *service, char *object)
 	msg.data = NULL;
 	msg.datalen = 0;
 
-	err = tbus_write_message (tbus_socket_sys, &msg);
+	err = tbus_write_message(tbus_socket_sys, &msg);
 
 	return err;
 }
@@ -452,7 +458,7 @@ DLLEXPORT int tbus_disconnect_signal (char *service, char *object)
  * @param fmt format string for the arguments, as in libtpl
  * @param value arguments to path to the method
  */
-DLLEXPORT int tbus_emit_signal (char *object, char *fmt, ...)
+DLLEXPORT int tbus_emit_signal(char *object, char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;
@@ -468,7 +474,7 @@ DLLEXPORT int tbus_emit_signal (char *object, char *fmt, ...)
 	msg.service_dest = "";
 	msg.object = object;
 
-	err = tbus_write_message (tbus_socket_sys, &msg);
+	err = tbus_write_message(tbus_socket_sys, &msg);
 
 	return err;
 }

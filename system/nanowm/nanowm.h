@@ -28,22 +28,22 @@ enum {
 	WINDOW_TYPE_ROOT,
 	WINDOW_TYPE_CONTAINER,
 	WINDOW_TYPE_CLIENT
-	/*WINDOW_TYPE_TOPBAR,
-	WINDOW_TYPE_LEFTBAR,
-	WINDOW_TYPE_RIGHTBAR,
-	WINDOW_TYPE_BOTTOMBAR,
-	WINDOW_TYPE_LEFTRESIZE,
-	WINDOW_TYPE_RIGHTRESIZE,
-	WINDOW_TYPE_CLOSEBUTTON,
-	WINDOW_TYPE_MAXIMISEBUTTON,
-	WINDOW_TYPE_RESTOREBUTTON,
-	WINDOW_TYPE_ICONISEBUTTON,
-	WINDOW_TYPE_ICON,
-	WINDOW_TYPE_UTILITYBUTTON,
-	WINDOW_TYPE_UTILITYMENU,
-	WINDOW_TYPE_UTILITYMENUENTRY,
-	WINDOW_TYPE_ROOTMENU,
-	WINDOW_TYPE_ROOTMENUENTRY*/
+	    /*WINDOW_TYPE_TOPBAR,
+	       WINDOW_TYPE_LEFTBAR,
+	       WINDOW_TYPE_RIGHTBAR,
+	       WINDOW_TYPE_BOTTOMBAR,
+	       WINDOW_TYPE_LEFTRESIZE,
+	       WINDOW_TYPE_RIGHTRESIZE,
+	       WINDOW_TYPE_CLOSEBUTTON,
+	       WINDOW_TYPE_MAXIMISEBUTTON,
+	       WINDOW_TYPE_RESTOREBUTTON,
+	       WINDOW_TYPE_ICONISEBUTTON,
+	       WINDOW_TYPE_ICON,
+	       WINDOW_TYPE_UTILITYBUTTON,
+	       WINDOW_TYPE_UTILITYMENU,
+	       WINDOW_TYPE_UTILITYMENUENTRY,
+	       WINDOW_TYPE_ROOTMENU,
+	       WINDOW_TYPE_ROOTMENUENTRY */
 };
 
 /*
@@ -57,13 +57,13 @@ enum {
 struct windowlist {
 	GR_WINDOW_ID wid;	/* The ID of this window */
 	GR_WINDOW_ID pid;	/* The ID of this window's parent */
-	GR_WINDOW_ID clientid;	/* clientid for container window*/
+	GR_WINDOW_ID clientid;	/* clientid for container window */
 	int type;		/* What kind of window this is */
 	int sizing;		/* True if in the middle of a sizing request */
 	int active;		/* Whether this window is active or not */
 	void *data;		/* Data associated with this window */
 
-	struct windowlist *next; /* The next window in the list */
+	struct windowlist *next;	/* The next window in the list */
 };
 typedef struct windowlist win;
 
@@ -99,81 +99,81 @@ struct clientinfo {
 
 /* Function prototypes */
 win *find_window(GR_WINDOW_ID wid);
-int add_window(win *window);
-int remove_window(win *window);
-int remove_window_and_children(win *window);
+int add_window(win * window);
+int remove_window(win * window);
+int remove_window_and_children(win * window);
 int new_client_window(GR_WINDOW_ID wid);
-void client_window_resize(win *window);
-void client_window_destroy(win *window);
+void client_window_resize(win * window);
+void client_window_destroy(win * window);
 
-void client_window_remap(win *window);
-void client_window_unmap(win *window);
+void client_window_remap(win * window);
+void client_window_unmap(win * window);
 
-void redraw_ncarea(win *window);
-void do_exposure(GR_EVENT_EXPOSURE *event);
-void do_button_down(GR_EVENT_BUTTON *event);
-void do_button_up(GR_EVENT_BUTTON *event);
-void do_mouse_enter(GR_EVENT_GENERAL *event);
-void do_mouse_exit(GR_EVENT_GENERAL *event);
-void do_mouse_moved(GR_EVENT_MOUSE *event);
-void do_focus_in(GR_EVENT_GENERAL *event);
-void do_key_down(GR_EVENT_KEYSTROKE *event);
-void do_key_up(GR_EVENT_KEYSTROKE *event);
-void do_focus_in(GR_EVENT_GENERAL *event);
-void do_focus_out(GR_EVENT_GENERAL *event);
-void do_update(GR_EVENT_UPDATE *event);
-void do_chld_update(GR_EVENT_UPDATE *event);
-void rootwindow_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void container_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void topbar_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void closebutton_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void maximisebutton_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void restorebutton_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void iconisebutton_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void utilitybutton_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void utilitymenu_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void utilitymenuentry_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void rootmenu_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void rootmenuentry_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void icon_exposure(win *window, GR_EVENT_EXPOSURE *event);
-void rootwindow_buttondown(win *window, GR_EVENT_BUTTON *event);
-void container_buttondown(win *window, GR_EVENT_BUTTON *event);
-void topbar_buttondown(win *window, GR_EVENT_BUTTON *event);
-void resizebar_buttondown(win *window, GR_EVENT_BUTTON *event);
-void closebutton_buttondown(win *window, GR_EVENT_BUTTON *event);
-void maximisebutton_buttondown(win *window, GR_EVENT_BUTTON *event);
-void restorebutton_buttondown(win *window, GR_EVENT_BUTTON *event);
-void iconisebutton_buttondown(win *window, GR_EVENT_BUTTON *event);
-void utilitybutton_buttondown(win *window, GR_EVENT_BUTTON *event);
-void icon_buttondown(win *window, GR_EVENT_BUTTON *event);
-void rootwindow_buttonup(win *window, GR_EVENT_BUTTON *event);
-void container_buttonup(win *window, GR_EVENT_BUTTON *event);
-void topbar_buttonup(win *window, GR_EVENT_BUTTON *event);
-void resizebar_buttonup(win *window, GR_EVENT_BUTTON *event);
-void closebutton_buttonup(win *window, GR_EVENT_BUTTON *event);
-void maximisebutton_buttonup(win *window, GR_EVENT_BUTTON *event);
-void restorebutton_buttonup(win *window, GR_EVENT_BUTTON *event);
-void iconisebutton_buttonup(win *window, GR_EVENT_BUTTON *event);
-void utilitybutton_buttonup(win *window, GR_EVENT_BUTTON *event);
-void icon_buttonup(win *window, GR_EVENT_BUTTON *event);
-void utilitymenuentry_buttonup(win *window, GR_EVENT_BUTTON *event);
-void rootmenuentry_buttonup(win *window, GR_EVENT_BUTTON *event);
-void closebutton_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void maximisebutton_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void restorebutton_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void iconisebutton_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void utilitybutton_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void utilitymenu_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void utilitymenuentry_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void rootmenu_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void rootmenuentry_mouseexit(win *window, GR_EVENT_GENERAL *event);
-void container_mousemoved(win *window, GR_EVENT_MOUSE *event);
-void topbar_mousemoved(win *window, GR_EVENT_MOUSE *event);
-void leftbar_mousemoved(win *window, GR_EVENT_MOUSE *event);
-void leftresize_mousemoved(win *window, GR_EVENT_MOUSE *event);
-void bottombar_mousemoved(win *window, GR_EVENT_MOUSE *event);
-void rightresize_mousemoved(win *window, GR_EVENT_MOUSE *event);
-void rightbar_mousemoved(win *window, GR_EVENT_MOUSE *event);
+void redraw_ncarea(win * window);
+void do_exposure(GR_EVENT_EXPOSURE * event);
+void do_button_down(GR_EVENT_BUTTON * event);
+void do_button_up(GR_EVENT_BUTTON * event);
+void do_mouse_enter(GR_EVENT_GENERAL * event);
+void do_mouse_exit(GR_EVENT_GENERAL * event);
+void do_mouse_moved(GR_EVENT_MOUSE * event);
+void do_focus_in(GR_EVENT_GENERAL * event);
+void do_key_down(GR_EVENT_KEYSTROKE * event);
+void do_key_up(GR_EVENT_KEYSTROKE * event);
+void do_focus_in(GR_EVENT_GENERAL * event);
+void do_focus_out(GR_EVENT_GENERAL * event);
+void do_update(GR_EVENT_UPDATE * event);
+void do_chld_update(GR_EVENT_UPDATE * event);
+void rootwindow_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void container_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void topbar_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void closebutton_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void maximisebutton_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void restorebutton_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void iconisebutton_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void utilitybutton_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void utilitymenu_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void utilitymenuentry_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void rootmenu_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void rootmenuentry_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void icon_exposure(win * window, GR_EVENT_EXPOSURE * event);
+void rootwindow_buttondown(win * window, GR_EVENT_BUTTON * event);
+void container_buttondown(win * window, GR_EVENT_BUTTON * event);
+void topbar_buttondown(win * window, GR_EVENT_BUTTON * event);
+void resizebar_buttondown(win * window, GR_EVENT_BUTTON * event);
+void closebutton_buttondown(win * window, GR_EVENT_BUTTON * event);
+void maximisebutton_buttondown(win * window, GR_EVENT_BUTTON * event);
+void restorebutton_buttondown(win * window, GR_EVENT_BUTTON * event);
+void iconisebutton_buttondown(win * window, GR_EVENT_BUTTON * event);
+void utilitybutton_buttondown(win * window, GR_EVENT_BUTTON * event);
+void icon_buttondown(win * window, GR_EVENT_BUTTON * event);
+void rootwindow_buttonup(win * window, GR_EVENT_BUTTON * event);
+void container_buttonup(win * window, GR_EVENT_BUTTON * event);
+void topbar_buttonup(win * window, GR_EVENT_BUTTON * event);
+void resizebar_buttonup(win * window, GR_EVENT_BUTTON * event);
+void closebutton_buttonup(win * window, GR_EVENT_BUTTON * event);
+void maximisebutton_buttonup(win * window, GR_EVENT_BUTTON * event);
+void restorebutton_buttonup(win * window, GR_EVENT_BUTTON * event);
+void iconisebutton_buttonup(win * window, GR_EVENT_BUTTON * event);
+void utilitybutton_buttonup(win * window, GR_EVENT_BUTTON * event);
+void icon_buttonup(win * window, GR_EVENT_BUTTON * event);
+void utilitymenuentry_buttonup(win * window, GR_EVENT_BUTTON * event);
+void rootmenuentry_buttonup(win * window, GR_EVENT_BUTTON * event);
+void closebutton_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void maximisebutton_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void restorebutton_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void iconisebutton_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void utilitybutton_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void utilitymenu_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void utilitymenuentry_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void rootmenu_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void rootmenuentry_mouseexit(win * window, GR_EVENT_GENERAL * event);
+void container_mousemoved(win * window, GR_EVENT_MOUSE * event);
+void topbar_mousemoved(win * window, GR_EVENT_MOUSE * event);
+void leftbar_mousemoved(win * window, GR_EVENT_MOUSE * event);
+void leftresize_mousemoved(win * window, GR_EVENT_MOUSE * event);
+void bottombar_mousemoved(win * window, GR_EVENT_MOUSE * event);
+void rightresize_mousemoved(win * window, GR_EVENT_MOUSE * event);
+void rightbar_mousemoved(win * window, GR_EVENT_MOUSE * event);
 
 extern GR_SCREEN_INFO si;
 extern GR_BITMAP utilitybutton_notpressed[];
@@ -209,9 +209,9 @@ extern int righthand_resize_hotx, righthand_resize_hoty;
  */
 int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index);
 
-void wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR *title, GR_BOOL active,
-	GR_WM_PROPS props);
+void wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR * title, GR_BOOL active,
+			 GR_WM_PROPS props);
 
-extern struct SharedSystem *shdata; /* shared memory segment */
+extern struct SharedSystem *shdata;	/* shared memory segment */
 
 #endif

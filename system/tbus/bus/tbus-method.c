@@ -9,9 +9,9 @@
 #include "tbus-server.h"
 #include <flphone/debug.h>
 
-int tbus_client_method (struct tbus_client *sender_client,
-			struct tbus_client *dest_client,
-			struct tbus_message *msg)
+int tbus_client_method(struct tbus_client *sender_client,
+		       struct tbus_client *dest_client,
+		       struct tbus_message *msg)
 {
 	int sock, ret;
 	if (!dest_client) {
@@ -23,20 +23,21 @@ int tbus_client_method (struct tbus_client *sender_client,
 		tmp = msg->service_sender;
 		msg->service_sender = sender_client->service;
 
-		ret = tbus_write_message (sock, msg);
+		ret = tbus_write_message(sock, msg);
 
 		msg->service_sender = tmp;
-		DPRINT ("sent from %s to %s/%s ,ret = %d\n", sender_client->service,
-				 dest_client->service, msg->object, ret);
+		DPRINT("sent from %s to %s/%s ,ret = %d\n",
+		       sender_client->service, dest_client->service,
+		       msg->object, ret);
 	} else {
-		DPRINT ("empty client!\n");
+		DPRINT("empty client!\n");
 	}
 	return 0;
 }
 
-int tbus_client_method_return (struct tbus_client *sender_client,
-			       struct tbus_client *dest_client,
-			       struct tbus_message *msg)
+int tbus_client_method_return(struct tbus_client *sender_client,
+			      struct tbus_client *dest_client,
+			      struct tbus_message *msg)
 {
 	int sock, ret;
 	if (!dest_client) {
@@ -48,13 +49,14 @@ int tbus_client_method_return (struct tbus_client *sender_client,
 		tmp = msg->service_sender;
 		msg->service_sender = sender_client->service;
 
-		ret = tbus_write_message (sock, msg);
+		ret = tbus_write_message(sock, msg);
 
 		msg->service_sender = tmp;
-		DPRINT ("sent from %s to %s/%s ,ret = %d\n", sender_client->service,
-				 dest_client->service, msg->object, ret);
+		DPRINT("sent from %s to %s/%s ,ret = %d\n",
+		       sender_client->service, dest_client->service,
+		       msg->object, ret);
 	} else {
-		DPRINT ("empty client!\n");
+		DPRINT("empty client!\n");
 	}
 	return 0;
 }

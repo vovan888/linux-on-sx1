@@ -13,7 +13,7 @@ ldconfig
 tbus-daemon >/tmp/logtbus 2>/tmp/logtbus2 &
 # start multiplexer daemon
 # -r options is not working....
-gsmMuxd -p /dev/ttyS1 -w -s /dev/mux  /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx
+gsmMuxd -p /dev/ttyS1 -d -w -s /dev/mux  /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx
 
 # start indication server daemon
 ipc_dsy  2>/tmp/logdsy1 &

@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -40,7 +40,7 @@ struct opname {
 		u_int16_t mcc;	/* mobile country code */
 		u_int8_t mnc;	/* mobile network code */
 	} numeric;
-	char alnum_long[16+1];
+	char alnum_long[16 + 1];
 	//char alnum_short[8+1];
 };
 
@@ -51,8 +51,7 @@ static int _opname_add(struct gsmd *g, struct opname *op)
 	struct opname *cur, *cur2;
 
 	llist_for_each_entry_safe(cur, cur2, &g->operators, list) {
-		if (op->numeric.mcc == cur->numeric.mcc &&
-		    op->numeric.mnc == cur->numeric.mnc) {
+		if (op->numeric.mcc == cur->numeric.mcc && op->numeric.mnc == cur->numeric.mnc) {
 			llist_del(&cur->list);
 			talloc_free(cur);
 		}
@@ -62,12 +61,11 @@ static int _opname_add(struct gsmd *g, struct opname *op)
 	return 0;
 }
 
-int gsmd_opname_add(struct gsmd *g, const char *numeric_bcd_string,
-		    const char *alnum_long)
+int gsmd_opname_add(struct gsmd *g, const char *numeric_bcd_string, const char *alnum_long)
 {
 	struct opname *op;
-	char mcc[3+1];
-	char mnc[2+1];
+	char mcc[3 + 1];
+	char mnc[2 + 1];
 
 	if (strlen(numeric_bcd_string) != 5)
 		return -EINVAL;
@@ -75,12 +73,12 @@ int gsmd_opname_add(struct gsmd *g, const char *numeric_bcd_string,
 	op = talloc(__opc_ctx, struct opname);
 	if (!op)
 		return -ENOMEM;
-	
+
 	memset(mcc, 0, sizeof(mcc));
 	memset(mnc, 0, sizeof(mnc));
 
 	strncpy(mcc, numeric_bcd_string, 3);
-	strncpy(mnc, numeric_bcd_string+3, 2);
+	strncpy(mnc, numeric_bcd_string + 3, 2);
 
 	strlcpy(op->alnum_long, alnum_long, sizeof(op->alnum_long));
 	op->numeric.mcc = atoi(mcc);

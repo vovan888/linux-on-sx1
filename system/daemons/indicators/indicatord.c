@@ -38,7 +38,7 @@ static int terminate = 0;
 /* signal handler */
 void signal_handler(int param)
 {
-    terminate = 1;
+	terminate = 1;
 }
 
 static void mainloop(void)
@@ -71,8 +71,7 @@ int main_load_indicators()
 	memset(indicators, 0, sizeof(indicators));
 
 	/* Select events for the ROOT window */
-	GrSelectEvents(GR_ROOT_WINDOW_ID,
-		       GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT);
+	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT);
 
 // debug - draw a cross
 	GrLine(GR_ROOT_WINDOW_ID, gc, 0, 0, 176, 220);
@@ -100,9 +99,9 @@ int main(int argc, char *argv[])
 	char buf[512];
 	int ret;
 
-      signal(SIGINT, signal_handler);
-      signal(SIGTERM, signal_handler);
-      signal(SIGHUP, signal_handler);
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
+	signal(SIGHUP, signal_handler);
 
 	memset(buf, 0, sizeof(buf));
 	pid = getpid();

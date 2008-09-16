@@ -71,7 +71,7 @@ int gsmd_machine_plugin_load(char *name)
 
 	DEBUGP("loading machine plugin \"%s\"\n", name);
 
-	snprintf(buf, sizeof(buf), PLUGINDIR"/libgsmd-machine_%s.so", name);
+	snprintf(buf, sizeof(buf), PLUGINDIR "/libgsmd-machine_%s.so", name);
 
 	plugin = dlopen(buf, RTLD_LAZY);
 	if (!plugin) {
@@ -94,16 +94,16 @@ struct machines {
 	char *machine;
 	char *vendor;
 } machines[] = {
-	{ "OMAP310 based Siemens SX1",	"sx1",		"siemens" },
-	{ "GTA01",		"gta01",	"ti" },
-	{ "GTA02",		"gta01",	"ti" },
-	{ "HTC Blueangel",	"tihtc",	"tihtc" },
-	{ "HTC Himalaya",	"tihtc",	"tihtc" },
-	{ "HTC Magician",	"tihtc",	"tihtc" },
-	{ "HTC Universal",	"generic",	"qc" },
-	{ "Palm Treo 650",	"generic",	"bcm" },
-	{ NULL, NULL, NULL },
-};
+	{
+	"OMAP310 based Siemens SX1", "sx1", "siemens"}, {
+	"GTA01", "gta01", "ti"}, {
+	"GTA02", "gta01", "ti"}, {
+	"HTC Blueangel", "tihtc", "tihtc"}, {
+	"HTC Himalaya", "tihtc", "tihtc"}, {
+	"HTC Magician", "tihtc", "tihtc"}, {
+	"HTC Universal", "generic", "qc"}, {
+	"Palm Treo 650", "generic", "bcm"}, {
+NULL, NULL, NULL},};
 
 int gsmd_machine_plugin_init(struct gsmd *g, char *machine_name, char *vendor_name)
 {
@@ -115,12 +115,12 @@ int gsmd_machine_plugin_init(struct gsmd *g, char *machine_name, char *vendor_na
 	cpuinfo = fopen("/proc/cpuinfo", "r");
 	fread(buf, sizeof(buf), 1, cpuinfo);
 	fclose(cpuinfo);
-	buf[sizeof(buf)-1] = '\0';
+	buf[sizeof(buf) - 1] = '\0';
 
 	line = strtok(buf, "\n");
 	while ((line = strtok(NULL, "\n"))) {
 		if (strncmp(line, "Hardware\t: ", 11) == 0) {
-			hw = line+11;
+			hw = line + 11;
 			break;
 		}
 	}
@@ -132,15 +132,15 @@ int gsmd_machine_plugin_init(struct gsmd *g, char *machine_name, char *vendor_na
 				DEBUGP("detected '%s' hardware\n", hw);
 				if (machine_name)
 					DEBUGP("warning: auto-detected machine '%s', "
-						"but user override to '%s'\n",
-						machines[i].machine, machine_name);
+					       "but user override to '%s'\n",
+					       machines[i].machine, machine_name);
 				else
 					machine_name = machines[i].machine;
 
 				if (vendor_name)
 					DEBUGP("warning: auto-detected vendor '%s', "
-						"but user override to '%s'\n",
-						machines[i].vendor, vendor_name);
+					       "but user override to '%s'\n",
+					       machines[i].vendor, vendor_name);
 				else
 					vendor_name = machines[i].vendor;
 				break;

@@ -88,7 +88,6 @@ static int maindatetime_show(void)
 	GrClearArea(GR_ROOT_WINDOW_ID, xcoord, ycoord,
 		    datetime_frame_width, datetime_frame_height, 0);
 	/* Draw time string */
-	GrText(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord, string_time, -1,
-	       GR_TFASCII | GR_TFTOP);
+	GrText(GR_ROOT_WINDOW_ID, gc, xcoord, ycoord, string_time, -1, GR_TFASCII | GR_TFTOP);
 	return 0;
 }

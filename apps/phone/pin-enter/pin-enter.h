@@ -20,7 +20,7 @@ public:
 	bool PinOK;
 private:
 	int EnterPIN(char *oldpin, char *newpin);
-	static void timer_callback(void *data);
+	static void cb_pin_ok_timer(void *data);
 	static void cb_wait_animation(void *data);
 	virtual void handle_method_return(struct tbus_message *msg);
 private:

@@ -25,9 +25,9 @@ win *find_window(GR_WINDOW_ID wid)
 
 	Dprintf("Looking for window %d... ", wid);
 
-	while(w) {
+	while (w) {
 		Dprintf("%d ", w->wid);
-		if(w->wid == wid) {
+		if (w->wid == wid) {
 			Dprintf("found it!\n");
 			return w;
 		}
@@ -42,18 +42,19 @@ win *find_window(GR_WINDOW_ID wid)
  * Add a new entry to the front of the windowlist.
  * Returns -1 on failure or 0 on success.
  */
-int add_window(win *window)
+int add_window(win * window)
 {
 	win *w;
 
 	Dprintf("Adding window %d\n", window->wid);
 
-	if(!(w = malloc(sizeof(win)))) return -1;
+	if (!(w = malloc(sizeof(win))))
+		return -1;
 
 	w->wid = window->wid;
 	w->pid = window->pid;
 	w->type = window->type;
-	w->sizing = GR_FALSE;	/* window->sizing*/
+	w->sizing = GR_FALSE;	/* window->sizing */
 	w->active = window->active;
 	w->clientid = window->clientid;
 	w->data = window->data;
@@ -70,16 +71,19 @@ int add_window(win *window)
  * prev pointer to the structure which would increase the memory usage.
  * Returns -1 on failure or 0 on success.
  */
-int remove_window(win *window)
+int remove_window(win * window)
 {
 	win *w = windows;
 	win *prev = NULL;
 
-	while(w) {
-		if(w == window) {
-			if(!prev) windows = w->next;
-			else prev->next = w->next;
-			if(w->data) free(w->data);
+	while (w) {
+		if (w == window) {
+			if (!prev)
+				windows = w->next;
+			else
+				prev->next = w->next;
+			if (w->data)
+				free(w->data);
 			free(w);
 			return 0;
 		}
@@ -94,7 +98,7 @@ int remove_window(win *window)
  * Remove an entry and all it's children from the windowlist.
  * Returns -1 on failure or 0 on success.
  */
-int remove_window_and_children(win *window)
+int remove_window_and_children(win * window)
 {
 	win *t, *w = windows;
 	win *prev = NULL;
@@ -102,15 +106,17 @@ int remove_window_and_children(win *window)
 
 	Dprintf("Removing window %d and children\n", window->wid);
 
-	while(w) {
+	while (w) {
 		Dprintf("Examining window %d (pid %d)\n", w->wid, w->pid);
-		if((w->pid == pid) || (w == window)) {
-			Dprintf("Removing window %d (pid %d)\n", w->wid,
-								w->pid);
-			if(prev) prev->next = w->next;
-			else windows = w->next;
+		if ((w->pid == pid) || (w == window)) {
+			Dprintf("Removing window %d (pid %d)\n", w->wid, w->pid);
+			if (prev)
+				prev->next = w->next;
+			else
+				windows = w->next;
 			t = w->next;
-			if(w->data) free(w->data);
+			if (w->data)
+				free(w->data);
 			free(w);
 			w = t;
 			continue;

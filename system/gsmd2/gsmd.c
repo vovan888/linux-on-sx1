@@ -85,9 +85,9 @@ static void alive_tmr_cb(struct gsmd_timer *tmr, void *data)
 	gsmd_timer_free(tmr);
 }
 
-static struct gsmd_timer * alive_timer(struct gsmd *g)
+static struct gsmd_timer *alive_timer(struct gsmd *g)
 {
- 	struct timeval tv;
+	struct timeval tv;
 	tv.tv_sec = GSMD_ALIVE_TIMEOUT;
 	tv.tv_usec = 0;
 
@@ -100,7 +100,7 @@ static int gsmd_modem_alive(struct gsmd *gsmd)
 
 	gsmd->alive_responded = 0;
 
-	cmd = atcmd_fill(GSMD_ALIVECMD, strlen(GSMD_ALIVECMD)+1,
+	cmd = atcmd_fill(GSMD_ALIVECMD, strlen(GSMD_ALIVECMD) + 1,
 			 &gsmd_alive_cb, gsmd, 0, alive_timer);
 	if (!cmd) {
 		return -ENOMEM;
@@ -138,7 +138,6 @@ int gsmd_alive_start(struct gsmd *gsmd)
 	return 0;
 }
 
-
 /* initial startup code */
 
 static int gsmd_test_atcb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -151,12 +150,12 @@ static int gsmd_get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd *g = ctx;
 
-	int type = pin_name_to_type(resp+7);
+	int type = pin_name_to_type(resp + 7);
 	DEBUGP("cpin? pin_type= : %d\n", type);
 
 	g->pin_type = type;
 
-	if(type == GSMD_PIN_READY)
+	if (type == GSMD_PIN_READY)
 		gsmd_initsettings_after_pin(g);
 
 	return 0;
@@ -175,7 +174,7 @@ static int gsmd_get_imsi_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 {
 	struct gsmd_atcmd *cmd;
-	cmd = atcmd_fill(cmdtxt, strlen(cmdtxt)+1, &gsmd_test_atcb, NULL, 0, NULL);
+	cmd = atcmd_fill(cmdtxt, strlen(cmdtxt) + 1, &gsmd_test_atcb, NULL, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
 
@@ -193,11 +192,11 @@ int gsmd_initsettings2(struct gsmd *gsmd)
 	rc |= gsmd_simplecmd(gsmd, "AT+CMEE=1");
 
 	/* get PIN status */
-	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 8+1,
-		&gsmd_get_cpin_cb, gsmd, 0, NULL));
+	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 8 + 1, &gsmd_get_cpin_cb, gsmd, 0, NULL));
 
 	return 0;
 }
+
 /* these commands require PIN to be READY */
 int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 {
@@ -208,17 +207,16 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 	/* use +CLIP: to indicate CLIP */
 	rc |= gsmd_simplecmd(gsmd, "AT+CLIP=1");
 	/* use +COLP: to indicate COLP */
-	/* set it 0 to disable subscriber info and avoid cme err 512 ?FIXME?*/
+	/* set it 0 to disable subscriber info and avoid cme err 512 ?FIXME? */
 	rc |= gsmd_simplecmd(gsmd, "AT+COLP=1");
 	/* use +CCWA: to indicate waiting call */
 	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
-	/* configure message format as PDU mode*/
+	/* configure message format as PDU mode */
 	/* FIXME: TEXT mode support!! */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMGF=0");
 
 	/* get imsi */
-	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 7+1,
-					&gsmd_get_imsi_cb, gsmd, 0, NULL));
+	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 7 + 1, &gsmd_get_imsi_cb, gsmd, 0, NULL));
 
 	sms_cb_init(gsmd);
 
@@ -235,8 +233,7 @@ static int firstcmd_atcb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd *gsmd = ctx;
 
-	if (strcmp(resp, "OK") &&
-	    (!(gsmd->flags & GSMD_FLAG_V0) || resp[0] != '0')) {
+	if (strcmp(resp, "OK") && (!(gsmd->flags & GSMD_FLAG_V0) || resp[0] != '0')) {
 		// temporarily changed to GSMD_ERROR instead of GSMD_FATAL + commented out exit(4) :M:
 		gsmd_log(GSMD_ERROR, "response '%s' to initial command invalid", resp);
 		//exit(4);
@@ -257,12 +254,11 @@ static int firstcmd_atcb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	return gsmd_initsettings2(gsmd);
 }
 
-
 int gsmd_initsettings(struct gsmd *gsmd)
 {
 	struct gsmd_atcmd *cmd;
 
-	cmd = atcmd_fill("ATZ", strlen("ATZ")+1, &firstcmd_atcb, gsmd, 0, NULL);
+	cmd = atcmd_fill("ATZ", strlen("ATZ") + 1, &firstcmd_atcb, gsmd, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
 
@@ -275,16 +271,16 @@ struct bdrt {
 };
 
 static struct bdrt bdrts[] = {
-	{ 0, B0 },
-	{ 9600, B9600 },
-	{ 19200, B19200 },
-	{ 38400, B38400 },
-	{ 57600, B57600 },
-	{ 115200, B115200 },
+	{0, B0},
+	{9600, B9600},
+	{19200, B19200},
+	{38400, B38400},
+	{57600, B57600},
+	{115200, B115200},
 #ifndef __UCLIBC__
-	{ 230400, B230400 },
-	{ 460800, B460800 },
-	{ 921600, B921600 },
+	{230400, B230400},
+	{460800, B460800},
+	{921600, B921600},
 #endif
 };
 
@@ -303,18 +299,18 @@ static int set_baudrate(int fd, int baudrate, int hwflow)
 
 	i = tcgetattr(fd, &ti);
 	if (i < 0) {
-                return -errno;
-        }
+		return -errno;
+	}
 
 	i = cfsetispeed(&ti, B0);
 	if (i < 0) {
-                return -errno;
-        }
+		return -errno;
+	}
 
 	i = cfsetospeed(&ti, bd);
 	if (i < 0) {
-                return -errno;
-        }
+		return -errno;
+	}
 
 	if (hwflow)
 		ti.c_cflag |= CRTSCTS;
@@ -338,18 +334,18 @@ static int gsmd_initialize(struct gsmd *g)
 }
 
 static struct option opts[] = {
-	{ "version", 0, NULL, 'V' },
-	{ "daemon", 0, NULL, 'd' },
-	{ "help", 0, NULL, 'h' },
-	{ "device", 1, NULL, 'p' },
-	{ "speed", 1, NULL, 's' },
-	{ "logfile", 1, NULL, 'l' },
-	{ "hwflow", 0, NULL, 'F' },
-	{ "leak-report", 0, NULL, 'L' },
-	{ "vendor", 1, NULL, 'v' },
-	{ "machine", 1, NULL, 'm' },
-	{ "wait", 1, NULL, 'w' },
-	{ 0, 0, 0, 0 }
+	{"version", 0, NULL, 'V'},
+	{"daemon", 0, NULL, 'd'},
+	{"help", 0, NULL, 'h'},
+	{"device", 1, NULL, 'p'},
+	{"speed", 1, NULL, 's'},
+	{"logfile", 1, NULL, 'l'},
+	{"hwflow", 0, NULL, 'F'},
+	{"leak-report", 0, NULL, 'L'},
+	{"vendor", 1, NULL, 'v'},
+	{"machine", 1, NULL, 'm'},
+	{"wait", 1, NULL, 'w'},
+	{0, 0, 0, 0}
 };
 
 static void print_header(void)
@@ -360,7 +356,7 @@ static void print_header(void)
 
 static void print_version(void)
 {
-	printf("gsmd, version %s\n",GSMD_VERSION);
+	printf("gsmd, version %s\n", GSMD_VERSION);
 }
 
 static void print_usage(void)
@@ -376,8 +372,7 @@ static void print_usage(void)
 	       "\t-l file\t--logfile file\tSpecify a logfile to log to\n"
 	       "\t-v\t--vendor v\tSpecify GSM modem vendor plugin\n"
 	       "\t-m\t--machine m\tSpecify GSM modem machine plugin\n"
-	       "\t-w\t--wait m\tWait for the AT Interpreter Ready message\n"
-	       );
+	       "\t-w\t--wait m\tWait for the AT Interpreter Ready message\n");
 }
 
 static void sig_handler(int signr)
@@ -471,8 +466,7 @@ int main(int argc, char **argv)
 	/* use direct access to device node ([virtual] tty device) */
 	fd = open(device, O_RDWR);
 	if (fd < 0) {
-		fprintf(stderr, "can't open device `%s': %s\n",
-			device, strerror(errno));
+		fprintf(stderr, "can't open device `%s': %s\n", device, strerror(errno));
 		exit(1);
 	}
 
@@ -497,8 +491,7 @@ int main(int argc, char **argv)
 	gsmd_machine_plugin_find(&g);
 
 	/* initialize the machine plugin */
-	if (g.machinepl->init &&
-	    (g.machinepl->init(&g, fd) < 0)) {
+	if (g.machinepl->init && (g.machinepl->init(&g, fd) < 0)) {
 		fprintf(stderr, "couldn't initialize machine plugin\n");
 		exit(1);
 	}
@@ -511,7 +504,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-        write(fd,"\r",1);
+	write(fd, "\r", 1);
 	atcmd_drain(fd);
 
 	if (usock_init(&g) < 0) {
@@ -541,8 +534,7 @@ int main(int argc, char **argv)
 			if (errno == EINTR)
 				continue;
 			else {
-				DEBUGP("select returned error (%s)\n",
-					strerror(errno));
+				DEBUGP("select returned error (%s)\n", strerror(errno));
 				break;
 			}
 		}

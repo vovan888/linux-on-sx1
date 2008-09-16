@@ -45,8 +45,7 @@ static void tv_normalize(struct timeval *out)
 }
 #endif
 /* subtract two struct timevals */
-static int tv_sub(struct timeval *res, const struct timeval *from,
-		  const struct timeval *sub)
+static int tv_sub(struct timeval *res, const struct timeval *from, const struct timeval *sub)
 {
 	res->tv_sec = from->tv_sec - sub->tv_sec;
 	res->tv_usec = from->tv_usec - sub->tv_usec;
@@ -58,9 +57,9 @@ static int tv_sub(struct timeval *res, const struct timeval *from,
 
 	return 0;
 }
+
 #if 0
-static int tv_add(struct timeval *res, const struct timeval *a1,
-		  const struct timeval *a2)
+static int tv_add(struct timeval *res, const struct timeval *a1, const struct timeval *a2)
 {
 	unsigned int carry;
 
@@ -76,7 +75,8 @@ static int tv_later(const struct timeval *expires, const struct timeval *now)
 		return 0;
 	else if (expires->tv_sec > now->tv_sec)
 		return 1;
-	else /* if (expires->tv_sec == now->tv_sec */ {
+	else {			/* if (expires->tv_sec == now->tv_sec */
+
 		if (expires->tv_usec >= now->tv_usec)
 			return 1;
 	}
@@ -98,7 +98,7 @@ static int calc_next_expiration(void)
 
 	gettimeofday(&now, NULL);
 
-retry:
+      retry:
 	if (llist_empty(&gsmd_timers))
 		return 0;
 
@@ -142,7 +142,7 @@ void gsmd_timer_check_n_run(void)
 			/* fist delete it from the list of timers */
 			llist_del(&cur->list);
 			/* then call.  called function can re-add it */
-			(cur->cb)(cur, cur->data);
+			(cur->cb) (cur, cur->data);
 		}
 	}
 
@@ -186,9 +186,7 @@ int gsmd_timer_register(struct gsmd_timer *timer)
 }
 
 struct gsmd_timer *gsmd_timer_create(struct timeval *expires,
-				     void (*cb)(struct gsmd_timer *tmr,
-						void *data),
-				     void *data)
+				     void (*cb) (struct gsmd_timer * tmr, void *data), void *data)
 {
 	struct gsmd_timer *tmr = gsmd_timer_alloc();
 	int rc;

@@ -33,9 +33,9 @@ local-build = $(patsubst %,_build_%,$(LOCAL))
 local-clean = $(patsubst %,_clean_%,$(LOCAL))
 local-install = $(patsubst %,_install_%,$(LOCAL))
 
-all: $(subdir-build) $(local-build)
-clean: $(subdir-clean) $(local-clean)
-install: $(subdir-install) $(local-install)
+all: $(local-build) $(subdir-build)
+clean: $(local-clean) $(subdir-clean)
+install: $(local-install) $(subdir-install)
 
 $(subdir-build): dummy
 	@ $(MAKE) -C $(patsubst _subdir_%,%,$@)

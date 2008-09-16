@@ -28,24 +28,23 @@
 #define min(a,b) ((a < b) ? a :b)
 #endif
 
-
 typedef struct GSM0710_Frame {
-  unsigned char channel;
-  unsigned char control;
-  int data_length;
-  unsigned char *data;
+	unsigned char channel;
+	unsigned char control;
+	int data_length;
+	unsigned char *data;
 } GSM0710_Frame;
 
 #define GSM0710_BUFFER_SIZE 2048
 
 typedef struct GSM0710_Buffer {
-  unsigned char data[GSM0710_BUFFER_SIZE];
-  unsigned char *readp;
-  unsigned char *writep;
-  unsigned char *endp;
-  int flag_found; // set if last character read was flag
-  unsigned long received_count;
-  unsigned long dropped_count;
+	unsigned char data[GSM0710_BUFFER_SIZE];
+	unsigned char *readp;
+	unsigned char *writep;
+	unsigned char *endp;
+	int flag_found;		// set if last character read was flag
+	unsigned long received_count;
+	unsigned long dropped_count;
 } GSM0710_Buffer;
 
 // increases buffer pointer by one and wraps around if necessary
@@ -63,7 +62,7 @@ GSM0710_Buffer *gsm0710_buffer_init();
  * PARAMS:
  * buf - buffer to be destroyed
  */
-void gsm0710_buffer_destroy(GSM0710_Buffer *buf);
+void gsm0710_buffer_destroy(GSM0710_Buffer * buf);
 
 /* Tells, how many chars are saved into the buffer.
  *
@@ -85,7 +84,7 @@ void gsm0710_buffer_destroy(GSM0710_Buffer *buf);
  * RETURNS:
  * number of characters read
  */
-int gsm0710_buffer_read(GSM0710_Buffer *buf, char *output, int count);
+int gsm0710_buffer_read(GSM0710_Buffer * buf, unsigned char *output, int count);
 
 /* Encapsulates data to a frame and writes it to the buffer
  *
@@ -97,8 +96,8 @@ int gsm0710_buffer_read(GSM0710_Buffer *buf, char *output, int count);
  * RETURNS
  * number of characters written
  */
-int gsm0710_buffer_write2ch(GSM0710_Buffer *buf, int channel,
-			    const char *input, int count);
+int gsm0710_buffer_write2ch(GSM0710_Buffer * buf, int channel,
+			    const unsigned char *input, int count);
 
 /* Writes data to the buffer
  *
@@ -109,7 +108,8 @@ int gsm0710_buffer_write2ch(GSM0710_Buffer *buf, int channel,
  * RETURNS
  * number of characters written
  */
-int gsm0710_buffer_write(GSM0710_Buffer *buf, const unsigned char *input, int count);
+int gsm0710_buffer_write(GSM0710_Buffer * buf, const unsigned char *input,
+			 int count);
 
 /* Gets a frame from buffer. You have to remember to free this frame
  * when it's not needed anymore
@@ -119,10 +119,10 @@ int gsm0710_buffer_write(GSM0710_Buffer *buf, const unsigned char *input, int co
  * RETURNS:
  * frame or null, if there isn't ready frame with given index
  */
-GSM0710_Frame *gsm0710_buffer_get_frame(GSM0710_Buffer *buf);
+GSM0710_Frame *gsm0710_buffer_get_frame(GSM0710_Buffer * buf);
 
 // destroys a frame
-void destroy_frame(GSM0710_Frame *frame);
+void destroy_frame(GSM0710_Frame * frame);
 
 /* Calculates frame check sequence from given characters.
  *
@@ -135,10 +135,3 @@ void destroy_frame(GSM0710_Frame *frame);
 unsigned char make_fcs(const unsigned char *input, int count);
 
 #endif /* _GSM0710_BUFFER_H_ */
-
-
-
-
-
-
-

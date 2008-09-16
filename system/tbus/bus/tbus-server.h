@@ -47,28 +47,24 @@ struct tbus_signal_conn {
 };
 
 /* from tbus-clients.c */
-void tbus_init_clients ();
-int tbus_client_add (int socket_fd, char *service);
-struct tbus_client *tbus_client_find_by_socket (int socket_fd);
-struct tbus_client *tbus_client_find_by_service (char *service);
-void tbus_client_del (struct tbus_client *client);
+void tbus_init_clients();
+int tbus_client_add(int socket_fd, char *service);
+struct tbus_client *tbus_client_find_by_socket(int socket_fd);
+struct tbus_client *tbus_client_find_by_service(char *service);
+void tbus_client_del(struct tbus_client *client);
 
 /* from tbus-message.c */
-int tbus_client_message (int socket_fd, int bus_id);
-int tbus_write_message (int fd, struct tbus_message *msg);
+int tbus_client_message(int socket_fd, int bus_id);
+int tbus_write_message(int fd, struct tbus_message *msg);
 
 /* from tbus-signal.c */
-int tbus_client_connect_signal (struct tbus_client *sender_client,
-				struct tbus_message *msg);
-int tbus_client_disconnect_signal (struct tbus_client *sender_client,
-				   struct tbus_message *msg);
-int tbus_client_emit_signal (struct tbus_client *sender_client,
-			     struct tbus_message *msg);
+int tbus_client_connect_signal(struct tbus_client *sender_client, struct tbus_message *msg);
+int tbus_client_disconnect_signal(struct tbus_client *sender_client, struct tbus_message *msg);
+int tbus_client_emit_signal(struct tbus_client *sender_client, struct tbus_message *msg);
+int tbus_remove_client_connections(struct tbus_client *client);
 
 /* from tbus-method.c */
-int tbus_client_method (struct tbus_client *sender_client,
-			struct tbus_client *dest_client,
-			struct tbus_message *msg);
-int tbus_client_method_return (struct tbus_client *sender_client,
-			       struct tbus_client *dest_client,
-			       struct tbus_message *msg);
+int tbus_client_method(struct tbus_client *sender_client,
+		       struct tbus_client *dest_client, struct tbus_message *msg);
+int tbus_client_method_return(struct tbus_client *sender_client,
+			      struct tbus_client *dest_client, struct tbus_message *msg);

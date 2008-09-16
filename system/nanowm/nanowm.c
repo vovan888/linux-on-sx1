@@ -19,10 +19,10 @@
 
 GR_SCREEN_INFO si;
 
-struct SharedSystem *shdata; /* shared memory segment */
+struct SharedSystem *shdata;	/* shared memory segment */
 
 /* Register with IPC server */
-int ipc_start(char * servername)
+int ipc_start(char *servername)
 {
 	int sock;
 
@@ -35,10 +35,10 @@ int ipc_start(char * servername)
 }
 
 /* Handle IPC message */
-int ipc_handle (GR_EVENT * e)
+int ipc_handle(GR_EVENT * e)
 {
 	struct tbus_message msg;
-	int	ret;
+	int ret;
 
 	ret = tbus_get_message(&msg);
 
@@ -54,17 +54,17 @@ int main(int argc, char *argv[])
 	GR_WM_PROPERTIES props;
 	win window;
 
-	if(GrOpen() < 0) {
+	if (GrOpen() < 0) {
 		fprintf(stderr, "Couldn't connect to Nano-X server!\n");
 		exit(1);
 	}
 
-	/* pass errors through main loop, don't exit*/
+	/* pass errors through main loop, don't exit */
 	GrSetErrorHandler(NULL);
 
 	GrGetScreenInfo(&si);
 
-	/* add root window*/
+	/* add root window */
 	window.wid = GR_ROOT_WINDOW_ID;
 	window.pid = GR_ROOT_WINDOW_ID;
 	window.type = WINDOW_TYPE_ROOT;
@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
 	add_window(&window);
 
 	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE |
-				GR_EVENT_MASK_KEY_DOWN | GR_EVENT_MASK_KEY_UP |
-				GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER | GR_EVENT_MASK_FDINPUT);
+		       GR_EVENT_MASK_KEY_DOWN | GR_EVENT_MASK_KEY_UP |
+		       GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER | GR_EVENT_MASK_FDINPUT);
 
 	/* IPC init */
 	ipc_start("nanowm");
@@ -84,58 +84,57 @@ int main(int argc, char *argv[])
 
 /*	GrGrabKey(GR_ROOT_WINDOW_ID, Menu ,GR_GRAB_EXCLUSIVE); */
 
-	/* Set new root window background color*/
+	/* Set new root window background color */
 	props.flags = GR_WM_FLAGS_BACKGROUND;
 	props.background = GrGetSysColor(GR_COLOR_DESKTOP);
 	GrSetWMProperties(GR_ROOT_WINDOW_ID, &props);
-	
+
 	/* load wallpaper to the root window */
 	wm_loadwallpaper(GR_ROOT_WINDOW_ID, THEME_GROUP_MAINSCREEN, THEME_WALLPAPER);
 
-	while(1) { 
+	while (1) {
 		GrGetNextEvent(&event);
 
-		switch(event.type) {
-			case GR_EVENT_TYPE_ERROR:
-				printf("nanowm: error %d\n", event.error.code);
-				break;
-			case GR_EVENT_TYPE_EXPOSURE:
-				do_exposure(&event.exposure);
-				break;
-			case GR_EVENT_TYPE_BUTTON_DOWN:
-				do_button_down(&event.button);
-				break;
-			case GR_EVENT_TYPE_BUTTON_UP:
-				do_button_up(&event.button);
-				break;
-			case GR_EVENT_TYPE_MOUSE_ENTER:
-				do_mouse_enter(&event.general);
-				break;
-			case GR_EVENT_TYPE_MOUSE_EXIT:
-				do_mouse_exit(&event.general);
-				break;
-			case GR_EVENT_TYPE_MOUSE_POSITION:
-				do_mouse_moved(&event.mouse);
-				break;
-			case GR_EVENT_TYPE_KEY_DOWN:
-				do_key_down(&event.keystroke);
-				break;
-			case GR_EVENT_TYPE_KEY_UP:
-				do_key_up(&event.keystroke);
-				break;
-			case GR_EVENT_TYPE_FOCUS_IN:
-				do_focus_in(&event.general);
-				break;
-			case GR_EVENT_TYPE_CHLD_UPDATE:
-				do_update(&event.update);
-				break;
-			case GR_EVENT_TYPE_FDINPUT:
-				ipc_handle(&event);
-				break;
-			default:
-				fprintf(stderr, "Got unexpected event %d\n",
-								event.type);
-				break;
+		switch (event.type) {
+		case GR_EVENT_TYPE_ERROR:
+			printf("nanowm: error %d\n", event.error.code);
+			break;
+		case GR_EVENT_TYPE_EXPOSURE:
+			do_exposure(&event.exposure);
+			break;
+		case GR_EVENT_TYPE_BUTTON_DOWN:
+			do_button_down(&event.button);
+			break;
+		case GR_EVENT_TYPE_BUTTON_UP:
+			do_button_up(&event.button);
+			break;
+		case GR_EVENT_TYPE_MOUSE_ENTER:
+			do_mouse_enter(&event.general);
+			break;
+		case GR_EVENT_TYPE_MOUSE_EXIT:
+			do_mouse_exit(&event.general);
+			break;
+		case GR_EVENT_TYPE_MOUSE_POSITION:
+			do_mouse_moved(&event.mouse);
+			break;
+		case GR_EVENT_TYPE_KEY_DOWN:
+			do_key_down(&event.keystroke);
+			break;
+		case GR_EVENT_TYPE_KEY_UP:
+			do_key_up(&event.keystroke);
+			break;
+		case GR_EVENT_TYPE_FOCUS_IN:
+			do_focus_in(&event.general);
+			break;
+		case GR_EVENT_TYPE_CHLD_UPDATE:
+			do_update(&event.update);
+			break;
+		case GR_EVENT_TYPE_FDINPUT:
+			ipc_handle(&event);
+			break;
+		default:
+			fprintf(stderr, "Got unexpected event %d\n", event.type);
+			break;
 		}
 	}
 

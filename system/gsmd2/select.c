@@ -17,7 +17,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <fcntl.h>
 #include <sys/select.h>
@@ -79,7 +79,7 @@ int gsmd_select_main()
 			FD_SET(ufd->fd, &exceptset);
 	}
 
-	i = select(maxfd+1, &readset, &writeset, &exceptset, NULL);
+	i = select(maxfd + 1, &readset, &writeset, &exceptset, NULL);
 	if (i > 0) {
 		/* call registered callback functions */
 		llist_for_each_entry_safe(ufd, ufd2, &gsmd_fds, list) {

@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <unistd.h>
 #include <stdio.h>
@@ -40,11 +40,11 @@ static FILE syslog_dummy;
 static int loglevel;
 
 static int gsmd2syslog[] = {
-	[GSMD_DEBUG]	= LOG_DEBUG,
-	[GSMD_INFO]	= LOG_INFO,
-	[GSMD_NOTICE]	= LOG_NOTICE,
-	[GSMD_ERROR]	= LOG_ERR,
-	[GSMD_FATAL]	= LOG_CRIT,
+	[GSMD_DEBUG] = LOG_DEBUG,
+	[GSMD_INFO] = LOG_INFO,
+	[GSMD_NOTICE] = LOG_NOTICE,
+	[GSMD_ERROR] = LOG_ERR,
+	[GSMD_FATAL] = LOG_CRIT,
 };
 
 static inline int gsmd2syslog_level(int level)
@@ -65,7 +65,7 @@ void __gsmd_log(int level, const char *file, int line, const char *function,
 
 	if (level < loglevel)
 		return;
-	
+
 	if (logfile == &syslog_dummy) {
 		va_start(ap, format);
 		vsyslog(gsmd2syslog_level(level), format, ap);
@@ -78,9 +78,8 @@ void __gsmd_log(int level, const char *file, int line, const char *function,
 
 		tm = time(NULL);
 		timestr = ctime(&tm);
-		timestr[strlen(timestr)-1] = '\0';
-		fprintf(outfd, "%s <%1.1d> %s:%d:%s() ", timestr, level, file, 
-			line, function);
+		timestr[strlen(timestr) - 1] = '\0';
+		fprintf(outfd, "%s <%1.1d> %s:%d:%s() ", timestr, level, file, line, function);
 
 		va_start(ap, format);
 		vfprintf(outfd, format, ap);
@@ -92,7 +91,7 @@ void __gsmd_log(int level, const char *file, int line, const char *function,
 
 int gsmdlog_init(const char *path)
 {
-	
+
 	if (!strcmp(path, "syslog")) {
 		logfile = &syslog_dummy;
 		openlog("gsmd", 0, LOG_DAEMON);
@@ -102,7 +101,7 @@ int gsmdlog_init(const char *path)
 
 	if (logfile == NULL)
 		return -1;
-	
+
 	gsmd_log(LOG_INFO, "logfile successfully opened\n");
 
 	return 0;

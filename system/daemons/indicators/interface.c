@@ -55,9 +55,8 @@ static int multi_create(struct indicator *ind)
 		return -1;
 
 	/* load coords and image from theme */
-	int ret =
-	    theme_get_image(THEME_GROUP_MAINSCREEN, ind->image_index, &xcoord,
-			    &ycoord, &pid);
+	int ret = theme_get_image(THEME_GROUP_MAINSCREEN, ind->image_index, &xcoord,
+				  &ycoord, &pid);
 //      pid = int_load_image("/battery-big.png");
 //int ret = 0;
 //xcoord = 5; ycoord = 5;
@@ -82,8 +81,7 @@ static int multi_create(struct indicator *ind)
 	ind->xcoord = xcoord;
 	ind->ycoord = ycoord;
 
-	printf("multi: %d %d %d %d\n", wid, ind->frames_num, iinfo.width,
-	       iinfo.height);
+	printf("multi: %d %d %d %d\n", wid, ind->frames_num, iinfo.width, iinfo.height);
 
 	/* Select events for this window */
 	GrSelectEvents(wid, GR_EVENT_MASK_EXPOSURE);

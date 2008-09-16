@@ -6,25 +6,26 @@
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Scroll.H>
 
-class Fl_Grid : public Fl_Scroll {
-private:
-	int	_cols;	// current number of columns
-	int	_hspace;//horizontal spacing between items in the grid
-	int	_vspace;
-public:
+class Fl_Grid:public Fl_Scroll {
+      private:
+	int _cols;		// current number of columns
+	int _hspace;		//horizontal spacing between items in the grid
+	int _vspace;
+      public:
 	// constructor
-	Fl_Grid(int x, int y, int w=176, int h=180, const char *label = 0);
+	 Fl_Grid(int x, int y, int w = 176, int h = 180, const char *label = 0);
 	// add the widget to the grid
-	void add_item(Fl_Widget *w);
+	void add_item(Fl_Widget * w);
 	// remove the widget from the grid
-	void remove_item(Fl_Widget *w);
+	void remove_item(Fl_Widget * w);
 
-	int columns()	// get the current number of columns
-		{	return _cols;
-		}
-	void columns(int cols)// set the current number of columns
-		{	_cols = cols;
-		}
+	int columns()		// get the current number of columns
+	{
+		return _cols;
+	} void columns(int cols)	// set the current number of columns
+	{
+		_cols = cols;
+	}
 };
 
 #endif
