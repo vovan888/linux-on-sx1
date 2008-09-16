@@ -32,10 +32,10 @@ const char *theme_mainscreen_images[] = {"MainBattery","MainSignal", "Wallpaper"
 		"Messages","DateTime", "Operator", "Profile","Information","StatusIndicators"};
 
 const char theme_dialer[] = "Dialer";
-const char *theme_dialer_images[] = {};
+const char *theme_dialer_images[] = {"Background"};
 
 const char theme_callscreen[] = "Callscreen";
-const char *theme_callscreen_images[] = {};
+const char *theme_callscreen_images[] = {"Background"};
 
 static ini_fd_t theme_config_fd = NULL;	/* theme config file descr */
 

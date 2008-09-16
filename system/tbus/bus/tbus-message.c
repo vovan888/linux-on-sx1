@@ -53,7 +53,7 @@ int tbus_write_message(int fd, struct tbus_message *msg)
  * @param fd file descriptor to read from
  * @param msg pointer to the struct tbus_message
  *
- * Buffers for the data in the structure msg are allocated automatically!
+ * Buffers for the data in the structure "msg" are allocated automatically!
  */
 static int tbus_read_message(int fd, struct tbus_message *msg)
 {
@@ -84,7 +84,7 @@ int tbus_client_message(int socket_fd, int bus_id)
 {
 	int ret;
 	struct tbus_message msg;
-	struct tbus_client *dest_client, *sender_client;
+	struct tbus_client *dest_client = NULL, *sender_client;
 
 	/* try to find the target and source services in clients list */
 //      sender_client = tbus_client_find_by_service(msg.service_sender);
@@ -94,8 +94,10 @@ int tbus_client_message(int socket_fd, int bus_id)
 	ret = tbus_read_message(socket_fd, &msg);
 	if (ret < 0) {
 		// read returns error - client closed socket or died
-		tbus_remove_client_connections(sender_client);
-		tbus_client_del(sender_client);
+		if (sender_client != NULL) {
+			tbus_remove_client_connections(sender_client);
+			tbus_client_del(sender_client);
+		}
 		return -1;
 	}
 
@@ -134,19 +136,25 @@ int tbus_client_message(int socket_fd, int bus_id)
 			tbus_msg_free_internal(&msg);
 			break;
 		case TBUS_MSG_CALL_METHOD:
-			dest_client =
-			    tbus_client_find_by_service(msg.service_dest);
-			ret =
-			    tbus_client_method(sender_client, dest_client,
-					       &msg);
+			dest_client = tbus_client_find_by_service(msg.service_dest);
+			if (dest_client != NULL) {
+				ret = tbus_client_method(sender_client, dest_client, &msg);
+				if (ret < 0) {
+					tbus_remove_client_connections(dest_client);
+					tbus_client_del(dest_client);
+				}
+			}
 			tbus_msg_free_internal(&msg);	/*FIXME - check what should be deallocated */
 			break;
 		case TBUS_MSG_RETURN_METHOD:
-			dest_client =
-			    tbus_client_find_by_service(msg.service_dest);
-			ret =
-			    tbus_client_method_return(sender_client,
-						      dest_client, &msg);
+			dest_client = tbus_client_find_by_service(msg.service_dest);
+			if (dest_client != NULL) {
+				ret = tbus_client_method_return(sender_client, dest_client, &msg);
+				if (ret < 0) {
+					tbus_remove_client_connections(dest_client);
+					tbus_client_del(dest_client);
+				}
+			}
 			tbus_msg_free_internal(&msg);	/*FIXME - check what should be deallocated */
 			break;
 		case TBUS_MSG_CONNECT_SIGNAL:
@@ -154,8 +162,7 @@ int tbus_client_message(int socket_fd, int bus_id)
 			tbus_msg_free_internal(&msg);	/*FIXME - check what should be deallocated */
 			break;
 		case TBUS_MSG_DISCON_SIGNAL:
-			ret =
-			    tbus_client_disconnect_signal(sender_client, &msg);
+			ret = tbus_client_disconnect_signal(sender_client, &msg);
 			tbus_msg_free_internal(&msg);	/*FIXME - check what should be deallocated */
 			break;
 		case TBUS_MSG_EMIT_SIGNAL:
@@ -167,9 +174,6 @@ int tbus_client_message(int socket_fd, int bus_id)
 			break;
 		};
 	};
-	/* check ret */
 
-	 /**/
-//      free(msg);
-	    return 0;
+	return 0;
 }

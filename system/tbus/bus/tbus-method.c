@@ -13,10 +13,8 @@ int tbus_client_method(struct tbus_client *sender_client,
 		       struct tbus_client *dest_client,
 		       struct tbus_message *msg)
 {
-	int sock, ret;
-	if (!dest_client) {
-		return -1;
-	}
+	int sock, ret = 0;
+
 	sock = dest_client->socket_fd;
 	if (sock > 0) {
 		char *tmp;
@@ -32,17 +30,15 @@ int tbus_client_method(struct tbus_client *sender_client,
 	} else {
 		DPRINT("empty client!\n");
 	}
-	return 0;
+	return ret;
 }
 
 int tbus_client_method_return(struct tbus_client *sender_client,
 			      struct tbus_client *dest_client,
 			      struct tbus_message *msg)
 {
-	int sock, ret;
-	if (!dest_client) {
-		return -1;
-	}
+	int sock, ret = 0;
+
 	sock = dest_client->socket_fd;
 	if (sock > 0) {
 		char *tmp;
@@ -58,5 +54,5 @@ int tbus_client_method_return(struct tbus_client *sender_client,
 	} else {
 		DPRINT("empty client!\n");
 	}
-	return 0;
+	return ret;
 }

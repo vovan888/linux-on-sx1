@@ -97,7 +97,7 @@ enum gsmd_call_direction {
 	GSMD_CALL_DIR_MO		= 0,	/* Mobile Originated (Outgoing) */
 	GSMD_CALL_DIR_MT		= 1,	/* Mobile Terminated (Incoming) */
 	GSMD_CALL_DIR_CCBS		= 2,	/* network initiated MO */
-	GSMD_CALL_DIR_MO_REDIAL		= 3,	/* Mobile Originated Redial */
+	GSMD_CALL_DIR_MO_REDIAL		= 3	/* Mobile Originated Redial */
 };
 
 #endif

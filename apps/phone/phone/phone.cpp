@@ -31,6 +31,7 @@ void PhoneApp::ConnectSignals()
 	tbus_connect_signal("PhoneServer", "CMECMSError");
 	tbus_connect_signal("PhoneServer", "IncomingCall");
 	tbus_connect_signal("PhoneServer", "IncomingCLIP");
+	tbus_connect_signal("PhoneServer", "OutgoingCOLP");
 }
 
 //---------------------------------------------------------------------------
@@ -46,11 +47,7 @@ void PhoneApp::handle_signal(struct tbus_message *msg)
 				return;
 			if ((AppState == STATE_DIALING) && (progress == GSMD_CALL_CONNECTED)) {
 				GotoState(STATE_CALL_ACTIVE);
-			}
-			if ((AppState == STATE_CALL_ACTIVE) && (progress == GSMD_CALL_IDLE)) {
-				GotoState(STATE_END_CALL);
-			}
-			if ((AppState == STATE_INCOMING) && (progress == GSMD_CALL_IDLE)) {
+			} else if (progress == GSMD_CALL_IDLE) {
 				GotoState(STATE_END_CALL);
 			}
 		} else if (!strcmp("CMECMSError", msg->object)) {
@@ -65,6 +62,12 @@ void PhoneApp::handle_signal(struct tbus_message *msg)
 			ret = tbus_get_message_args(msg, "s", &clip);
 			Number->value(clip);
 			delete clip;
+		} else if (!strcmp("OutgoingCOLP", msg->object)) {
+			char *colp;
+			int ret;
+			ret = tbus_get_message_args(msg, "s", &colp);
+			Number->value(colp);
+			delete colp;
 		}
 }
 

@@ -166,7 +166,7 @@ int tbus_client_emit_signal(struct tbus_client *sender_client,
 {
 	struct tbus_signal_conn *connection;
 	struct subscription *cur;
-	int ret;
+	int ret = 0;
 	char *str, *tmp1, *tmp2;
 	int len;
 
@@ -191,6 +191,7 @@ int tbus_client_emit_signal(struct tbus_client *sender_client,
 				ret = tbus_write_message(sock, msg);
 				DPRINT("sent to %s ,ret = %d\n",
 				       cur->client->service, ret);
+				/*FIXME check ret here*/
 			} else {
 				DPRINT("empty client!\n");
 			}
@@ -199,8 +200,9 @@ int tbus_client_emit_signal(struct tbus_client *sender_client,
 		msg->service_dest = tmp1;
 		msg->service_sender = tmp2;
 		return 0;	/* OK */
-	} else
-		return -1;	/* no connected clients */
+	}
+
+	return ret;
 }
 
 /**
