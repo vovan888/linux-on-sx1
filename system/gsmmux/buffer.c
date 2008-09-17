@@ -120,22 +120,35 @@ GSM0710_Frame *gsm0710_buffer_get_frame(GSM0710_Buffer * buf)
 
 	GSM0710_Frame *frame = NULL;
 
-	buf->flag_found = 0;	//added by Vovan888; seems to work much better with it :)
-
-	// Find start flag
-	while (!buf->flag_found && (wake_count < 4)
-	       && gsm0710_buffer_length(buf) > 0) {
-		if (*buf->readp == F_FLAG)
-			buf->flag_found = 1;
-		if (*buf->readp == F_WAKE)	// try to find wakeup frame
-			wake_count++;
+	//check for SX1 special wake-up frame (s1) - F7 F7 F7 F7
+	while ((*buf->readp == F_WAKE) && gsm0710_buffer_length(buf) > 0) {
+		wake_count++;
 		INC_BUF_POINTER(buf, buf->readp);
 	}
-	if (wake_count == 4) {	// we found wakeup frame, mark it with special control type
-		frame = malloc(sizeof(GSM0710_Frame));
-		frame->control = WAKE;
-		return frame;
+	if (wake_count > 0 ) {
+		if (wake_count >= 4) {	// we found wakeup frame, mark it with special control type
+			frame = malloc(sizeof(GSM0710_Frame));
+			frame->control = WAKE;
+			return frame;
+		}
 	}
+
+	// SX1: check for case s3
+	if (power_state == PWR_WAKING) {
+		// frame should have extra F9 on both ends..
+		// here we should skip one F9
+		if (*buf->readp == F_FLAG) {
+			INC_BUF_POINTER(buf, buf->readp);
+		}
+	}
+
+	// Find start flag
+	while (!buf->flag_found && gsm0710_buffer_length(buf) > 0) {
+		if (*buf->readp == F_FLAG)
+			buf->flag_found = 1;
+		INC_BUF_POINTER(buf, buf->readp);
+	}
+
 	if (!buf->flag_found)	// no frame started
 		return NULL;
 
@@ -229,6 +242,16 @@ GSM0710_Frame *gsm0710_buffer_get_frame(GSM0710_Buffer * buf)
 		}
 		buf->readp = data;
 	}
+
+	// SX1: check for case s3
+	if (power_state == PWR_WAKING) {
+		// frame should have extra F9 on both ends..
+		// here we should skip one F9
+		if (*buf->readp == F_FLAG) {
+			INC_BUF_POINTER(buf, buf->readp);
+		}
+	}
+
 	return frame;
 }
 

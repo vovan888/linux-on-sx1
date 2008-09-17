@@ -48,7 +48,7 @@ typedef struct GSM0710_Buffer {
 } GSM0710_Buffer;
 
 // increases buffer pointer by one and wraps around if necessary
-#define INC_BUF_POINTER(buf,p) p++; if (p == buf->endp) p = buf->data;
+#define INC_BUF_POINTER(buf,p) do { p++; if (p == buf->endp) p = buf->data ;}while(0)
 
 /* Allocates memory for a new buffer and initializes it.
  *

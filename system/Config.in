@@ -16,6 +16,15 @@ config CONFIG_TBUS
 
           Most people should answer Y.
 
+config CONFIG_THAL
+        bool "Build T-HAL hardware abstraction on T-BUS"
+        default n
+        depends CONFIG_TBUS
+        help
+          Say Y here if you want to use T-HAL
+
+          Most people should answer Y.
+
 config CONFIG_GSMMUX
         bool "Build gsmMux multiplexer daemon"
         default y

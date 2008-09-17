@@ -143,9 +143,15 @@ static int maxfd;
 static int baudrate = 115200;	// set default baudrate
 static int *remaining;
 static int faultTolerant = 0;
+unsigned char **tmp;
+// for fault tolerance
+int pingNumber = 1;
+time_t frameReceiveTime;
+time_t currentTime;
+
 static int restart = 0;
 
-static int power_state = 0;	// current power state of modem: 0 - powerup, 1-sleep
+int power_state = 0;	// current power state of modem: 0 - powerup, 1-sleep
 
 /* The following arrays must have equal length and the values must
  * correspond.
@@ -176,8 +182,8 @@ int write_frame(int channel, const unsigned char *input, int count, unsigned cha
 	// flag, EA=1 C channel, frame type, length 1-2
 	unsigned char prefix[5] = { F_FLAG, EA | CR, 0, 0, 0 };
 	unsigned char postfix[2] = { 0xFF, F_FLAG };
-	unsigned char wakeup[5] = { F_WAKE, F_WAKE, F_WAKE, F_WAKE, F_WAKE };
-	unsigned char wakeup2[5] = { F_FLAG, F_FLAG, F_FLAG, F_FLAG, F_FLAG };
+	unsigned char wakeup_s6[5] = { F_WAKE, F_WAKE, F_WAKE, F_WAKE, F_WAKE };
+	unsigned char wakeup_s4[5] = { F_FLAG, F_FLAG, F_FLAG, F_FLAG, F_FLAG };
 	int prefix_length = 4, c, sel, num_f9 = 0, num_f7 = 0, len, i;
 	unsigned char buf[256];
 
@@ -206,10 +212,10 @@ int write_frame(int channel, const unsigned char *input, int count, unsigned cha
 
 	// Wake up modem when sending data frame to channel in SLEEP mode
 	if (channel && power_state == PWR_WAKING) {
-		c = write(serial_fd, wakeup2, 3);	// send F9 F9 F9
+		c = write(serial_fd, wakeup_s4, 3);	// send F9 F9 F9 (s4)
 		power_state = PWR_ON;
 	} else if (channel && power_state == PWR_SLEEP) {
-		c = write(serial_fd, wakeup, 5);
+		c = write(serial_fd, wakeup_s6, 5);	// (s6)
 		num_f7 = 5;	// sent 5 wakeupchars
 		SYSLOG("Sent 5 wakeupchars");
 		for (i = 0; i < 10; i++) {
@@ -229,16 +235,15 @@ int write_frame(int channel, const unsigned char *input, int count, unsigned cha
 						SYSLOG("Received flag char");
 					}
 					if (num_f9 == 4)
-						break;	// we are awake
-
+						break;	// we are awake (s7)
 				}
 			} else {	// timeout reading
-				c = write(serial_fd, wakeup, 1);	// write another one wakeupchar
+				c = write(serial_fd, wakeup_s6, 1);	// write another one wakeupchar
 				SYSLOG("Sent another wakeupchar");
 
 			}
 		}
-		SYSLOG("Awaken!");
+		SYSLOG("Awaken! - s8");
 		power_state = PWR_ON;
 	}			// END OF WAKEUP MODEM
 
@@ -755,7 +760,7 @@ void usage(char *_name)
 	fprintf(stderr, "  -h                  : Show this help message\n");
 }
 
-/* Extracts and handles frames from the receiver buffer.
+/* Extracts and handles frames from the receiver buffer (from modem).
 *
 * PARAMS:
 * buf - the receiver buffer
@@ -779,7 +784,7 @@ int extract_frames(GSM0710_Buffer * buf)
 		if (FRAME_IS(WAKE, frame)) {
 			SYSLOG("wakeup frame");
 			power_state = PWR_WAKING;
-			write(serial_fd, &flagg, 1);	// send F9 to modem
+			write(serial_fd, &flagg, 1);	// send F9 to modem (s2)
 
 		} else if ((FRAME_IS(UI, frame) || FRAME_IS(UIH, frame))) {
 //                      SYSLOG( "is (FRAME_IS(UI, frame) || FRAME_IS(UIH, frame))\n");
@@ -1032,28 +1037,85 @@ void closeDevices()
 	}
 }
 
+static int read_modem_port(int serial_fd)
+{
+	int len, size;
+	unsigned char buf[4096];
+	// input from serial port
+	SYSLOG("=== Serial Data ===\n");
+	if ((size = gsm0710_buffer_free(in_buf)) > 0
+		&& (len = read(serial_fd, buf, min(size, sizeof(buf)))) > 0) {
+		SYSLOG("serial data len = %d\n", len);
+		gsm0710_buffer_write(in_buf, buf, len);
+		// extract and handle ready frames
+		if (extract_frames(in_buf) > 0 && faultTolerant) {
+			frameReceiveTime = currentTime;
+			pingNumber = 1;
+		}
+	}
+	return 0;
+}
+
+static int read_virtual_port(int serial_fd, int port_num)
+{
+	int len, i = port_num;
+	unsigned char buf[4096];
+
+	// information from virtual port
+	SYSLOG("=== Virtual Port %d Data ===\n", i);
+	if (remaining[i] > 0) {
+		memcpy(buf, tmp[i], remaining[i]);
+		free(tmp[i]);
+	}
+	if ((len =
+		read(ussp_fd[i],
+			buf + remaining[i],
+			sizeof(buf) - remaining[i])) > 0)
+		remaining[i] =
+			ussp_recv_data(buf, len + remaining[i], i);
+	if (len < 0) {
+		SYSLOG("Read from pty%d error %d\n", i, errno);
+		// Re-open pty, so that in
+		remaining[i] = 0;
+		close(ussp_fd[i]);
+		if ((ussp_fd[i] = open_pty(ptydev[i], i)) < 0) {
+			SYSLOG
+				("Can't re-open %s. %s (%d).\n",
+				ptydev[i], strerror(errno), errno);
+			terminate = 1;
+		} else if (ussp_fd[i] > maxfd)
+			maxfd = ussp_fd[i];
+	}
+	SYSLOG("Data from ptya%d: %d bytes\n", i, len);
+
+	/* copy remaining bytes from last packet into tmp */
+	if (remaining[i] > 0) {
+		tmp[i] = malloc(remaining[i]);
+		memcpy(tmp[i],
+			buf + sizeof(buf) -
+			remaining[i], remaining[i]);
+	}
+	return 0;
+}
+
+#define PING_TEST_LEN 6
+
 /**
  * The main program
  */
 int main(int argc, char *argv[], char *env[])
 {
-#define PING_TEST_LEN 6
 	static unsigned char ping_test[] = "\x23\x09PING";
 	//struct sigaction sa;
-	int sel, len;
+	int sel;
 	fd_set rfds;
 	struct timeval timeout;
-	unsigned char buf[4096], **tmp;
 	char *programName;
-	int i, size, t;
+	int i, t;
 
 //      unsigned char close_mux[2] = { C_CLD | CR, 1 };
 	int opt;
 	pid_t parent_pid;
-	// for fault tolerance
-	int pingNumber = 1;
-	time_t frameReceiveTime;
-	time_t currentTime;
 
 	programName = argv[0];
 	/*************************************/
@@ -1156,7 +1218,7 @@ int main(int argc, char *argv[], char *env[])
 		kill(parent_pid, SIGHUP);
 	}
 
-	/**
+	/*
 	 * SUGGESTION:
 	 * substitute this lack for two threads
 	 */
@@ -1178,59 +1240,12 @@ int main(int argc, char *argv[], char *env[])
 		}
 		if (sel > 0) {
 
-			if (FD_ISSET(serial_fd, &rfds)) {
-				// input from serial port
-				SYSLOG("=== Serial Data ===\n");
-				if ((size = gsm0710_buffer_free(in_buf)) > 0
-				    && (len = read(serial_fd, buf, min(size, sizeof(buf)))) > 0) {
-					SYSLOG("serial data len = %d\n", len);
-					gsm0710_buffer_write(in_buf, buf, len);
-					// extract and handle ready frames
-					if (extract_frames(in_buf) > 0 && faultTolerant) {
-						frameReceiveTime = currentTime;
-						pingNumber = 1;
-					}
-				}
-			}
+			if (FD_ISSET(serial_fd, &rfds))
+				read_modem_port(serial_fd);
 			// check virtual ports
 			for (i = 0; i < numOfPorts; i++)
-				if (FD_ISSET(ussp_fd[i], &rfds)) {
-
-					// information from virtual port
-					SYSLOG("=== Virtual Port %d Data ===\n", i);
-					if (remaining[i] > 0) {
-						memcpy(buf, tmp[i], remaining[i]);
-						free(tmp[i]);
-					}
-					if ((len =
-					     read(ussp_fd[i],
-						  buf + remaining[i],
-						  sizeof(buf) - remaining[i])) > 0)
-						remaining[i] =
-						    ussp_recv_data(buf, len + remaining[i], i);
-					if (len < 0) {
-						SYSLOG("Read from pty%d error %d\n", i, errno);
-						// Re-open pty, so that in
-						remaining[i] = 0;
-						close(ussp_fd[i]);
-						if ((ussp_fd[i] = open_pty(ptydev[i], i)) < 0) {
-							SYSLOG
-							    ("Can't re-open %s. %s (%d).\n",
-							     ptydev[i], strerror(errno), errno);
-							terminate = 1;
-						} else if (ussp_fd[i] > maxfd)
-							maxfd = ussp_fd[i];
-					}
-					SYSLOG("Data from ptya%d: %d bytes\n", i, len);
-
-					/* copy remaining bytes from last packet into tmp */
-					if (remaining[i] > 0) {
-						tmp[i] = malloc(remaining[i]);
-						memcpy(tmp[i],
-						       buf + sizeof(buf) -
-						       remaining[i], remaining[i]);
-					}
-				}
+				if (FD_ISSET(ussp_fd[i], &rfds))
+					read_virtual_port(ussp_fd[i], i);
 		}
 
 		if (terminate) {

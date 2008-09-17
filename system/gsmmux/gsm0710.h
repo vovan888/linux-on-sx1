@@ -81,6 +81,8 @@ typedef struct Channel_Status {
 	unsigned char v24_signals;
 } Channel_Status;
 
+extern int power_state;
+
 // for debugging
 #define print_bits(n) printf("%d%d%d%d%d%d%d%d", ((n&128) == 128), \
 			     ((n&64) == 64),((n&32) == 32),((n&16) == 16), \
