@@ -105,6 +105,13 @@ int tbus_client_message(int socket_fd, int bus_id)
 	if (sender_client == NULL) {
 		/* client is not registered, so only REGISTER allowed */
 		if (msg.type == TBUS_MSG_REGISTER) {
+			// try to find a client in list for safety
+			dest_client = tbus_client_find_by_service(msg.service_sender);
+			if (dest_client != NULL) {
+				tbus_remove_client_connections(dest_client);
+				tbus_client_del(dest_client);
+			}
+			// now add client to the server list
 			ret = tbus_client_add(socket_fd, msg.service_sender);
 			if (ret < 0) {
 				free(msg.service_sender);

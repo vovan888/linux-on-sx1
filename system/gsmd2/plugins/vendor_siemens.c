@@ -227,6 +227,20 @@ static int siemens_initsettings(struct gsmd *g)
 
 	/* AT^SCII=  enable ^SCII: ciphering reporting */
 
+	/*TODO - channel 2 - fast commands
+	AT+CUSD=1	-> OK	(USSD?)
+	AT+COPS=3,0;+COPS? -> +COPS: 0,0,"004D0065006700610046006F006E"
+	AT+COPS=3,2;+COPS? -> +COPS: 0,2,"25002"
+	AT+CSCB=0,"",""	-> OK (disable CB Msgs)
+	*/
+
+	/*TODO - channel 3 - slow commands
+	AT^SPIC="PS"	-> ^SPIC: 3,10	- PIN counter
+	AT+CRSM=192,28599 -> +CRSM: 148,4
+	AT^SSPI -> ^SSPI: "004D0065006700610046006F006E","25002"	(MegaFon, 250 02)
+
+	*/
+
 	return rc;
 }
 

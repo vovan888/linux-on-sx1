@@ -71,7 +71,7 @@ int gsmd_machine_plugin_load(char *name)
 
 	DEBUGP("loading machine plugin \"%s\"\n", name);
 
-	snprintf(buf, sizeof(buf), PLUGINDIR "/libgsmd-machine_%s.so", name);
+	snprintf(buf, sizeof(buf), PLUGINDIR"/libgsmd-machine_%s.so", name);
 
 	plugin = dlopen(buf, RTLD_LAZY);
 	if (!plugin) {

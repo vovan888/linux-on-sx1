@@ -946,15 +946,8 @@ int daemonize(void)
 void signal_treatment(int param)
 {
 	switch (param) {
-	case SIGPIPE:
-		exit(0);
-		break;
 	case SIGHUP:
 		//reread the configuration files
-		break;
-	case SIGINT:
-		//exit(0);
-		terminate = 1;
 		break;
 	case SIGKILL:
 		//kill immediatly
@@ -962,12 +955,12 @@ void signal_treatment(int param)
 		terminate = 1;
 		//exit(0);
 		break;
+	case SIGINT:
 	case SIGUSR1:
-		terminate = 1;
-		//sig_term(param);
 	case SIGTERM:
 		terminate = 1;
 		break;
+	case SIGPIPE:
 	default:
 		exit(0);
 		break;
@@ -1046,6 +1039,14 @@ static int read_modem_port(int serial_fd)
 	if ((size = gsm0710_buffer_free(in_buf)) > 0
 		&& (len = read(serial_fd, buf, min(size, sizeof(buf)))) > 0) {
 		SYSLOG("serial data len = %d\n", len);
+{char str[1024]="", temp[8];
+int i;
+for(i = 0; i < len; i++) {
+ sprintf(temp, " %02X", buf[i]);
+ strcat(str, temp);
+}
+SYSLOG("= %s\n", str);
+}
 		gsm0710_buffer_write(in_buf, buf, len);
 		// extract and handle ready frames
 		if (extract_frames(in_buf) > 0 && faultTolerant) {
@@ -1087,7 +1088,14 @@ static int read_virtual_port(int serial_fd, int port_num)
 			maxfd = ussp_fd[i];
 	}
 	SYSLOG("Data from ptya%d: %d bytes\n", i, len);
-
+{char str[1024]="", temp[8];
+int j;
+for(j = 0; j < len; j++) {
+ sprintf(temp, " %02X", *(buf + remaining[i] + j));
+ strcat(str, temp);
+}
+SYSLOG("= %s\n", str);
+};
 	/* copy remaining bytes from last packet into tmp */
 	if (remaining[i] > 0) {
 		tmp[i] = malloc(remaining[i]);

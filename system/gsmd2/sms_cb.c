@@ -620,7 +620,7 @@ int sms_cb_network_init(struct gsmd *gsmd)
 {
 	int ret = 0;
 
-	ret |= gsmd_simplecmd(gsmd, "AT+CSMS=0");
+	ret |= gsmd_simplecmd(gsmd, "AT+CSMS=1");
 
 	/*
 	 * Set the New Message Indications properties to values that are
@@ -631,7 +631,8 @@ int sms_cb_network_init(struct gsmd *gsmd)
 	 *
 	 * FIXME: ask for supported +CNMI values first.
 	 */
-	ret |= gsmd_simplecmd(gsmd, "AT+CNMI=2,1,2,1,0");
+//	ret |= gsmd_simplecmd(gsmd, "AT+CNMI=2,1,2,1,0");
+	ret |= gsmd_simplecmd(gsmd, "AT+CNMI=0,2,2,1");
 
 	return ret;
 }
