@@ -24,14 +24,6 @@ config CONFIG_LIBFLPHONE
        help
 	Say yes here to build libflphone
 
-config CONFIG_LIBINI
-       bool "libini - library to handle INI files"
-       default y
-       help
-	Say yes here to build libini.
-	
-	http://sourceforge.net/projects/libini
-
 config CONFIG_LIBTHEME
        bool "libtheme - common lib for theme handling"
        default y

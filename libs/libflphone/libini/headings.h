@@ -19,15 +19,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "headings.h"
+#include "headings_def.h"
 
-#if defined(HAVE_STRINGS_H)
+//#if defined(HAVE_STRINGS_H)
 #   include <strings.h>
-#endif
+//#endif
 
-#ifndef HAVE_STRCASECMP
-#   define strcasecmp stricmp
-#endif
+//#ifndef HAVE_STRCASECMP
+//#   define strcasecmp stricmp
+//#endif
 
 
 /********************************************************************************************************************
@@ -136,7 +136,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
     if (pNew)
         free (heading);
     else
-    {   // Create a new heading as dosen't exist
+    {   // Create a new heading as doesnt exist
         pNew = (struct section_tag *) malloc (sizeof (struct section_tag));
         if (!pNew)
             return NULL;

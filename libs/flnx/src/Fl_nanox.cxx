@@ -1032,7 +1032,7 @@ void Fl_X::make_xid (Fl_Window * w, XVisualInfo * visual, Colormap colormap)
     GR_WINDOW_ID wid;
 
     wid = GrNewWindow (root, X, Y, W, H, 0 /* borderwidth */, bg, fg);
-    printf("%d = GrNewWindow(%ld)\n", wid, root);
+//    printf("%d = GrNewWindow(%ld)\n", wid, root);
 
     // Start up a MicrowWindow's select events as each window is created.
     // This is related with the fl_wait() function above.

@@ -129,7 +129,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "config.h"
+#include <stdbool.h>
+//#include "config.h"
 #include "ini.h"
 
 #define INI_BUFFER_SIZE (1024 * 5)
@@ -162,9 +163,9 @@ typedef struct
 static ini_t              *__ini_open            (const char *name, ini_mode_t mode, const char *comment, int flags);
 static int                 __ini_close           (ini_t *ini, bool flush);
 static void                __ini_delete          (ini_t *ini);
-static bool                __ini_extractField    (ini_t *ini, FILE *file, ini_parser_t &parser, char ch);
+static bool                __ini_extractField    (ini_t *ini, FILE *file, ini_parser_t *parser, char ch);
 static int                 __ini_process         (ini_t *ini, FILE *file, const char *comment);
-inline bool                __ini_processComment  (ini_t *ini, FILE *file, ini_parser_t &parser);
+inline bool                __ini_processComment  (ini_t *ini, FILE *file, ini_parser_t *parser);
 static int                 __ini_store           (ini_t *ini, FILE *file);
 
 
@@ -338,7 +339,7 @@ ini_t *__ini_open (const char *name, ini_mode_t mode, const char *comment, int f
     file = fopen (ini->filename, "rb");
     if (!file)
     {   // File doesn't exist so check if allowed
-        // to create new one 
+        // to create new one
         if (mode != INI_NEW)
             goto ini_openError;
 
@@ -531,15 +532,15 @@ void __ini_delete (ini_t *ini)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-bool __ini_extractField (ini_t *ini, FILE *file, ini_parser_t &parser, char ch)
+bool __ini_extractField (ini_t *ini, FILE *file, ini_parser_t *parser, char ch)
 {
     switch (ch)
     {   // Check for key value
     case '=':
-        if (parser.state != INI_IN_SECTION)
+        if (parser->state != INI_IN_SECTION)
         {   // Make sure the key has a string content
-            parser.last = parser.pos;
-            if (parser.first >= 0)
+            parser->last = parser->pos;
+            if (parser->first >= 0)
             {
                 if (!ini->selected) // Handle keys which are not in a section
                 {
@@ -547,46 +548,46 @@ bool __ini_extractField (ini_t *ini, FILE *file, ini_parser_t &parser, char ch)
                         return false;
                 }
 
-                parser.key = __ini_faddKey (ini, file, parser.first,
-                                            parser.last - parser.first);
-                if (!parser.key)
+                parser->key = __ini_faddKey (ini, file, parser->first,
+                                            parser->last - parser->first);
+                if (!parser->key)
                     return false;
             }
-            parser.state = INI_CHECK_COMMENT | INI_ALLOW_COMMENT;
+            parser->state = INI_CHECK_COMMENT | INI_ALLOW_COMMENT;
         }
         break;
 
     // Check for header (must start far left)
     case '[':
-        if (parser.state == INI_NEW_LINE)
+        if (parser->state == INI_NEW_LINE)
         {
-            parser.first = parser.pos + 1;
-            parser.state = INI_IN_SECTION;
+            parser->first = parser->pos + 1;
+            parser->state = INI_IN_SECTION;
         }
         break;
 
     // Check for header termination
     case ']':
-        if (parser.state == INI_IN_SECTION)
+        if (parser->state == INI_IN_SECTION)
         {
-            parser.last = parser.pos;
-            if (parser.first <= parser.last) // Handle []
+            parser->last = parser->pos;
+            if (parser->first <= parser->last) // Handle []
             {
-                if (!__ini_faddHeading (ini, file, parser.first,
-                                        parser.last - parser.first))
+                if (!__ini_faddHeading (ini, file, parser->first,
+                                        parser->last - parser->first))
                 {
                     return false;
                 }
             }
-            parser.state = INI_SKIP_LINE;
+            parser->state = INI_SKIP_LINE;
         }
         break;
 
     default:
-        if (parser.state == INI_NEW_LINE)
+        if (parser->state == INI_NEW_LINE)
         {
-            parser.first = parser.pos;
-            parser.state = INI_NONE;
+            parser->first = parser->pos;
+            parser->state = INI_NONE;
         }
         break;
     }
@@ -607,14 +608,14 @@ bool __ini_extractField (ini_t *ini, FILE *file, ini_parser_t &parser, char ch)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-bool __ini_processComment (ini_t *ini, FILE *file, ini_parser_t &parser)
+bool __ini_processComment (ini_t *ini, FILE *file, ini_parser_t *parser)
 {
-    const char *p = parser.comment;
-    for (; parser.commentpos > 0; parser.commentpos--)
+    const char *p = parser->comment;
+    for (; parser->commentpos > 0; parser->commentpos--)
     {
         if (!__ini_extractField (ini, file, parser, *p++))
             return false;
-        parser.pos++;
+        parser->pos++;
     }
     return true;
 }
@@ -694,7 +695,7 @@ int __ini_process (ini_t *ini, FILE *file, const char *comment)
                 parser.first = -1;
                 parser.last  = -1;
             __ini_processLineEnd:
-                if (!__ini_processComment (ini, file, parser))
+                if (!__ini_processComment (ini, file, &parser))
                     goto __ini_processError;
                 parser.pos = pos;
             __ini_processDataEnd:
@@ -710,7 +711,7 @@ int __ini_process (ini_t *ini, FILE *file, const char *comment)
                 // If we get this we are processing a binary or corrupt file.
                 // Drop out here, else we may do something nasty
                 goto __ini_processError;
- 
+
             default:
                 switch (parser.state & ~INI_ALLOW_COMMENT)
                 {
@@ -746,14 +747,14 @@ int __ini_process (ini_t *ini, FILE *file, const char *comment)
                         }
 
                         parser.state &= ~INI_ALLOW_COMMENT;
-                        if (!__ini_processComment (ini, file, parser))
+                        if (!__ini_processComment (ini, file, &parser))
                             goto __ini_processError;
                     }
 
                     if (parser.state != INI_CHECK_COMMENT)
                     {
                         parser.pos = pos;
-                        if (!__ini_extractField (ini, file, parser, ch))
+                        if (!__ini_extractField (ini, file, &parser, ch))
                             goto __ini_processError;
                     }
                 }
@@ -1024,7 +1025,7 @@ int INI_LINKAGE ini_dataLength (ini_fd_t fd)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-extern "C" int INI_LINKAGE ini_delete (ini_fd_t fd)
+int INI_LINKAGE ini_delete (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
     if (!ini)
@@ -1148,12 +1149,12 @@ ini_appendError:
 
 // Add Code Modules
 // Add Header Manipulation Functions
-#include "headings.i"
+#include "headings.h"
 // Add Key Manipulation Functions
-#include "keys.i"
+#include "keys.h"
 // Add Supported Datatypes
-#include "types.i"
+#include "types.h"
 // Add List Support
 #ifdef INI_ADD_LIST_SUPPORT
-#   include "list.i"
+#   include "list.h"
 #endif // INI_ADD_LIST_SUPPORT

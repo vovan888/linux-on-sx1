@@ -184,17 +184,19 @@ int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 int gsmd_initsettings2(struct gsmd *gsmd)
 {
 	int rc = 0;
+
+	if (gsmd->vendorpl && gsmd->vendorpl->initsettings)
+		rc |= gsmd->vendorpl->initsettings(gsmd);
+
 	/* echo off, display acknowledgments as text */
 	rc |= gsmd_simplecmd(gsmd, "ATE0V1");
-	/* enable +CREG: unsolicited response if registration status changes */
-	rc |= gsmd_simplecmd(gsmd, "AT+CREG=2");
 	/* use +CME ERROR: instead of ERROR */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMEE=1");
 
 	/* get PIN status */
 	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 8 + 1, &gsmd_get_cpin_cb, gsmd, 0, NULL));
 
-	return 0;
+	return rc;
 }
 
 /* these commands require PIN to be READY */
@@ -202,6 +204,8 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 {
 	int rc = 0;
 
+	/* enable +CREG: unsolicited response if registration status changes */
+	rc |= gsmd_simplecmd(gsmd, "AT+CREG=2");
 	/* use +CRING instead of RING */
 	rc |= gsmd_simplecmd(gsmd, "AT+CRC=1");
 	/* use +CLIP: to indicate CLIP */
@@ -222,8 +226,8 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 
 	sms_cb_init(gsmd);
 
-	if (gsmd->vendorpl && gsmd->vendorpl->initsettings)
-		return gsmd->vendorpl->initsettings(gsmd);
+	if (gsmd->vendorpl && gsmd->vendorpl->initsettings_after_pin)
+		return gsmd->vendorpl->initsettings_after_pin(gsmd);
 	else
 		return rc;
 }
@@ -522,7 +526,7 @@ int main(int argc, char **argv)
 	if (g.interpreter_ready) {
 		gsmd_initsettings(&g);
 
-		gsmd_alive_start(&g);
+//		gsmd_alive_start(&g);
 	}
 
 	gsmd_opname_init(&g);

@@ -22,10 +22,10 @@
 #undef INI_USE_HASH_TABLE
 
 #include "libini.h"
-#include "keys.h"
-#include "headings.h"
+#include "keys_def.h"
+#include "headings_def.h"
 #ifdef INI_ADD_LIST_SUPPORT
-#   include "list.h"
+#   include "list_def.h"
 #endif
 
 typedef enum {INI_NEW, INI_EXIST, INI_READ} ini_mode_t;

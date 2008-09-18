@@ -17,6 +17,7 @@ struct gsmd_vendor_plugin {
 	const struct gsmd_unsolicit *unsolicit;
 	int (*detect)(struct gsmd *g);
 	int (*initsettings)(struct gsmd *g);
+	int (*initsettings_after_pin)(struct gsmd *g);
 };
 
 extern int gsmd_vendor_plugin_load(char *name);

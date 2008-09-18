@@ -11,7 +11,6 @@ export RANLIB=$(TARGET_CROSS)ranlib
 export LD=$(TARGET_CROSS)ld
 
 local-target-y=
-local-target-$(CONFIG_LIBINI)	+= libini
 local-target-$(CONFIG_FLNX)	+= flnx
 local-target-$(CONFIG_GSM)	+= gsmd
 
@@ -81,28 +80,6 @@ _clean_flnx: dummy
 	fi
 	rm -f $(BASE_DIR)/libs/flnx/.configured
 
-$(BASE_DIR)/libs/libini/.configured: 
-	(cd $(BASE_DIR)/libs/libini; ./configure \
-	--host=$(SYS) \
-	--build=$(BUILD_SYS) \
-	--enable-shared )
-	touch $(BASE_DIR)/libs/libini/.configured
-
-_build_libini: $(BASE_DIR)/libs/libini/.configured
-	make -C $(BASE_DIR)/libs/libini -e -j3
-
-	rm -f $(STAGE_DIR)/lib/libini.a $(STAGE_DIR)/lib/libini.so*
-	ln -s $(BASE_DIR)/libs/libini/src/.libs/libini.a $(STAGE_DIR)/lib
-	ln -s $(BASE_DIR)/libs/libini/src/.libs/libini.so $(STAGE_DIR)/lib
-	ln -s $(BASE_DIR)/libs/libini/src/.libs/libini.so $(STAGE_DIR)/lib/libini.so.1
-
-_install_libini: dummy
-	cp -fP libini/src/.libs/libini.so* $(INSTALL_DIR)/lib/
-
-_clean_libini: dummy
-	make -C $(BASE_DIR)/libs/libini distclean
-	rm -f $(BASE_DIR)/libs/libini/.configured
-	
 $(BASE_DIR)/libs/gsm/.configured: 
 	(cd $(BASE_DIR)/libs/gsm; ./autogen.sh \
 	./configure \

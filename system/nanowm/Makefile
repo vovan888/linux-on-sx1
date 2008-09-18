@@ -8,8 +8,7 @@ OBJS=${SRC:.c=.o}
 
 LIBS= -lnano-X
 
-# libs usage
-LIBS+=-lini -lflphone -ltheme -ltbus -ltpl
+LIBS+= -lflphone -ltheme -ltbus -ltpl
 
 include $(BASE_DIR)/Rules.make
 

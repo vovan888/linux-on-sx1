@@ -1,8 +1,8 @@
 TODO
-+ipc, 
-+indicators, 
-phone, 
-quicklaunch, 
-contacts, 
-message, 
-applist 
++ipc - T-BUS is ready
++indicators,
+phone,
+ +poweroff
+ stability!!!!
+ ldconfig
+ +handle "no network, no pin" errors in Phone

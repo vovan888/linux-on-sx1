@@ -215,16 +215,19 @@ static int siemens_initsettings(struct gsmd *g)
 {
 	int rc = 0;
 	/* reset the second mux channel to factory defaults */
-//	rc |= gsmd_simplecmd(g, "AT&F2");
-	/* ignore DTR line (on mux1)*/
-//	rc |= gsmd_simplecmd(g, "AT&D0");
+	rc |= gsmd_simplecmd(g, "AT&F2");
 	/* setup Mobile error reporting, mode=3 - buffer unsolic messages in TE
-	 1 - indicator event reporting using result code +CIEV:
-	*/
+	 1 - indicator event reporting using result code +CIEV: */
 	rc |= gsmd_simplecmd(g, "AT+CMER=3,0,0,1,0");
+	/* ignore DTR line (on mux0! - channel 1)*/
+//	rc |= gsmd_simplecmd(g, "AT&D0");
 	/* enable ^SACD: Accessory Indicators */
 	rc |= gsmd_simplecmd(g, "AT^SACD=3");
 
+	return rc;
+}
+static int siemens_initsettings_after_pin(struct gsmd *g)
+{
 	/* AT^SCII=  enable ^SCII: ciphering reporting */
 
 	/*TODO - channel 2 - fast commands
@@ -241,7 +244,7 @@ static int siemens_initsettings(struct gsmd *g)
 
 	*/
 
-	return rc;
+	return 0;
 }
 
 struct gsmd_vendor_plugin gsmd_vendor_plugin = {
@@ -251,4 +254,5 @@ struct gsmd_vendor_plugin gsmd_vendor_plugin = {
 	.unsolicit = siemens_unsolicit,
 	.detect = &siemens_detect,
 	.initsettings = &siemens_initsettings,
+	.initsettings_after_pin = &siemens_initsettings_after_pin,
 };

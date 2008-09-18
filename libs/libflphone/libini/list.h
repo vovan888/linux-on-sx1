@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "list.h"
+#include "list_def.h"
 
 #ifdef INI_ADD_LIST_SUPPORT
 

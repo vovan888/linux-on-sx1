@@ -29,12 +29,12 @@ int ipc_start(char *servername)
 		return -1;
 
 	/* Subscribe to different signals */
-	tbus_connect_signal("PhoneServer", "NetworkBars");
-	tbus_connect_signal("PhoneServer", "BatteryBars");
+	tbus_connect_signal("PhoneServer", "Signal");
+	tbus_connect_signal("PhoneServer", "BatteryCharge");
 
 	tbus_connect_signal("AlarmServer", "PPM");
 
-	tbus_connect_signal("nanowm", "debugkey");
+	tbus_connect_signal("WM", "debugkey");
 
 	return 0;
 }
@@ -46,9 +46,9 @@ static int ipc_signal(struct tbus_message *msg)
 	       msg->service_dest, msg->object);
 
 	if (!strcmp(msg->service_dest, "PhoneServer")) {
-		if (!strcmp(msg->object, "NetworkBars"))
+		if (!strcmp(msg->object, "Signal"))
 			indicators[THEME_MAINSIGNAL].changed(0);
-		else if (!strcmp(msg->object, "BatteryBars"))
+		else if (!strcmp(msg->object, "BatteryCharge"))
 			indicators[THEME_MAINBATTERY].changed(0);
 	}
 

@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "keys.h"
+#include "keys_def.h"
 
 #define INI_EQUALS_ALIGN 10
 
@@ -27,9 +27,9 @@
 #   include <strings.h>
 #endif
 
-#ifndef HAVE_STRCASECMP
-#   define strcasecmp stricmp
-#endif
+//#ifndef HAVE_STRCASECMP
+//#   define strcasecmp stricmp
+//#endif
 
 
 /********************************************************************************************************************
@@ -354,7 +354,7 @@ int INI_LINKAGE ini_deleteKey (ini_fd_t fd)
         return -1;
     // Is file read only?
     if (ini->mode == INI_READ)
-        return -1;   
+        return -1;
     __ini_deleteKey (ini);
     ini->flags |= INI_MODIFIED;
     return 0;
