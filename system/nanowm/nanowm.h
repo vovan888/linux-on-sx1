@@ -174,6 +174,7 @@ void leftresize_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void bottombar_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void rightresize_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void rightbar_mousemoved(win * window, GR_EVENT_MOUSE * event);
+void do_screensaver (GR_EVENT_SCREENSAVER *event);
 
 extern GR_SCREEN_INFO si;
 extern GR_BITMAP utilitybutton_notpressed[];

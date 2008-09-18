@@ -42,8 +42,8 @@ int ipc_start(char *servername)
 /* handle signals */
 static int ipc_signal(struct tbus_message *msg)
 {
-	DPRINT("%d,%s->%s/%s (%s)\n", msg->type, msg->service_sender,
-	       msg->service_dest, msg->object, (char *)msg->data);
+	DPRINT("%d,%s->%s/%s\n", msg->type, msg->service_sender,
+	       msg->service_dest, msg->object);
 
 	if (!strcmp(msg->service_dest, "PhoneServer")) {
 		if (!strcmp(msg->object, "NetworkBars"))
@@ -58,7 +58,7 @@ static int ipc_signal(struct tbus_message *msg)
 	}
 
 /*DEBUG signal*/
-	if (!strcmp(msg->service_dest, "nanowm")) {
+	if (!strcmp(msg->service_dest, "WM")) {
 		if (!strcmp(msg->object, "debugkey")) {
 			int tmp;
 			char *str;
@@ -88,7 +88,7 @@ int ipc_handle(GR_EVENT * e)
 	if (ret < 0)
 		return -1;
 	switch (msg.type) {
-	case TBUS_MSG_EMIT_SIGNAL:
+		case TBUS_MSG_SIGNAL:
 		/* we received a signal */
 		ipc_signal(&msg);
 		break;

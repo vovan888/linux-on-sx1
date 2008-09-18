@@ -6,6 +6,12 @@ config CONFIG_DAEMONS
        help
        Say yes here to build the daemons
 
+config CONFIG_NSAVER
+       bool "Screensaver (nsaver)"
+       depends CONFIG_DAEMONS
+       default y
+
+
 config CONFIG_ALARMD
        bool "Alarms daemon"
        depends CONFIG_DAEMONS

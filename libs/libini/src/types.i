@@ -51,7 +51,7 @@ static int __ini_read (ini_t *ini, size_t *size)
         fseek (ini->ftmp, _key->pos, SEEK_SET);
     }
     else if (_key == &ini->tmpKey)
-        return -1; // Can't read tmpKey
+        return -1; // Cant read tmpKey
     *size = _key->length;
     return 0;
 }

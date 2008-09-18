@@ -68,7 +68,7 @@ void Fl_App::handle_tbus_message(int fd, void *data)
 	if (ret < 0)
 		return;
 	switch (ret) {
-	case TBUS_MSG_EMIT_SIGNAL:
+	case TBUS_MSG_SIGNAL:
 		app->handle_signal(&msg);
 		break;
 	case TBUS_MSG_CALL_METHOD:

@@ -23,6 +23,14 @@
 
 /* config functions */
 /* find file on MMC then in local dir */
-DLLEXPORT char * cfg_findfile(char * filename);
+DLLEXPORT char *cfg_findfile(const char *filename);
+
+DLLEXPORT char *cfg_readString(const char *config, const char *head, const char *key);
+
+DLLEXPORT int cfg_readInt(const char *config, const char *head, const char *key);
+
+/* flphone.c */
+DLLEXPORT int fl_spawn(const char *filename, const char *arg);
+
 
 #endif

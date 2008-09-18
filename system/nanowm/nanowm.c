@@ -22,7 +22,7 @@ GR_SCREEN_INFO si;
 struct SharedSystem *shdata;	/* shared memory segment */
 
 /* Register with IPC server */
-int ipc_start(char *servername)
+static int ipc_start(char *servername)
 {
 	int sock;
 
@@ -35,7 +35,7 @@ int ipc_start(char *servername)
 }
 
 /* Handle IPC message */
-int ipc_handle(GR_EVENT * e)
+static int ipc_handle(GR_EVENT * e)
 {
 	struct tbus_message msg;
 	int ret;
@@ -46,6 +46,13 @@ int ipc_handle(GR_EVENT * e)
 		return -1;
 
 	return 0;
+}
+
+static void init_screensaver(void)
+{
+	int timeout = cfg_readInt("etc/nanowm.cfg", "ScreenSaver", "Timeout");
+
+	GrSetScreenSaverTimeout(timeout);
 }
 
 int main(int argc, char *argv[])
@@ -79,7 +86,8 @@ int main(int argc, char *argv[])
 		       GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER | GR_EVENT_MASK_FDINPUT);
 
 	/* IPC init */
-	ipc_start("nanowm");
+	ipc_start("WM");
+	init_screensaver();
 	shdata = ShmMap(SHARED_SYSTEM);
 
 /*	GrGrabKey(GR_ROOT_WINDOW_ID, Menu ,GR_GRAB_EXCLUSIVE); */
@@ -131,6 +139,9 @@ int main(int argc, char *argv[])
 			break;
 		case GR_EVENT_TYPE_FDINPUT:
 			ipc_handle(&event);
+			break;
+		case GR_EVENT_TYPE_SCREENSAVER:
+			do_screensaver(&event.screensaver);
 			break;
 		default:
 			fprintf(stderr, "Got unexpected event %d\n", event.type);

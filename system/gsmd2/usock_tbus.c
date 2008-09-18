@@ -1513,10 +1513,10 @@ static int gsmd_usock_cb(int fd, unsigned int what, void *data)
 		if (gu != NULL) {
 			DEBUGP("processing message...\n");
 			switch (type) {
-			case TBUS_MSG_CALL_METHOD:
-				return usock_rcv_pcmd(gu, &msg);
+				case TBUS_MSG_CALL_METHOD:
+					return usock_rcv_pcmd(gu, &msg);
 				break;
-			case TBUS_MSG_EMIT_SIGNAL:
+				case TBUS_MSG_SIGNAL:
 				break;
 			}
 		}

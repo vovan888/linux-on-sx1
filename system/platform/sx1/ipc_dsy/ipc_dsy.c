@@ -473,7 +473,7 @@ static int ipc_handle(int fd)
 	if (ret < 0)
 		return -1;
 	switch(msg.type) {
-		case TBUS_MSG_EMIT_SIGNAL:
+		case TBUS_MSG_SIGNAL:
 			/* we received a signal */
 //			ipc_signal(&msg);
 		case TBUS_MSG_CALL_METHOD:

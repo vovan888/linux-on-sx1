@@ -31,6 +31,8 @@ static int tbus_socket_sys = -1;
  */
 DLLEXPORT void tbus_msg_free(struct tbus_message *msg)
 {
+	if (!msg)
+		return;
 	free(msg->service_sender);
 	free(msg->service_dest);
 	free(msg->object);
@@ -95,7 +97,6 @@ static int tbus_read_message(int fd, struct tbus_message *msg)
 
 	return 0;
       error_msg:
-	free(msg);
 	tpl_free(tn);
 	return -1;
 }
@@ -246,11 +247,8 @@ DLLEXPORT int tbus_get_message(struct tbus_message *msg)
 
 	err = tbus_read_message(tbus_socket_sys, msg);
 
-	if (err < 0) {
-		/* some error happened */
-		tbus_msg_free(msg);
-		return -1;
-	}
+	if (err < 0)
+		return err;
 
 	return msg->type;
 }
@@ -469,7 +467,7 @@ DLLEXPORT int tbus_emit_signal(char *object, char *fmt, ...)
 
 	va_start(ap, fmt);
 	tbus_pack_args(&msg, fmt, ap);
-	msg.type = TBUS_MSG_EMIT_SIGNAL;
+	msg.type = TBUS_MSG_SIGNAL;
 	msg.service_sender = "";
 	msg.service_dest = "";
 	msg.object = object;

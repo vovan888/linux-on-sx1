@@ -132,13 +132,12 @@ static GSM0710_Buffer *in_buf;	// input buffer
 
 static int _debug = 0;		// 1 - print debug messages, do not daemonize
 
-static pid_t the_pid;
 int _priority;
 int _modem_type;
 static char *serportdev;
 static int pin_code = 0;
 static char *ptydev[MAX_CHANNELS];
-static int numOfPorts;
+static int numOfPorts = 6;	// default for SX1
 static int maxfd;
 static int baudrate = 115200;	// set default baudrate
 static int *remaining;
@@ -750,6 +749,7 @@ void usage(char *_name)
 	fprintf(stderr, "  -f <framsize>       : Maximum frame size [32]\n");
 	fprintf(stderr, "  -d                  : Debug mode, don't fork\n");
 	fprintf(stderr, "  -m <modem>          : Modem (mc35, mc75, generic, ...)\n");
+	fprintf(stderr, "  -n <numOfPorts>     : Number of virtual channels to open (default=6)\n");
 	fprintf(stderr, "  -b <baudrate>       : MUX mode baudrate (0,9600,19200, ...)\n");
 	fprintf(stderr, "  -P <PIN-code>       : PIN code to fed to the modem\n");
 	fprintf(stderr,
@@ -895,47 +895,24 @@ int extract_frames(GSM0710_Buffer * buf)
 	return framesExtracted;
 }
 
-/** Wait for child process to kill the parent.
- */
-void parent_signal_treatment(int param)
-{
-	fprintf(stderr, "MUX started\n");
-	exit(0);
-}
-
 /**
- * Daemonize process, this process  create the daemon
+ * Daemonize process, this process  creates the daemon
  */
 int daemonize(void)
 {
-//      if(!_debug)
-//      {
-	signal(SIGHUP, parent_signal_treatment);
-	if ((the_pid = fork()) < 0) {
-		wait_for_daemon_status = 0;
-		return (-1);
-	} else if (the_pid != 0) {
-		if (wait_for_daemon_status) {
-			wait(NULL);
-			fprintf(stderr, "MUX startup failed. See syslog for details.\n");
-			exit(1);
-		}
-		exit(0);	//parent goes bye-bye
-	}
-	//child continues
-	setsid();		//become session leader
-	//signal(SIGHUP, SIG_IGN);
-	if (wait_for_daemon_status == 0 && (the_pid = fork()) != 0)
-		exit(0);
-	chdir("/");		//change working directory
-	umask(0);		// clear our file mode creation mask
+	if (_debug)
+		return 0;
 
-	// Close out the standard file descriptors
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-//      }
-	//daemonize process stop here
+	int ret = daemon(0, 0);
+	if (ret < 0) {
+		fprintf(stderr, "MUX startup failed!\n");
+		syslog(LOG_ERR, "MUX startup failed!\n");
+
+		exit(1);
+	}
+
+	umask(0);	/*FIXME ???*/
+
 	return 0;
 }
 
@@ -972,7 +949,7 @@ int openDevicesAndMuxMode()
 {
 	int i;
 	int ret = 0;
-	syslog(LOG_INFO, "Open devices...\n");
+	syslog(LOG_INFO, "Open pty devices...\n");
 	// open ussp devices
 	maxfd = 0;
 	for (i = 0; i < numOfPorts; i++) {
@@ -1123,7 +1100,6 @@ int main(int argc, char *argv[], char *env[])
 
 //      unsigned char close_mux[2] = { C_CLD | CR, 1 };
 	int opt;
-	pid_t parent_pid;
 
 	programName = argv[0];
 	/*************************************/
@@ -1148,6 +1124,9 @@ int main(int argc, char *argv[], char *env[])
 			_debug = 1;
 			break;
 		case 'm':
+			break;
+		case 'n':
+			numOfPorts = atoi(optarg);
 			break;
 		case 'b':
 			baudrate = atoi(optarg);
@@ -1174,9 +1153,8 @@ int main(int argc, char *argv[], char *env[])
 		}
 	}
 	//DAEMONIZE
-	//SHOW TIME
-	parent_pid = getpid();
 	daemonize();
+	syslog(LOG_INFO, "MUX started...\n");
 	//The Hell is from now-one
 
 	/* SIGNALS treatment */
@@ -1189,21 +1167,26 @@ int main(int argc, char *argv[], char *env[])
 
 	programName = argv[0];
 	if (_debug) {
-		openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0);	//pode ir at� 7
+		openlog(programName, LOG_NDELAY | LOG_PID | LOG_PERROR, LOG_LOCAL0);
 		_priority = LOG_DEBUG;
 	} else {
-		openlog(programName, LOG_NDELAY | LOG_PID, LOG_LOCAL0);	//pode ir at� 7
+		openlog(programName, LOG_NDELAY | LOG_PID, LOG_LOCAL0);
 		_priority = LOG_INFO;
 	}
 
-	for (t = optind; t < argc; t++) {
-		if ((t - optind) >= MAX_CHANNELS)
-			break;
-		syslog(LOG_INFO, "Port %d : %s\n", t - optind, argv[t]);
-		ptydev[t - optind] = argv[t];
+	if (optind < argc) {
+		for (t = optind; t < argc; t++) {
+			if ((t - optind) >= MAX_CHANNELS)
+				break;
+			syslog(LOG_INFO, "Port %d : %s\n", t - optind, argv[t]);
+			ptydev[t - optind] = argv[t];
+		}
+		numOfPorts = t - optind;
+	} else {
+		for (t = 0; t < numOfPorts; t++) {
+			ptydev[t] = "/dev/ptmx";
+		}
 	}
-	//exit(0);
-	numOfPorts = t - optind;
 
 	syslog(LOG_INFO, "Malloc buffers...\n");
 	// allocate memory for data structures
@@ -1220,11 +1203,8 @@ int main(int argc, char *argv[], char *env[])
 		return -1;
 	}
 
-	if (_debug) {
+	if (_debug)
 		syslog(LOG_INFO, "You can quit the MUX daemon with SIGKILL or SIGTERM\n");
-	} else if (wait_for_daemon_status) {
-		kill(parent_pid, SIGHUP);
-	}
 
 	/*
 	 * SUGGESTION:

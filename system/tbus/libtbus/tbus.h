@@ -30,7 +30,7 @@ extern "C" {
 #define TBUS_MSG_RETURN_METHOD		3
 #define TBUS_MSG_CONNECT_SIGNAL		4
 #define TBUS_MSG_DISCON_SIGNAL		5
-#define TBUS_MSG_EMIT_SIGNAL		6
+#define TBUS_MSG_SIGNAL			6
 #define TBUS_MSG_ERROR			7
 #define TBUS_MSG_CLOSE			8
 

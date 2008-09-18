@@ -210,10 +210,12 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 	/* set it 0 to disable subscriber info and avoid cme err 512 ?FIXME? */
 	rc |= gsmd_simplecmd(gsmd, "AT+COLP=1");
 	/* use +CCWA: to indicate waiting call */
-	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
+//	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
 	/* configure message format as PDU mode */
 	/* FIXME: TEXT mode support!! */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMGF=0");
+	/* turn off CB messages */
+	rc |= gsmd_simplecmd(gsmd, "AT+CSCB=0,\"\",\"\"");
 
 	/* get imsi */
 	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 7 + 1, &gsmd_get_imsi_cb, gsmd, 0, NULL));
