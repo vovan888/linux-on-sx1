@@ -65,7 +65,7 @@ static int ipc_signal(struct tbus_message *msg)
 			tbus_get_message_args(msg, "is", &tmp, &str);
 			DPRINT("%d %s\n", tmp, str);
 			free(str);
-			shdata->battery.bars = 3;
+			shdata->Battery.ChargeLevel = 3;
 			indicators[THEME_MAINBATTERY].changed(3);
 		}
 	}

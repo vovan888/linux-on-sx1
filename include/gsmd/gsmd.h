@@ -9,6 +9,7 @@
 #include <common/linux_list.h>
 
 #include <ipc/tbus.h>
+#include <ipc/shareddata.h>
 
 #include <gsmd/machineplugin.h>
 #include <gsmd/vendorplugin.h>
@@ -96,6 +97,7 @@ struct gsmd {
 	int alive_responded;
 	char imsi[16];			/* imsi mem space */
 	int pin_type;			/* enum gsmd_pin_type */
+	struct SharedSystem *shmem;	/* shared memory segment for status data */
 };
 
 struct gsmd_user {

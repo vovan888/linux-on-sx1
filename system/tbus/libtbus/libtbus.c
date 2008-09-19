@@ -108,7 +108,7 @@ static int tbus_read_message(int fd, struct tbus_message *msg)
  * @param ap arguments list (pointers to vars!)
  * @return 0 if OK
  */
-static int tbus_pack_args(struct tbus_message *msg, char *fmt, va_list ap)
+static int tbus_pack_args(struct tbus_message *msg, const char *fmt, va_list ap)
 {
 	void *data = NULL;
 	int datalen = 0;
@@ -132,7 +132,7 @@ static int tbus_pack_args(struct tbus_message *msg, char *fmt, va_list ap)
  * @param socket_path filename for the UNIX socket
  * @return file descriptor of the socket, or -1 for error
  */
-static int tbus_connect_socket(char *socket_path)
+static int tbus_connect_socket(const char *socket_path)
 {
 	int sock;
 	struct sockaddr_un saddr;
@@ -176,7 +176,7 @@ static int tbus_connect_socket(char *socket_path)
  * Register service to the message bus
  * @param service name of the service to register
  */
-DLLEXPORT int tbus_register_service(char *service)
+DLLEXPORT int tbus_register_service(const char *service)
 {
 	struct tbus_message msg;
 
@@ -259,7 +259,7 @@ DLLEXPORT int tbus_get_message(struct tbus_message *msg)
  *
  * returns msg->type, or -1 if error
  */
-DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, char *fmt, ...)
+DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, const char *fmt, ...)
 {
 	int err;
 	va_list ap;
@@ -288,7 +288,7 @@ DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, char *fmt, ...)
  * @param fmt format string for the arguments, as in libtpl
  * @param args method arguments, should be pointers to variables!
  */
-DLLEXPORT int tbus_call_method(char *service, char *method, char *fmt, ...)
+DLLEXPORT int tbus_call_method(const char *service, const char *method, const char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;
@@ -315,7 +315,7 @@ DLLEXPORT int tbus_call_method(char *service, char *method, char *fmt, ...)
  * @param fmt format string for the arguments, as in libtpl
  * @param args arguments to pass to the method
  */
-DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...)
+DLLEXPORT int tbus_method_return(const char *service, const char *method, const char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;
@@ -365,8 +365,8 @@ DLLEXPORT int tbus_wait_message(int millisec)
  * @param fmt format string for the arguments, as in libtpl
  * @param args arguments to pass to the method
  */
-DLLEXPORT int tbus_call_method_and_wait(struct tbus_message *answer, char *service, char *method,
-					char *fmt, ...)
+DLLEXPORT int tbus_call_method_and_wait(struct tbus_message *answer, const char *service,
+			const char *method, const char *fmt, ...)
 {
 	int err, type, counter = 0;
 	struct tbus_message msg;
@@ -405,7 +405,7 @@ DLLEXPORT int tbus_call_method_and_wait(struct tbus_message *answer, char *servi
  * @param service service name of the method
  * @param object signal name to connect
  */
-DLLEXPORT int tbus_connect_signal(char *service, char *object)
+DLLEXPORT int tbus_connect_signal(const char *service, const char *object)
 {
 	int err;
 	struct tbus_message msg;
@@ -430,7 +430,7 @@ DLLEXPORT int tbus_connect_signal(char *service, char *object)
  * @param service service name of the method
  * @param object signal name to connect
  */
-DLLEXPORT int tbus_disconnect_signal(char *service, char *object)
+DLLEXPORT int tbus_disconnect_signal(const char *service, const char *object)
 {
 	int err;
 	struct tbus_message msg;
@@ -456,7 +456,7 @@ DLLEXPORT int tbus_disconnect_signal(char *service, char *object)
  * @param fmt format string for the arguments, as in libtpl
  * @param value arguments to path to the method
  */
-DLLEXPORT int tbus_emit_signal(char *object, char *fmt, ...)
+DLLEXPORT int tbus_emit_signal(const char *object, const char *fmt, ...)
 {
 	int err;
 	struct tbus_message msg;

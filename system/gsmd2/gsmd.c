@@ -47,6 +47,8 @@
 #include <gsmd/sms.h>
 #include <gsmd/unsolicited.h>
 
+#include <ipc/shareddata.h>
+
 #define GSMD_ALIVECMD		"AT"
 #define GSMD_ALIVE_INTERVAL	5*60
 #define GSMD_ALIVE_TIMEOUT	30
@@ -336,6 +338,8 @@ static int gsmd_initialize(struct gsmd *g)
 
 	g->pin_type = -1;
 
+	g->shmem = ShmMap(SHARED_SYSTEM);
+
 	return 0;
 }
 
@@ -547,5 +551,7 @@ int main(int argc, char **argv)
 	}
 
 	tbus_close();
+	ShmUnmap(g.shmem);
+
 	exit(0);
 }

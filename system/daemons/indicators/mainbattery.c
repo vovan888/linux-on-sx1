@@ -27,10 +27,11 @@ static int mainbattery_show(int frame);
 
 static void mainbattery_changed_callback(int new_value)
 {
-	DBGMSG("%d\n", shdata->battery.bars);
+	int chargelevel = shdata->Battery.ChargeLevel;
+	DBGMSG("%d\n", chargelevel);
 
-	if (battery_current != shdata->battery.bars) {
-		battery_current = shdata->battery.bars;
+	if (battery_current != chargelevel) {
+		battery_current = chargelevel;
 		mainbattery_show(battery_current);
 	}
 }

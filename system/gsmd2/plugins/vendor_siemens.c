@@ -35,7 +35,6 @@
 #include <gsmd/vendorplugin.h>
 #include <gsmd/unsolicited.h>
 
-
 static int scii_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
 	char *tok1, *tok2;
@@ -73,8 +72,8 @@ static int scii_parse(const char *buf, int len, const char *param, struct gsmd *
 
 static int scbi_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
-	char *tok1, *tok2;
-	char tx_buf[20];
+//	char *tok1, *tok2;
+//	char tx_buf[20];
 
 // 	strlcpy(tx_buf, param, sizeof(tx_buf));
 // 	tok1 = strtok(tx_buf, ",");
@@ -92,28 +91,36 @@ static int scbi_parse(const char *buf, int len, const char *param, struct gsmd *
 
 static int sacd_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
-	char *tok1, *tok2;
+	char *tok, *name;
 	char tx_buf[20];
 
 	strlcpy(tx_buf, param, sizeof(tx_buf));
-	tok1 = strtok(tx_buf, ",");
-	if (!tok1)
+	tok = strtok(tx_buf, ",");
+	if (!tok)
 		return -EIO;
-
-	tok2 = strtok(NULL, ",");
-	if (!tok2) {
-		switch (atoi(tok2)) {
+	tok = strtok(NULL, ",");
+	if (!tok)
+		return -EIO;
+	int device = atoi(tok);
+	
+	tok = strtok(NULL, ",");
+	if (!tok)
+		return -EIO;
+	int event = atoi(tok);
+	
+	switch (device) {
 		case 1:	/* COM cable (x55 serial cable)*/
-			/*TODO*/
+			name = "COM";
 			break;
 		case 15: /* USB cable */
-			/*TODO*/
+			name = "USB";
 			break;
-		case 31: /* Headset */
-			/*TODO*/
+		case 31: /* Stereo Headset */
+			name = "Headset";
 			break;
-		}
 	}
+
+	tbus_emit_signal("AccessoryConnected","si", &name, &event);
 
 	return 0;
 }
@@ -157,18 +164,26 @@ static int ciev_parse(const char *buf, int len, const char *param, struct gsmd *
 	value = atoi(tok2);
 	switch (atoi(tok1)) {
 		case 1: /* battery charge level 0..5*/
+			if (gsmd->shmem)
+				gsmd->shmem->Battery.ChargeLevel = value;
 			ret = tbus_emit_signal("BatteryCharge","i", &value);
 			break;
 		case 2: /* signal quality  0..5*/
+			if (gsmd->shmem)
+				gsmd->shmem->PhoneServer.Network_Signal = value;
 			ret = tbus_emit_signal("Signal","i", &value);
 			break;
 		case 3: /* service 1-available, 0-not available*/
+			if (gsmd->shmem)
+				gsmd->shmem->PhoneServer.Network_Service_Avail = value;
 			ret = tbus_emit_signal("ServiceAvailable","i", &value);
 			break;
 		case 4: /*  1- message received, 0 - not received */
 			/*TODO*/
 			break;
 		case 5: /*  1 - call in progress, 0 - call not in progress */
+			if (gsmd->shmem)
+				gsmd->shmem->PhoneServer.Call_InProgress = value;
 			ret = tbus_emit_signal("CallInProgess","i", &value);
 			break;
 		case 6: /*  1 - roaming, 0 - home network */
@@ -186,7 +201,9 @@ static int ciev_parse(const char *buf, int len, const char *param, struct gsmd *
 			ret = tbus_emit_signal("CallProgress","ii", &call_status, &call_id);
 			/*TODO*/
 			break;
-		case 9: /*  1 - GPRS coverage available, 0 - no GPRS*/
+		case 9: /* 1 - GPRS coverage available, 0 - no GPRS*/
+			if (gsmd->shmem)
+				gsmd->shmem->PhoneServer.GPRS_CoverageAvailable = value;
 			ret = tbus_emit_signal("GPRScoverage","i", &value);
 			/*TODO*/
 			break;
@@ -200,9 +217,9 @@ static int ciev_parse(const char *buf, int len, const char *param, struct gsmd *
 
 static const struct gsmd_unsolicit siemens_unsolicit[] = {
 	{ "+CIEV",	&ciev_parse },	/* Indicators event reporting */
-	{ "^SCII",	&scii_parse },	/* Ciphering Indication */
 	{ "^SACD",	&sacd_parse },	/* Accessory Indication */
 	{ "^SCBI",	&scbi_parse },	/* CCBS feature available */
+	{ "^SCII",	&scii_parse },	/* Ciphering Indication */
 };
 
 static int siemens_detect(struct gsmd *g)

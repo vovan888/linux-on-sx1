@@ -164,6 +164,12 @@ static int creg_parse(const char *buf, int len, const char *param, struct gsmd *
 	} else
 		lac = ci = 0;
 
+	if (gsmd->shmem) {
+		gsmd->shmem->PhoneServer.CREG_State = state;
+		gsmd->shmem->PhoneServer.CREG_Lac = lac;
+		gsmd->shmem->PhoneServer.CREG_Ci = ci;
+	}
+
 	ret = tbus_emit_signal("NetworkReg", "iii", &state, &lac, &ci);
 
 	return ret;

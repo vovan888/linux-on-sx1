@@ -420,7 +420,7 @@ static int pin_cmd_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		ret = 0;
 	}
 
-	if (ret == 0)
+	if (ret == 0)	/*FIXME! call this only one time */
 		gsmd_initsettings_after_pin(g);
 
 	/* Pass a GSM07.07 CME code directly, don't issue a new PIN
@@ -471,6 +471,10 @@ static int get_cpin_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	if (!strncmp(resp, "+CPIN: ", 7))
 		type = pin_name_to_type(resp + 7);
+
+	if (gu->gsmd->shmem) {
+		gu->gsmd->shmem->PhoneServer.PIN_Type = type;
+	}
 
 	return tbus_method_return(gu->service_sender, "PIN/GetStatus", "i", &type);
 }
@@ -556,6 +560,12 @@ static int phone_get_manuf_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
 	if (!strncmp(resp, "+CGMI: ", 7))
 		resp += 7;
+
+	if (gu->gsmd->shmem) {
+		strncpy(gu->gsmd->shmem->PhoneServer.Phone_Manuf, resp, 31);
+		gu->gsmd->shmem->PhoneServer.Phone_Manuf[31] = 0;
+	}
+
 	return tbus_method_return(gu->service_sender, "Phone/GetManufacturer", "s", &resp);
 }
 
@@ -566,6 +576,12 @@ static int phone_get_model_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
 	if (!strncmp(resp, "+CGMM: ", 7))
 		resp += 7;
+
+	if (gu->gsmd->shmem) {
+		strncpy(gu->gsmd->shmem->PhoneServer.Phone_Model, resp, 31);
+		gu->gsmd->shmem->PhoneServer.Phone_Model[31] = 0;
+	}
+
 	return tbus_method_return(gu->service_sender, "Phone/GetModel", "s", &resp);
 }
 
@@ -576,6 +592,12 @@ static int phone_get_revision_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
 	if (!strncmp(resp, "+CGMR: ", 7))
 		resp += 7;
+
+	if (gu->gsmd->shmem) {
+		strncpy(gu->gsmd->shmem->PhoneServer.Phone_Revision, resp, 31);
+		gu->gsmd->shmem->PhoneServer.Phone_Revision[31] = 0;
+	}
+
 	return tbus_method_return(gu->service_sender, "Phone/GetRevision", "s", &resp);
 }
 
@@ -586,6 +608,12 @@ static int phone_get_serial_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	DEBUGP("cmd = '%s', resp: '%s'\n", cmd->buf, resp);
 	if (!strncmp(resp, "+CGSN: ", 7))
 		resp += 7;
+
+	if (gu->gsmd->shmem) {
+		strncpy(gu->gsmd->shmem->PhoneServer.Phone_Serial, resp, 31);
+		gu->gsmd->shmem->PhoneServer.Phone_Serial[31] = 0;
+	}
+
 	return tbus_method_return(gu->service_sender, "Phone/GetSerialNum", "s", &resp);
 }
 
@@ -607,6 +635,14 @@ static int phone_get_battery_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		gbs.bcl = er->tokens[1].u.numeric;
 	}
 	talloc_free(er);
+
+	int chargelevel = (gbs.bcl <= 80)?((gbs.bcl + 19) / 20):(5);
+
+	if (gu->gsmd->shmem) {
+		gu->gsmd->shmem->Battery.Status = gbs.bcs;
+		gu->gsmd->shmem->Battery.ChargeLevel = chargelevel;
+	}
+
 	return tbus_method_return(gu->service_sender, "Phone/GetBattery", "ii", &gbs.bcs, &gbs.bcl);
 }
 
@@ -630,7 +666,12 @@ static int phone_vibrator_enable_cb(struct gsmd_atcmd *cmd, void *ctx, char *res
 
 static int phone_vibrator_disable_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
+	struct gsmd_user *gu = ctx;
 	int ret = cmd->ret;
+
+	if (ret == 0)
+		gu->gsmd->dev_state.vibrator = 0;
+
 	return 0;
 }
 
@@ -706,8 +747,8 @@ static int network_query_reg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (!er)
 		return -ENOMEM;
 	//extrsp_dump(er);
-	/*TODO lac and ci */
-	/* +CREG: <n>,<stat>[,<lac>,<ci>] */
+	/*TODO lac, ci, AcT */
+	/* +CREG: <n>,<stat>[,<lac>,<ci>, [AcT]] */
 	if ((er->num_tokens == 4 || er->num_tokens == 2) &&
 	    er->tokens[0].type == GSMD_ECMD_RTT_NUMERIC &&
 	    er->tokens[1].type == GSMD_ECMD_RTT_NUMERIC) {
@@ -715,6 +756,11 @@ static int network_query_reg_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	}
 
 	talloc_free(er);
+
+	if (gu->gsmd->shmem) {
+		gu->gsmd->shmem->PhoneServer.CREG_State = state;
+	}
+
 	return tbus_method_return(gu->service_sender, "Network/QueryRegistration", "i", &state);
 }
 
@@ -766,6 +812,11 @@ static int network_sigq_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		return -EIO;
 	gsq.ber = atoi(comma);
 
+// 	if (gu->gsmd->shmem) {
+// 		gu->gsmd->shmem->PhoneServer.Network_Signal.rssi = gsq.rssi;
+// 		gu->gsmd->shmem->PhoneServer.Network_Signal.ber = gsq.ber;
+// 	}
+
 	return tbus_method_return(gu->service_sender, "Network/SignalGet", "ii", &gsq.rssi,
 				  &gsq.ber);
 }
@@ -796,8 +847,14 @@ static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	}
 
 	buf = strndup(opname, end - opname);
+
+	if (gu->gsmd->shmem) {
+		strncpy(gu->gsmd->shmem->PhoneServer.Network_Operator, buf, 64+8);
+	}
+
 	ret = tbus_method_return(gu->service_sender, "Network/OperatorGet", "s", &buf);
 	free(buf);
+
 	return ret;
 }
 
@@ -831,6 +888,11 @@ static int network_oper_n_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	}
 
 	talloc_free(er);
+
+	if (gu->gsmd->shmem) {
+		strncpy(gu->gsmd->shmem->PhoneServer.Network_OperatorNum, buf, 7);
+		gu->gsmd->shmem->PhoneServer.Network_OperatorNum[7] = 0;
+	}
 
 	return tbus_method_return(gu->service_sender, "Network/OperatorGetNum", "s", &buf);
 }
@@ -936,6 +998,7 @@ static int network_opers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 /*	ret = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_OPER_LIST,
 			cmd->id, sizeof(*buf) * (len + 1), buf);*/
+	/*TODO*/
 	talloc_free(buf);
 	return ret;
 }
@@ -1014,6 +1077,7 @@ static int network_ownnumbers_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 /*	ret = gsmd_ucmd_submit(gu, GSMD_MSG_NETWORK, GSMD_NETWORK_GET_NUMBER,
 			cmd->id, sizeof(*num) + len + 1, num);*/
+	/*TODO*/
 	talloc_free(num);
 	return ret;
 }
@@ -1052,14 +1116,14 @@ static int usock_rcv_network(struct gsmd_user *gu, struct tbus_message *msg)
 		cmd = atcmd_fill("AT+CSQ", 6 + 1, &network_sigq_cb, gu, 0, NULL);
 	} else if (!strcmp("Network/OperatorGet", msg->object)) {
 		/* Set long alphanumeric format */
-		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,0", 11 + 1,
-						  &null_cmd_cb, gu, 0, NULL));
-		cmd = atcmd_fill("AT+COPS?", 8 + 1, &network_oper_cb, gu, 0, NULL);
+/*		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,0;+COPS?", 11 + 1,
+						  &null_cmd_cb, gu, 0, NULL));*/
+		cmd = atcmd_fill("AT+COPS=3,0;+COPS?", 8 + 1, &network_oper_cb, gu, 0, NULL);
 	} else if (!strcmp("Network/OperatorGetNum", msg->object)) {
 		/* Set numeric format */
-		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,2", 11 + 1,
-						  &null_cmd_cb, gu, 0, NULL));
-		cmd = atcmd_fill("AT+COPS?", 8 + 1, &network_oper_n_cb, gu, 0, NULL);
+/*		atcmd_submit(gu->gsmd, atcmd_fill("AT+COPS=3,2;+COPS?", 11 + 1,
+						  &null_cmd_cb, gu, 0, NULL));*/
+		cmd = atcmd_fill("AT+COPS=3,2;+COPS?", 8 + 1, &network_oper_n_cb, gu, 0, NULL);
 	} else if (!strcmp("Network/OperatorList", msg->object)) {
 		cmd = atcmd_fill("AT+COPS=?", 9 + 1, &network_opers_cb, gu, 0, NULL);
 	} else if (!strcmp("Network/PreferredList", msg->object)) {
@@ -1423,17 +1487,17 @@ static struct usock_methods {
 	usock_method_handler *handler;
 } pcmd_type_handlers[] = {
 	{
-	"Passthrough", &usock_rcv_passthrough}, {
-	"Event", &usock_rcv_event}, {
-	"VoiceCall", &usock_rcv_voicecall}, {
-	"PIN", &usock_rcv_pin}, {
-	"Phone", &usock_rcv_phone}, {
-	"Network", &usock_rcv_network}, {
-	"SMS", &usock_rcv_sms}, {
-	"CB", &usock_rcv_cb}, {
-	"PhoneBook", &usock_rcv_phonebook}, {
-	"Modem", &usock_rcv_modem}, {
-	"Connect", &usock_rcv_connect}, {
+	"Passthrough",	&usock_rcv_passthrough}, {
+	"Event",	&usock_rcv_event}, {
+	"VoiceCall",	&usock_rcv_voicecall}, {
+	"PIN",		&usock_rcv_pin}, {
+	"Phone",	&usock_rcv_phone}, {
+	"Network",	&usock_rcv_network}, {
+	"SMS",		&usock_rcv_sms}, {
+	"CB",		&usock_rcv_cb}, {
+	"PhoneBook",	&usock_rcv_phonebook}, {
+	"Modem",	&usock_rcv_modem}, {
+	"Connect",	&usock_rcv_connect}, {
 NULL, NULL},};
 
 static int usock_rcv_pcmd(struct gsmd_user *gu, struct tbus_message *msg)

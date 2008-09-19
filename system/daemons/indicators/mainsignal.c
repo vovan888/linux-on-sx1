@@ -27,10 +27,11 @@ static int mainsignal_show(int frame);
 
 static void mainsignal_changed_callback(int new_value)
 {
-	DBGMSG("%d\n", shdata->PhoneServer.bars);
+	int netsignal = shdata->PhoneServer.Network_Signal;
+	DBGMSG("%d\n", netsignal);
 
-	if (signal_current != shdata->PhoneServer.bars) {
-		signal_current = shdata->PhoneServer.bars;
+	if (signal_current != netsignal) {
+		signal_current = netsignal;
 		mainsignal_show(signal_current);
 	}
 }

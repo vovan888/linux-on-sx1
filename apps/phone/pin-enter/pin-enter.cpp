@@ -81,7 +81,7 @@ void UserInterface::cb_LeftSoft_i(Fl_Button*, void*) {
 //	message->value("OK");
 	int ret;
 	char *oldpin = (char *)pin_code->value();
-	char *newpin = "";
+	const char *newpin = "";
 
 	if(strlen(oldpin) < 4)
 		return;

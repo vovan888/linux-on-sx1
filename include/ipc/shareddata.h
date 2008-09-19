@@ -9,6 +9,9 @@
 
 #include <flphone/libflphone.h>
 
+#include <gsmd/event.h>
+#include <gsmd/usock.h>
+
 #ifndef _shareddata_h_
 #define _shareddata_h_
 
@@ -17,12 +20,6 @@
 #define SHARED_APPS	1
 
 #define SHARED_NUMSEGMENTS	2
-
-#define BATTERY_STATUS_UNKNOWN		0x00
-#define BATTERY_STATUS_POWERED		0x01
-#define BATTERY_STATUS_EXTERNAL		0x02
-#define BATTERY_STATUS_CHARGING		0x03
-#define BATTERY_STATUS_LOW		0x04
 
 /* shared memory structure for SHARED_SYSTEM*/
 struct SharedSystem {
@@ -53,19 +50,37 @@ struct SharedSystem {
 	} sim;
 /* battery */
 	struct {
-		int status;
-		int bars;	/* capacity - 0..7 */
-		int capacity;	/* capacity - 0%..100% */
-	} battery;
+		/* Status:
+		0 - MT is powered by battery,
+		1 - MT has a battery connected, but is not powered by it
+		2 - MT does not have a battery connected
+		3 - Recognized power fault, calls inhibited */
+		enum gsmd_bat_conn_status Status;
+		int ChargeLevel;	/* charge level - 0...5 */
+		int Charging;		/* is battery charging ? */
+		int Low;		/* 1 when battery is very low */
+	} Battery;
 /* PhoneServer status */
 	struct {
-		int signal;	/* network signal strength in dBm */
-		int bars;	/* network bars */
-		int missed_calls;
-		int messages;
-		char oper[16];	/* operator name */
-		int profile;
+		int Ready;	/* 1 - if GSMD finished init (after PIN enter)*/
+		enum gsmd_netreg_state CREG_State;
+		int CREG_Lac;
+		int CREG_Ci;
+		enum gsmd_pin_type PIN_Type;
 
+		char Phone_Manuf[32];		/* manufacturer */
+		char Phone_Model[32];		/* model */
+		char Phone_Revision[32];	/* revision */
+		char Phone_Serial[32];		/* serial number */
+
+		int  Network_Service_Avail;	/* service abailable */
+		int  Network_Signal;		/* network signal strength 0..5 */
+		char Network_Operator[64+8];	/* current operator alpha in HEX */
+		char Network_OperatorNum[8];	/* current operator num in HEX (MCC+MNC)*/
+
+		int Call_InProgress;		/* is Call in progress now? */
+
+		int GPRS_CoverageAvailable;	/* 1 - GPRS coverage available, 0 - no GPRS */
 	} PhoneServer;
 };
 

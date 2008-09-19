@@ -49,7 +49,7 @@ extern "C" {
 /* TPL format string for the internal message */
 #define TBUS_MESSAGE_FORMAT	"S(isss)B"
 
-	DLLEXPORT int tbus_register_service(char *service);
+	DLLEXPORT int tbus_register_service(const char *service);
 
 	DLLEXPORT int tbus_close(void);
 
@@ -57,20 +57,20 @@ extern "C" {
 
 	DLLEXPORT int tbus_get_message(struct tbus_message *msg);
 
-	DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, char *fmt, ...);
+	DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, const char *fmt, ...);
 
-	DLLEXPORT int tbus_call_method(char *service, char *method, char *fmt, ...);
+	DLLEXPORT int tbus_call_method(const char *service, const char *method, const char *fmt, ...);
 
-	DLLEXPORT int tbus_call_method_and_wait(struct tbus_message *answer, char *service,
-						char *method, char *fmt, ...);
+	DLLEXPORT int tbus_call_method_and_wait(struct tbus_message *answer, const char *service,
+			const char *method, const char *fmt, ...);
 
-	DLLEXPORT int tbus_method_return(char *service, char *method, char *fmt, ...);
+	DLLEXPORT int tbus_method_return(const char *service, const char *method, const char *fmt, ...);
 
-	DLLEXPORT int tbus_connect_signal(char *service, char *object);
+	DLLEXPORT int tbus_connect_signal(const char *service, const char *object);
 
-	DLLEXPORT int tbus_disconnect_signal(char *service, char *object);
+	DLLEXPORT int tbus_disconnect_signal(const char *service, const char *object);
 
-	DLLEXPORT int tbus_emit_signal(char *object, char *fmt, ...);
+	DLLEXPORT int tbus_emit_signal(const char *object, const char *fmt, ...);
 
 	DLLEXPORT void tbus_msg_free(struct tbus_message *msg);
 

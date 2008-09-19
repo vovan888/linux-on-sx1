@@ -26,7 +26,7 @@ OBJS-y = gsmd.o atcmd.o select.o machine.o vendor.o unsolicited.o log.o \
 
 OBJS := $(OBJS-y)
 
-LIBS+= -ltbus -ltpl
+LIBS+= -ltbus -ltpl -lflphone
 
 LIBS+= -ldl
 BUILD_CFLAGS=-rdynamic

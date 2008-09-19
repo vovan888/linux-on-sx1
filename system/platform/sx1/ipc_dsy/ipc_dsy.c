@@ -275,13 +275,9 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	case BAT_ChargingStateRes:	// CDsyIndicationHandler::NotifyChargingState(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDosEventManager::ChargingState(TDosChargingState)  data16
-		if (data16 == 1) {
-			shdata->battery.status = BATTERY_STATUS_CHARGING;
-			tbus_emit_signal("BatteryCharging","");
-		} else {
-			shdata->battery.status = BATTERY_STATUS_POWERED;
-			tbus_emit_signal("BatteryPowered","");
-		}
+		int charging = (int)data16;
+		shdata->Battery.Charging = charging;
+		tbus_emit_signal("BatteryCharging","i", &charging);
 		break;
 	case BAT_StatusRes:	// CDsyIndicationHandler::NotifyBatteryStatus(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
@@ -292,13 +288,13 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 		bars = *(unsigned char *)(buf + 6);
 		//CDosEventManager::BatteryBars(int)  c1
 //		snprintf(str, 5, "%d", c1);
-		shdata->battery.bars = bars;
-		tbus_emit_signal("BatteryBars","i", &bars);
+/*		shdata->battery.bars = bars;
+		tbus_emit_signal("BatteryBars","i", &bars);*/
 		break;
 	case BAT_LowWarningRes:	// CDsyIndicationHandler::NotifyBatteryLowWarning(TPtr8 &)
 		c1 = *(unsigned char *)(buf + 6);
 		// CDosEventManager::BatteryLowWarning(int)  c1
-		shdata->battery.status = BATTERY_STATUS_LOW;
+		shdata->Battery.Low = c1;
 		tbus_emit_signal("BatteryLow","");
 		break;
 	default:
@@ -333,11 +329,11 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 		return HandleBattery(buf, res);
 	case IPC_GROUP_RSSI:	// CDsyIndicationHandler::HandleRssi(TIpcMsgHdr *, TPtr8 &)
 		if (cmd == 0) {	// CDsyIndicationHandler::NotifyNetworkBars(TPtr8 &)
-			int netbars = *(unsigned short *)(buf + 6);
+//			int netbars = *(unsigned short *)(buf + 6);
 			// CDosEventManager::NetworkBars(int)  data16
-			shdata->PhoneServer.bars = netbars;
-//			snprintf(str, 5, "%d", data16);
-			tbus_emit_signal("NetworkBars", "i", &netbars);
+			// we have this info from gsmd2
+//			shdata->PhoneServer.Network_Signal = netbars;
+//			tbus_emit_signal("NetworkBars", "i", &netbars);
 			return 0;
 		}
 		return -1;
