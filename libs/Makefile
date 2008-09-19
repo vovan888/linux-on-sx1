@@ -73,6 +73,7 @@ _build_flnx: $(BASE_DIR)/libs/flnx/.configured
 
 _install_flnx: dummy
 	cp -fP flnx/src/libfltk.so* $(INSTALL_DIR)/lib/
+	cp -fP flnx/src/libfltk_images.so* $(INSTALL_DIR)/lib/
 
 _clean_flnx: dummy
 	if [ -f $(BASE_DIR)/libs/flnx/makeinclude ]; then \

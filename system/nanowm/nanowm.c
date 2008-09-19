@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 			ipc_handle(&event);
 			break;
 		case GR_EVENT_TYPE_SCREENSAVER:
-//			do_screensaver(&event.screensaver);
+			do_screensaver(&event.screensaver);
 			break;
 		default:
 			fprintf(stderr, "Got unexpected event %d\n", event.type);
