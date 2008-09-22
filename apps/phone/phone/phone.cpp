@@ -3,6 +3,8 @@
 #include "phone.h"
 #include <stdlib.h>
 
+#include <ipc/shareddata.h>
+
 PhoneApp app;
 
 //---------------------------------------------------------------------------
@@ -24,7 +26,41 @@ void PhoneApp::RemoveIllegalChars(char *str, int len)
 	}
 	str[j] = 0;
 }
+//---------------------------------------------------------------------------
 
+void PhoneApp::SetOperatorName()
+{
+	char *name = Shm->PhoneServer.Network_Operator;
+	char decoded[32];
+	char str[3];
+	int i, len = strlen(name);
+
+	if (len > 0) {
+		for (i = 0; i < len / 4; i++) {
+			//004D00540053002D005200550053
+			str[0] = name[i * 4 + 2];
+			str[1] = name[i * 4 + 3];
+			str[2] = 0;
+			decoded[i] = (char)strtol(str, NULL, 16);
+		}
+		decoded[i] = 0;
+		OpName->value(decoded);
+	}
+}
+//---------------------------------------------------------------------------
+int PhoneApp::RegisteredToNetwork()
+{
+	if (Shm->PhoneServer.CREG_State == GSMD_NETREG_REG_HOME)
+		return 1;
+	if (Shm->PhoneServer.CREG_State == GSMD_NETREG_REG_ROAMING)
+		return 1;
+	return 0;
+}
+//---------------------------------------------------------------------------
+void PhoneApp::cb_timeout_qregister(void *)
+{
+	tbus_call_method ("PhoneServer", "Network/QueryRegistration", "");
+}
 //---------------------------------------------------------------------------
 void PhoneApp::ConnectSignals()
 {
@@ -33,12 +69,35 @@ void PhoneApp::ConnectSignals()
 	tbus_connect_signal("PhoneServer", "IncomingCall");
 	tbus_connect_signal("PhoneServer", "IncomingCLIP");
 	tbus_connect_signal("PhoneServer", "OutgoingCOLP");
-}
+	tbus_connect_signal("PhoneServer", "NetworkReg");
 
+	tbus_call_method("PhoneServer", "Network/RegisterAuto", "");
+	// start timer to query network registration
+	Fl::add_timeout(TIMEOUT_QNETWORK, cb_timeout_qregister);
+
+	Shm = (struct SharedSystem *)ShmMap(SHARED_SYSTEM);
+}
+//---------------------------------------------------------------------------
+void PhoneApp::handle_method_return(struct tbus_message *msg)
+{
+	DPRINT("(%s/%s)\n", msg->service_sender, msg->object);
+	if (!strcmp("PhoneServer", msg->service_sender))
+		if (!strcmp("Network/QueryRegistration", msg->object)) {
+			if(RegisteredToNetwork()) {
+				tbus_call_method ("PhoneServer", "Network/OperatorGet", "");
+				Fl::remove_timeout(cb_timeout_qregister);
+			} else
+				Fl::add_timeout(TIMEOUT_QNETWORK, cb_timeout_qregister);
+
+		} else if (!strcmp("Network/OperatorGet", msg->object)) {
+			SetOperatorName();
+		}
+
+}
 //---------------------------------------------------------------------------
 void PhoneApp::handle_signal(struct tbus_message *msg)
 {
-	DPRINT("handle_signal (%s/%s)\n", msg->service_sender, msg->object);
+	DPRINT("(%s/%s)\n", msg->service_sender, msg->object);
 
 	if (!strcmp("PhoneServer", msg->service_sender))
 		if (!strcmp("CallProgress", msg->object)) {
@@ -78,6 +137,9 @@ void PhoneApp::handle_signal(struct tbus_message *msg)
 //---------------------------------------------------------------------------
 void PhoneApp::GreenButtonPressed()
 {
+//	if(!RegisteredToNetwork())
+//		return;
+
 	if (AppState == STATE_CALL_ACTIVE) {
 		//TODO Hold call
 		return;
@@ -91,7 +153,6 @@ void PhoneApp::GreenButtonPressed()
 			return;
 
 		// fill in call group Output`s
-		OpName->value("Operator");
 		ContactName->value("John Dow");
 		Number->value(PhoneNumber);
 
@@ -113,10 +174,13 @@ void PhoneApp::RedButtonPressed()
 	if (AppState == STATE_IDLE) {
 		// exit the application
 		return;
+	} else if (AppState == STATE_END_CALL) {
+		Fl::remove_timeout(cb_timeout_end_call);
+		GotoState(STATE_IDLE);
 	} else {
 		tbus_call_method("PhoneServer", "VoiceCall/HangUp", "");
 		//TODO start end_call timer
-		GotoState(STATE_IDLE);
+		GotoState(STATE_END_CALL);
 	}
 }
 
@@ -155,10 +219,18 @@ void PhoneApp::GotoState(int newAppState)
 		break;
 	case STATE_END_CALL:
 		CallType->value("Call ended...");
+		// start a timer, then go to IDLE
+		Fl::add_timeout(TIMEOUT_END_CALL, cb_timeout_end_call, this);
 		break;
 	}
 
 	AppState = newAppState;
+}
+//---------------------------------------------------------------------------
+void PhoneApp::cb_timeout_end_call(void *w)
+{
+	PhoneApp *Phone = (PhoneApp *)w;
+	Phone->GotoState(STATE_IDLE);
 }
 
 //---------------------------------------------------------------------------
@@ -359,6 +431,7 @@ PhoneApp::PhoneApp()
 	RightSoft->callback((Fl_Callback *) cb_RightSoft, (void *)this);
 
 	AppState = STATE_IDLE;
+	OpName->value("");
 	PhoneNumber = "";
 
 	ConnectSignals();

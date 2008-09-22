@@ -80,3 +80,22 @@ size_t strlcat(char *dest, const char *src, size_t count)
 	dest[len] = 0;
 	return res;
 }
+
+/* remove all characters not in 'validlist' from 'str'
+ * returns new string len
+*/
+int strip_string(char *str, const char *validlist)
+{
+	int i, j, len = strlen(str);
+	char ch;
+	for (i = j = 0; i < len; i++) {
+		ch = str[i];
+		if (strchr(validlist, ch) != NULL) {
+			str[j] = ch;
+			j++;
+		}
+	}
+	str[j] = 0;
+
+	return j;
+}

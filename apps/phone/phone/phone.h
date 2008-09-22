@@ -15,6 +15,9 @@
 
 #include <flphone/debug.h>
 
+#define TIMEOUT_QNETWORK	2.0
+#define TIMEOUT_END_CALL	3.0
+
 #define STATE_IDLE		0
 #define STATE_INCOMING		1
 #define STATE_DIALING		2
@@ -30,6 +33,12 @@ class PhoneApp:public Fl_App {
 	void GreenButtonPressed();
 	void RedButtonPressed();
 	void ConnectSignals();
+	int RegisteredToNetwork();
+	static void cb_timeout_qregister(void *);
+	void SetOperatorName();
+	static void cb_timeout_end_call(void *);
+
+	struct SharedSystem *Shm;
 
 	 PhoneApp();
 	~PhoneApp();
@@ -40,6 +49,7 @@ class PhoneApp:public Fl_App {
 	static void cb_NumberInput(Fl_Input *, void *);
 
 	virtual void handle_signal(struct tbus_message *msg);
+	virtual void handle_method_return(struct tbus_message *msg);
 
       public:
 	 Fl_Text_Display * search;

@@ -53,7 +53,7 @@
 #define uint	unsigned int
 #define MODEMDEVICE "/dev/mux4"
 #define LSOCKET	"/tmp/sx_dsy"	// local socket to listen on
-#define MAXMSG	64
+#define MAXMSG	104
 
 static volatile int terminate = 0;
 int _priority;
@@ -71,7 +71,7 @@ static int dsy_init_serial(void)
 
 	fd_mux = open(MODEMDEVICE, O_RDWR | O_NOCTTY);
 	if (fd_mux < 0) {
-		ERRLOG("Error: open /dev/mux4 failed!\n");
+		ERRLOG("Error: open /dev/mux4 failed!");
 		/*FIXME we should not exit on real device*/
 		exit(-1);
 	}
@@ -113,12 +113,12 @@ static int Read(unsigned char *frame, int length, int readtimeout)
 		if ((retval =
 		     select(FD_SETSIZE, &read_set, NULL, NULL,
 			    &timeoutz)) < 0) {
-			DBGLOG("read select error = %d\n", errno);
+			DBGLOG("read select error = %d", errno);
 			return -1;
 		}
 
 		if (retval == 0) {
-			DBGLOG("read timeout!\n");
+			DBGLOG("read timeout!");
 			return -1;
 		}
 
@@ -268,6 +268,7 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	unsigned char cmd;
 	unsigned char c1;
 	unsigned short data16;
+	static int bars_done = 0;
 	int bars;
 
 	cmd = buf[2];
@@ -282,14 +283,17 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	case BAT_StatusRes:	// CDsyIndicationHandler::NotifyBatteryStatus(TPtr8 &)
 		data16 = *(unsigned short *)(buf + 6);
 		// CDosEventManager::BatteryStatus(TDosBatteryStatus)  c1
-		/*FIXME maybe we dont need this*/
+		int status = (int)data16;
+		shdata->Battery.Status = status;
 		break;
 	case BAT_BarsRes:	// CCDsyIndicationHandler::NotifyBatteryBars(TPtr8 &)
 		bars = *(unsigned char *)(buf + 6);
-		//CDosEventManager::BatteryBars(int)  c1
-//		snprintf(str, 5, "%d", c1);
-/*		shdata->battery.bars = bars;
-		tbus_emit_signal("BatteryBars","i", &bars);*/
+		//CDosEventManager::BatteryBars(int)  c1 = 0..7
+		if (!bars_done) {
+			shdata->Battery.ChargeLevel = (bars > 2)?bars - 2:0;
+			tbus_emit_signal("BatteryChargeLevel","i", &bars);
+			bars_done = 1;
+		}
 		break;
 	case BAT_LowWarningRes:	// CDsyIndicationHandler::NotifyBatteryLowWarning(TPtr8 &)
 		c1 = *(unsigned char *)(buf + 6);
@@ -352,7 +356,7 @@ int HandleIndication(unsigned char *buf, unsigned char *res)
 		}
 		return -1;
 	default:
-		return -1;
+		return 0;
 	}
 }
 
@@ -366,7 +370,7 @@ int process_modem(int fd)
 	int length;		// message length
 	int len_read, len_write;
 
-/*	DBGLOG("process_modem\n");*/
+/*	DBGLOG("process_modem");*/
 	/* read first 6 bytes of message (header) */
 	len_read = Read(buffer_in, 6, IPC_TIMEOUT);
 	if (len_read != 6)
@@ -381,24 +385,19 @@ int process_modem(int fd)
 	}
 	group = buffer_in[1];
 	cmd = buffer_in[2];
-	DBGLOG("%02X %02X %02X\n", group, cmd, buffer_in[6]);
+	DBGLOG("%02X %02X %02X", group, cmd, buffer_in[6]);
 
-	if (buffer_in[0] != IPC_DEST_DSY)
-		return -1;	/* Error - packet is not for us */
-
-	err = buffer_in[3];
-	if ((err != 0x30) && (err != 0xFF))
-		return -1;	/* Error - wrong packet */
+//	if (buffer_in[0] != IPC_DEST_DSY)
+//		return -1;	/* Error - packet is not for us */
 
 	/* Process IPC message from Egold */
-	if (HandleIndication(buffer_in, buffer_out) == 0) {
-		/* send ACK response to modem */
-		PutHeader(buffer_out, buffer_in[1], buffer_in[2], 6);
-		length = 6;	// + *(unsigned short *)(buffer_out + 4);
-		len_write = Write(buffer_out, length);
-		if (len_write != length)
-			return -1;
-	} else
+	err = HandleIndication(buffer_in, buffer_out);
+
+	/* send ACK response to modem */
+	PutHeader(buffer_out, buffer_in[1], buffer_in[2], 6);
+	length = 6;	// + *(unsigned short *)(buffer_out + 4);
+	len_write = Write(buffer_out, length);
+	if (len_write != length)
 		return -1;
 
 	return 0;
@@ -463,7 +462,7 @@ static int ipc_handle(int fd)
 	int ret;
 	struct tbus_message msg;
 
-	DBGMSG("\n");
+	DBGLOG("");
 
 	ret = tbus_get_message(&msg);
 	if (ret < 0)
@@ -515,14 +514,14 @@ int main(int argc, char *argv[])
 		/* Block until input arrives on one or more active sockets. */
 		read_fd_set = active_fd_set;
 		if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
-			DBGLOG("select error = %d\n", errno);
+			DBGLOG("select error = %d", errno);
 			exit(EXIT_FAILURE);
 		}
 
 		if (FD_ISSET(fd_mux, &read_fd_set)) {
 			/* Message from modem */
 			if (process_modem(fd_mux)) {
-				DBGLOG("error in process_modem\n");
+				DBGLOG("error in process_modem");
 			}
 		}
 		if (FD_ISSET(ipc_fd, &read_fd_set)) {

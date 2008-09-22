@@ -34,9 +34,9 @@
 #include <gsmd/atcmd.h>
 
 #define GSMD_MODEM_WAKEUP_TIMEOUT	3
-#define GSMD_MODEM_POWEROFF_TIMEOUT	3   	 
+#define GSMD_MODEM_POWEROFF_TIMEOUT	3
 
-static void poweroff_timeout(struct gsmd_timer *tmr, void *data) 
+static void poweroff_timeout(struct gsmd_timer *tmr, void *data)
 {
 	exit(0);
 }
@@ -63,14 +63,14 @@ static int gta01_power(struct gsmd *g, int power)
 			/* After sending "AT@POFF" to GSM modem, modem will
 			 * soon power off, and then gsmd gets no response
 			 * from modem. */
-			cmd = atcmd_fill("AT@POFF", 7 + 1, NULL,
+			cmd = atcmd_fill("AT@POFF", -1, NULL,
 					g, 0, poweroff_timer);
 
 			if (!cmd)
 				return -ENOMEM;
 
 			llist_add_tail(&cmd->list, &g->pending_atcmds);
-			if (llist_empty(&g->busy_atcmds) && 
+			if (llist_empty(&g->busy_atcmds) &&
 					!llist_empty(&g->pending_atcmds)) {
 				atcmd_wake_pending_queue(g);
 			}
@@ -83,13 +83,13 @@ static int gta01_power(struct gsmd *g, int power)
 	return 0;
 }
 
-static int null_wakeup_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp) 
+static int null_wakeup_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	DEBUGP("The wake up callback!!\n");
 	return 0;
 }
 
-static void wakeup_timeout(struct gsmd_timer *tmr, void *data) 
+static void wakeup_timeout(struct gsmd_timer *tmr, void *data)
 {
 	struct gsmd *g = data;
 	struct gsmd_atcmd *cmd = NULL;
@@ -97,7 +97,7 @@ static void wakeup_timeout(struct gsmd_timer *tmr, void *data)
 	if (!llist_empty(&g->busy_atcmds)) {
 		cmd = llist_entry(g->busy_atcmds.next, struct gsmd_atcmd, list);
 	}
-	if (!cmd) { 
+	if (!cmd) {
 		DEBUGP("ERROR!! busy_atcmds is NULL\n");
 		return;
 	}
@@ -137,7 +137,7 @@ static struct gsmd_timer * wakeup_timer(struct gsmd *g)
 }
 
 /* adding a null '\r' before real at command. */
-static int atcmd_wakeup_modem(struct gsmd *g) 
+static int atcmd_wakeup_modem(struct gsmd *g)
 {
 	DEBUGP("try to wake up\n");
 	struct gsmd_atcmd *cmd = atcmd_fill(" \r", 2, null_wakeup_cb,

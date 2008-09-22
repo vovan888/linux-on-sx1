@@ -8,6 +8,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -71,7 +72,7 @@ char *cfg_readString(const char *config, const char *head, const char *key)
 	ret = ini_locateKey (fd, key);
 	ret = ini_readString (fd, str, sizeof (str));
 	ini_close(fd);
-	
+
 	if (ret < 0)
 		return NULL;
 	else
@@ -92,5 +93,5 @@ int cfg_readInt(const char *config, const char *head, const char *key)
 	if (cfg == NULL)
 		return -1;
 
-	return atoi(cfg);
+	return (int)strtol(cfg, NULL, 10);
 }

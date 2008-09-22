@@ -51,9 +51,9 @@
 #include <flphone/debug.h>
 
 /* timeout in seconds */
-#define IPC_TIMEOUT 3
+#define IPC_TIMEOUT 1
 #define MODEMDEVICE "/dev/mux3"
-#define MAXMSG	64
+#define MAXMSG	104
 
 static volatile int terminate = 0;
 int _priority;
@@ -115,12 +115,12 @@ static int Read(unsigned char *frame, int length, int readtimeout)
 		read_set = all_set;
 		retval = select(FD_SETSIZE, &read_set, NULL, NULL, &timeoutz);
 		if (retval < 0) {
-			DBGLOG("read select error = %d\n", errno);
+			DBGLOG("read select error = %d", errno);
 			return -1;
 			/* exit (EXIT_FAILURE); */
 		}
 		if (retval == 0) {
-			DBGLOG("read timeout!\n");
+			DBGLOG("read timeout!");
 			return -1;
 		}
 
@@ -168,12 +168,12 @@ static int Request(unsigned char *request_frame, unsigned char *reply_frame)
 
 	length = 6 + *(unsigned short *)(request_frame + 4);
 	len_write = Write(request_frame, length);
-//	DBGLOG("written to serial : %d\n", len_write);
+//	DBGLOG("written to serial : %d", len_write);
 	if (len_write != length)
 		return -1;
 
 	len_read = Read(reply_frame, 6, IPC_TIMEOUT);	// read header
-//	DBGLOG("read from serial port : %d\n", len_read);
+//	DBGLOG("read from serial port : %d", len_read);
 	if (len_read != 6)
 		return -1;	// Error
 
@@ -181,7 +181,7 @@ static int Request(unsigned char *request_frame, unsigned char *reply_frame)
 	if (length) {
 		/* read the rest of data (if there) */
 		len_read = Read(reply_frame + 6, length, IPC_TIMEOUT);
-//		DBGLOG("=read from serial port : %d\n", len_read);
+//		DBGLOG("=read from serial port : %d", len_read);
 		if (len_read != length)
 			return -1;	// Error
 	}
@@ -351,6 +351,17 @@ int SimGetActivePendingLockType(unsigned char *c1, unsigned char *c2)
 //              return 0;
 //      }
 	return 2;
+}
+/*-----------------------------------------------------------------*/
+int SimGetLanguage(unsigned char *cc)
+{
+	unsigned char buf[6], reply[7];
+
+	PutHeader(buf, IPC_GROUP_SIM, SIM_GetLanguage, 6);
+	if (Request(buf, reply))
+		return -1;
+	*cc = reply[6];
+	return 1;
 }
 
 /*-----------------------------------------------------------------*/
@@ -664,7 +675,7 @@ int decode_message(unsigned char *msg, unsigned char *answer)
 	cmd = *(unsigned char *)(msg + 1);
 	data = msg + 2;
 
-	DBGMSG("got message: %02X %02X\n", group, cmd);
+	DBGLOG("got message: %02X %02X", group, cmd);
 
 	switch (group) {
 	case IPC_GROUP_CCMON:
@@ -746,7 +757,7 @@ static int extension_init(void)
 	ipc_fd = tbus_register_service("sx1_ext");
 
 	shdata = ShmMap(SHARED_SYSTEM);
-	DBGLOG("Shdata = %x\n",(unsigned int)shdata);
+	DBGLOG("Shdata = %x",(unsigned int)shdata);
 
 	/* Subscribe to different signals */
 	return 0;
@@ -764,35 +775,36 @@ static int extension_set_rtc(void)
 
 	/* Startup Init IPC */
 	shdata->powerup.egold_ping_ok = PingIpcL();	/* ping connection with EGold */
-	DBGLOG("PingIpcL : %d\n", shdata->powerup.egold_ping_ok);
+	DBGLOG("PingIpcL : %d", shdata->powerup.egold_ping_ok);
 
 	shdata->powerup.reason = StartupReason();	/* Get startup reason */
-	DBGLOG("StartupReason : %d\n", shdata->powerup.reason);
+	DBGLOG("StartupReason : %d", shdata->powerup.reason);
 
 	/* read RTC time from Egold and set local time */
 	shdata->powerup.rtccheck = RtcCheck();	/* check RTC status */
 
-	if (shdata->powerup.rtccheck) {
-		DBGLOG("RtcCheck error: %d\n", shdata->powerup.rtccheck);
-		return -1;
-	}
+// 	if (shdata->powerup.rtccheck) {
+// 		DBGLOG("RtcCheck error: %d", shdata->powerup.rtccheck);
+// 		return -1;
+// 	}
 
 	res = RtcTransfer(&modem_time);
 	if (!res) {
 		loc_time = mktime(&modem_time);
 		/* set system time to localtime from modem */
 		if ( (loc_time != -1) && (!stime(&loc_time)) ) {
-			DBGLOG("local time set = %s\n",
-				asctime(&modem_time));
+/*			DBGLOG("local time set = %s",
+				asctime(&modem_time));*/
 		}
 
 		/* open RTC device and set it to localtime*/
 		rtc_fd = open(default_rtc, O_RDONLY);
 		/* set the RTC time */
 		if (rtc_fd > 0) {
+			/*TODO should set CAP_SYS_TIME capability */
 			res = ioctl(rtc_fd, RTC_SET_TIME, modem_time);
 			if (res == -1) {
-				DBGLOG("RTC_SET_TIME ioctl error\n");
+				DBGLOG("RTC_SET_TIME ioctl error");
 			}
 			close(rtc_fd);
 		}
@@ -806,33 +818,47 @@ static int extension_powerup(void)
 {
 	unsigned char cc;
 	int res;
+	char c1, c2;
+
+	res = LightsGetDisplayConstrast(&c1, &c2);
+	res = LightsGetDisplayConstrast(&c1, &c2);
+	LightsSetDisplayConstrast(0);
 
 	if (SimGetDomesticLanguage(&cc) >= 0) {
 		shdata->sim.domesticlang = cc;
 		SimSetDomesticLanguage(cc);
-		DBGMSG("SimSetDomesticLanguage = %d\n", cc);
+		DBGLOG("SimSetDomesticLanguage(%d)", cc);
 	}
 
 	shdata->powerup.hiddenreset = PowerUpHiddenReset();
-	DBGMSG("PowerUpHiddenReset = %d\n", shdata->powerup.hiddenreset);
+	DBGLOG("PowerUpHiddenReset = %d", shdata->powerup.hiddenreset);
+
+	if (SimGetLanguage(&cc) >= 0) {
+		shdata->sim.lang = cc;
+		SimSetDomesticLanguage(shdata->sim.domesticlang);
+		DBGLOG("SimSetDomesticLanguage(%d)", cc);
+	}
 
 	shdata->powerup.swreason = SWStartupReason();	//PowerUpGetSwStartupReasonReq;
-	DBGMSG("SWStartupReason = %d\n", shdata->powerup.swreason);
+	DBGLOG("SWStartupReason = %d", shdata->powerup.swreason);
 
 	/* PowerUpIndicationObserverOkReq, enable indication observer */
 	IndicationObserverOk();
 
 	shdata->powerup.selftest = SelfTest(0x0B);	/* 0x0B = unknown constant */
-	DBGMSG("SelfTest = %d\n", shdata->powerup.selftest);
+	/* possible results =  */
+	DBGLOG("SelfTest = %d", shdata->powerup.selftest);
 
 	/*TODO RagbagSetDosAlarmReq(00000); */
 
 	TransitionToNormalMode();	// PowerOffTransitionToNormalReq
-	DBGMSG("TransitionToNormalMode\n");
+	DBGLOG("TransitionToNormalMode");
 
 	/*RagbagSetStateReq(3) */
 	/* 5069A8EC ; CDsyMtc::PowerOnL(void) */
 	res = ipc_message_char(IPC_GROUP_RAGBAG, RAG_SetState, 3);
+
+	res = ipc_message(IPC_GROUP_RAGBAG, RAG_UsbSessionEnd);
 
 	return 0;
 }
@@ -845,7 +871,7 @@ int ipc_handle(int fd)
 	int ret;
 	struct tbus_message msg;
 
-	DBGMSG("\n");
+	DBGLOG("");
 
 	ret = tbus_get_message(&msg);
 	if (ret < 0) {
@@ -879,20 +905,10 @@ void signal_treatment(int param)
 	case SIGHUP:
 		//reread the configuration files
 		break;
-	case SIGINT:
-		//exit(0);
-		terminate = 1;
-		break;
-	case SIGKILL:
-		//kill immediatly
-		//i'm not sure if i put exit or sustain the terminate attribution
-		terminate = 1;
-		//exit(0);
-		break;
-	case SIGUSR1:
-		terminate = 1;
-		//sig_term(param);
 	case SIGTERM:
+	case SIGUSR1:
+	case SIGINT:
+	case SIGKILL:
 		terminate = 1;
 		break;
 	default:
@@ -939,7 +955,7 @@ int main(int argc, char *argv[])
 		/* Block until input arrives on one or more active sockets. */
 		read_fd_set = active_fd_set;
 		if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
-			DBGMSG("select error = %d\n", errno);
+			DBGLOG("select error = %d", errno);
 			exit(EXIT_FAILURE);
 		}
 

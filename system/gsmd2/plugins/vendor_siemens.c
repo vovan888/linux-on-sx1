@@ -102,12 +102,12 @@ static int sacd_parse(const char *buf, int len, const char *param, struct gsmd *
 	if (!tok)
 		return -EIO;
 	int device = atoi(tok);
-	
+
 	tok = strtok(NULL, ",");
 	if (!tok)
 		return -EIO;
 	int event = atoi(tok);
-	
+
 	switch (device) {
 		case 1:	/* COM cable (x55 serial cable)*/
 			name = "COM";
@@ -199,13 +199,11 @@ static int ciev_parse(const char *buf, int len, const char *param, struct gsmd *
 			call_status = to_gsmd_call_progress[call_status - 10];
 
 			ret = tbus_emit_signal("CallProgress","ii", &call_status, &call_id);
-			/*TODO*/
 			break;
 		case 9: /* 1 - GPRS coverage available, 0 - no GPRS*/
 			if (gsmd->shmem)
 				gsmd->shmem->PhoneServer.GPRS_CoverageAvailable = value;
 			ret = tbus_emit_signal("GPRScoverage","i", &value);
-			/*TODO*/
 			break;
 		case 10: /*  call setup */
 			/*TODO*/

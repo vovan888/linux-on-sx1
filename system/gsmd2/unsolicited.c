@@ -246,17 +246,22 @@ static int cccm_parse(const char *buf, int len, const char *param, struct gsmd *
 	return 0;
 }
 
-/* Chapter 10.1.13, GPRS event reporting */
+/* Chapter 10.1.13, GPRS event reporting '+CGEV: ME CLASS B' */
 static int cgev_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
 	/* FIXME: parse */
 	return 0;
 }
 
-/* Chapter 10.1.14, GPRS network registration status */
+/* Chapter 10.1.14, GPRS network registration status '+CGREG: 3'*/
 static int cgreg_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
-	/* FIXME: parse */
+	int status = atoi(param);
+
+	if (gsmd->shmem)
+		gsmd->shmem->PhoneServer.GPRS_RegStatus = status;
+	tbus_emit_signal("PhoneServer", "GPRS/RegStatus","i", &status);
+
 	return 0;
 }
 
@@ -267,7 +272,7 @@ static int clip_parse(const char *buf, int len, const char *param, struct gsmd *
 {
 	int ret;
 	const char *comma = strchr(param, ',');
-	char *number = talloc_size(__us_ctx, GSMD_ALPHA_MAXLEN + 1);
+	char *number = talloc_size(__us_ctx, GSMD_ADDR_MAXLEN + 1);
 
 	if (!comma)
 		return -EINVAL;
@@ -275,8 +280,8 @@ static int clip_parse(const char *buf, int len, const char *param, struct gsmd *
 	if (comma - param > GSMD_ADDR_MAXLEN)
 		return -EINVAL;
 
-	number[0] = '\0';
-	strncat(number, param, comma - param);
+	memcpy(number, param + 1, comma - param - 2);
+	number[comma - param - 1] = 0;
 	/* FIXME: parse of subaddr, etc. */
 
 	ret = tbus_emit_signal("IncomingCLIP", "s", &number);
@@ -290,7 +295,7 @@ static int colp_parse(const char *buf, int len, const char *param, struct gsmd *
 {
 	int ret;
 	const char *comma = strchr(param, ',');
-	char *number = talloc_size(__us_ctx, GSMD_ALPHA_MAXLEN + 1);
+	char *number = talloc_size(__us_ctx, GSMD_ADDR_MAXLEN + 1);
 
 	if (!comma)
 		return -EINVAL;
@@ -298,8 +303,9 @@ static int colp_parse(const char *buf, int len, const char *param, struct gsmd *
 	if (comma - param > GSMD_ADDR_MAXLEN)
 		return -EINVAL;
 
-	number[0] = '\0';
-	strncat(number, param, comma - param);
+	memcpy(number, param + 1, comma - param - 2);
+	number[comma - param - 1] = 0;
+
 	/* FIXME: parse of subaddr, etc. */
 
 	ret = tbus_emit_signal("OutgoingCOLP", "s", &number);
@@ -354,14 +360,18 @@ static const struct gsmd_unsolicit gsm0707_unsolicit[] = {
 	{"+COLP", &colp_parse},
 	{"+CTZV", &ctzv_parse},	/* Timezone */
 	{"+COPN", &copn_parse},	/* operator names, treat as unsolicited */
-	/*
-	   { "+CKEV",   &ckev_parse },
-	   { "+CDEV",   &cdev_parse },
-	   { "+CIEV",   &ciev_parse },
-	   { "+CLAV",   &clav_parse },
-	   { "+CCWV",   &ccwv_parse },
-	   { "+CLAV",   &clav_parse },
-	   { "+CSSU",   &cssu_parse },
+/* TODO:
+	{ "+CSSI",   &cssi_parse },
+	{ "+CCM",   &ccm_parse },
+
+	{ "+CKEV",   &ckev_parse },
+	{ "+CKEV",   &ckev_parse },
+	{ "+CDEV",   &cdev_parse },
+	{ "+CIEV",   &ciev_parse },
+	{ "+CLAV",   &clav_parse },
+	{ "+CCWV",   &ccwv_parse },
+	{ "+CLAV",   &clav_parse },
+	{ "+CSSU",   &cssu_parse },
 	 */
 };
 

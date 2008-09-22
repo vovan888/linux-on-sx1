@@ -40,10 +40,10 @@
 #define CR 0x02
 #define EA 0x01
 // the types of the frames
-#define SABM	0x2F
+#define SABM		0x2F
 #define UA 		0x63
 #define DM		0x0F
-#define DISC	0x43
+#define DISC		0x43
 #define UIH		0xEF
 #define UI		0x03
 // virtual frame - for wakeup

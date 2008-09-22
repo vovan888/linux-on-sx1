@@ -102,7 +102,7 @@ static int gsmd_modem_alive(struct gsmd *gsmd)
 
 	gsmd->alive_responded = 0;
 
-	cmd = atcmd_fill(GSMD_ALIVECMD, strlen(GSMD_ALIVECMD) + 1,
+	cmd = atcmd_fill(GSMD_ALIVECMD, -1,
 			 &gsmd_alive_cb, gsmd, 0, alive_timer);
 	if (!cmd) {
 		return -ENOMEM;
@@ -176,7 +176,7 @@ static int gsmd_get_imsi_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 {
 	struct gsmd_atcmd *cmd;
-	cmd = atcmd_fill(cmdtxt, strlen(cmdtxt) + 1, &gsmd_test_atcb, NULL, 0, NULL);
+	cmd = atcmd_fill(cmdtxt, -1, &gsmd_test_atcb, NULL, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
 
@@ -196,7 +196,7 @@ int gsmd_initsettings2(struct gsmd *gsmd)
 	rc |= gsmd_simplecmd(gsmd, "AT+CMEE=1");
 
 	/* get PIN status */
-	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 8 + 1, &gsmd_get_cpin_cb, gsmd, 0, NULL));
+	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", -1, &gsmd_get_cpin_cb, gsmd, 0, NULL));
 
 	return rc;
 }
@@ -224,9 +224,9 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 	rc |= gsmd_simplecmd(gsmd, "AT+CSCB=0,\"\",\"\"");
 
 	/* get imsi */
-	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 7 + 1, &gsmd_get_imsi_cb, gsmd, 0, NULL));
+	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", -1, &gsmd_get_imsi_cb, gsmd, 0, NULL));
 
-	sms_cb_init(gsmd);
+//TODO	sms_cb_init(gsmd);
 
 	if (gsmd->vendorpl && gsmd->vendorpl->initsettings_after_pin)
 		return gsmd->vendorpl->initsettings_after_pin(gsmd);
@@ -266,7 +266,7 @@ int gsmd_initsettings(struct gsmd *gsmd)
 {
 	struct gsmd_atcmd *cmd;
 
-	cmd = atcmd_fill("ATZ", strlen("ATZ") + 1, &firstcmd_atcb, gsmd, 0, NULL);
+	cmd = atcmd_fill("ATZ", 0, &firstcmd_atcb, gsmd, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
 
@@ -530,7 +530,7 @@ int main(int argc, char **argv)
 	if (g.interpreter_ready) {
 		gsmd_initsettings(&g);
 
-//		gsmd_alive_start(&g);
+		gsmd_alive_start(&g);
 	}
 
 	gsmd_opname_init(&g);

@@ -278,8 +278,10 @@ DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, const char *fmt, .
 		if (err < 0)
 			return err;
 		tpl_free(tn);
+		return 0;
 	}
-	return 0;
+	perror("trying to extract arguments, but there is no data!");
+	return -EINVAL;
 }
 
 /**Call the method on the remote service

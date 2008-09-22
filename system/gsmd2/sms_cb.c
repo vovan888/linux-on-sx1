@@ -266,13 +266,13 @@ int usock_rcv_sms(struct gsmd_user *gu, struct tbus_message *msg)
 		else
 			atcmd_len = sprintf(buf, "AT+CMGL=%i", stat);
 
-		cmd = atcmd_fill(buf, atcmd_len + 1, &sms_list_cb, gu, 0, NULL);
+		cmd = atcmd_fill(buf, -1, &sms_list_cb, gu, 0, NULL);
 	} else if (!strcmp("SMS/Read", msg->object)) {
 		int index;
 		tbus_get_message_args(msg, "i", &index);
 		atcmd_len = sprintf(buf, "AT+CMGR=%i", index);
 
-		cmd = atcmd_fill(buf, atcmd_len + 1, &sms_read_cb, gu, 0, NULL);
+		cmd = atcmd_fill(buf, -1, &sms_read_cb, gu, 0, NULL);
 	} else if (!strcmp("SMS/Send", msg->object)) {
 		 /*TODO*/ if (gu->gsmd->flags & GSMD_FLAG_SMS_FMT_TEXT) {
 			atcmd_len = sprintf(buf, "AT+CMGS=\"%s\"\n%.*s", gss->addr.number, gss->payload.length, gss->payload.data);	/* FIXME */
@@ -305,19 +305,19 @@ int usock_rcv_sms(struct gsmd_user *gu, struct tbus_message *msg)
 
 		cmd = atcmd_fill(buf, atcmd_len + 1, &sms_delete_cb, gu, 0, NULL);
 	} else if (!strcmp("SMS/GetStorage", msg->object)) {
-		cmd = atcmd_fill("AT+CPMS?", 8 + 1, usock_cpms_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CPMS?", 0, usock_cpms_cb, gu, 0, NULL);
 	} else if (!strcmp("SMS/SetStorage", msg->object)) {
 		 /*TODO*/
 		    atcmd_len = sprintf(buf, "AT+CPMS=\"%s\",\"%s\",\"%s\"",
 					ts0705_memtype_name[storage[0]],
 					ts0705_memtype_name[storage[1]],
 					ts0705_memtype_name[storage[2]]);
-		cmd = atcmd_fill(buf, atcmd_len + 1, NULL, gu, 0, NULL);
+		cmd = atcmd_fill(buf, 0, NULL, gu, 0, NULL);
 	} else if (!strcmp("SMS/GetServiceCenter", msg->object)) {
-		cmd = atcmd_fill("AT+CSCA?", 8 + 1, &usock_get_smsc_cb, gu, 0, NULL);
+		cmd = atcmd_fill("AT+CSCA?", 0, &usock_get_smsc_cb, gu, 0, NULL);
 	} else if (!strcmp("SMS/SetServiceCenter", msg->object)) {
 		 /*TODO*/ atcmd_len = sprintf(buf, "AT+CSCA=\"%s\",%i", ga->number, ga->type);
-		cmd = atcmd_fill(buf, atcmd_len + 1, NULL, gu, 0, NULL);
+		cmd = atcmd_fill(buf, 0, NULL, gu, 0, NULL);
 	}
 
 	if (!cmd)
@@ -333,9 +333,9 @@ int usock_rcv_cb(struct gsmd_user *gu, struct tbus_message *msg)
 	struct gsmd_atcmd *cmd;
 
 	if (!strcmp("CB/Subscribe", msg->object)) {
-		cmd = atcmd_fill("AT+CSCB=1", 9 + 1, NULL, gu->gsmd, 0, NULL);
+		cmd = atcmd_fill("AT+CSCB=1", 0, NULL, gu->gsmd, 0, NULL);
 	} else if (!strcmp("CB/UnSubscribe", msg->object)) {
-		cmd = atcmd_fill("AT+CSCB=0", 9 + 1, NULL, gu->gsmd, 0, NULL);
+		cmd = atcmd_fill("AT+CSCB=0", 0, NULL, gu->gsmd, 0, NULL);
 	} else
 		return -ENOSYS;
 
@@ -596,7 +596,7 @@ int sms_cb_init(struct gsmd *gsmd)
 
 	/* If text mode, set the encoding */
 	if (gsmd->flags & GSMD_FLAG_SMS_FMT_TEXT) {
-		atcmd = atcmd_fill("AT+CSCS=\"IRA\"", 13 + 1, NULL, gsmd, 0, NULL);
+		atcmd = atcmd_fill("AT+CSCS=\"IRA\"", 0, NULL, gsmd, 0, NULL);
 		if (!atcmd)
 			return -ENOMEM;
 		atcmd_submit(gsmd, atcmd);

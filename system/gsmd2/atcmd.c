@@ -221,7 +221,7 @@ static int atcmd_done(struct gsmd *g, struct gsmd_atcmd *cmd, const char *buf)
 	/* remove timer if get respond before timeout */
 	remove_timer(cmd);
 	if (!cmd->cb) {
-		gsmd_log(GSMD_NOTICE, "command without cb!!!\n");
+		gsmd_log(GSMD_NOTICE, "command without cb!!! '%s'\n", cmd->buf);
 	} else {
 		DEBUGP("Calling final cmd->cb()\n");
 		/* send final result code if there is no information
@@ -323,13 +323,6 @@ static int ml_parse(const char *buf, int len, void *ctx)
 			cms_error = 1;
 			goto final_cb;
 		}
-//              if (!strncmp(buf+1, "CPIN: TRUE", 10)) {
-//                      /* Part of Case 'A' */
-//                      DEBUGP("PIN OK\n");
-//                      if (cmd)
-//                              cmd->ret = 0;
-//                      goto final_cb;
-//              }
 
 		if (!cmd || strncmp(buf, &cmd->buf[2], colon - buf)) {
 			/* Assuming Case 'B' */
@@ -606,7 +599,7 @@ static struct gsmd_timer *discard_timer(struct gsmd *g)
 struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 			      atcmd_cb_t cb, void *ctx, u_int16_t id, create_timer_t ct)
 {
-	int buflen = strlen(cmd);
+	int buflen = strlen(cmd) + 1;	/* Let buffer accept end string zero byte */
 	struct gsmd_atcmd *atcmd;
 
 	if (rlen > buflen)

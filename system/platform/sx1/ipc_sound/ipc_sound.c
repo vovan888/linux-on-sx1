@@ -63,7 +63,7 @@
 #define SOCK_NUM	2
 
 #define MODEMDEVICE "/dev/mux5"
-#define MAXMSG	64
+#define MAXMSG	104
 
 #define NETLINK_CONNECTOR   11
 #define SOL_NETLINK 270

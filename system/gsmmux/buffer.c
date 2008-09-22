@@ -102,7 +102,7 @@ int gsm0710_buffer_write(GSM0710_Buffer * buf, const unsigned char *input, int c
 	} else {
 		memcpy(buf->writep, input, count);
 		buf->writep += count;
-		if (buf->writep == buf->endp)
+		if (buf->writep >= buf->endp)
 			buf->writep = buf->data;
 	}
 

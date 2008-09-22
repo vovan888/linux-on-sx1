@@ -6,14 +6,17 @@
 *
 * Licensed under GPLv2, see LICENSE
 */
+#ifndef _shareddata_h_
+#define _shareddata_h_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <flphone/libflphone.h>
 
 #include <gsmd/event.h>
 #include <gsmd/usock.h>
-
-#ifndef _shareddata_h_
-#define _shareddata_h_
 
 /* shm segment shared_id for different data */
 #define SHARED_SYSTEM	0
@@ -81,6 +84,7 @@ struct SharedSystem {
 		int Call_InProgress;		/* is Call in progress now? */
 
 		int GPRS_CoverageAvailable;	/* 1 - GPRS coverage available, 0 - no GPRS */
+		int GPRS_RegStatus;		/* CGREG */
 	} PhoneServer;
 };
 
@@ -99,5 +103,8 @@ DLLEXPORT int ShmLock (unsigned int shared_id);
 
 /* unlocks shared memory segment */
 DLLEXPORT int ShmUnlock (unsigned int shared_id);
+#ifdef __cplusplus
+} /* closing brace for extern "C" */
+#endif
 
 #endif //shareddata_h_
