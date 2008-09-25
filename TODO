@@ -1,4 +1,5 @@
 TODO
+Flphone:
 +ipc - T-BUS is ready
 +indicators,
 phone,
@@ -6,3 +7,6 @@ phone,
  stability!!!!
  ldconfig
  +handle "no network, no pin" errors in Phone
+
+ Nano-X:
+ - timestamp in key_up and keydown event - to catch long button press

@@ -181,6 +181,8 @@ void do_key_up(GR_EVENT_KEYSTROKE * event)
 		event->wid, event->subwid, event->rootx,
 		event->rooty, event->x, event->y, event->buttons,
 		event->modifiers, event->ch, event->scancode);
+
+	handle_key_up(GR_EVENT_KEYSTROKE * event);
 }
 
 void do_update(GR_EVENT_UPDATE * event)
