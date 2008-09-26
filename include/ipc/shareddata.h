@@ -38,8 +38,9 @@ struct SharedSystem {
 	} powerup;
 /* nanowm data */
 	struct {
-		char root_displayed;	/* is root window displayed ? */
-	} wm;
+		int top_active_window;	/* Nano-X GR_WINDOW_ID for the top active window
+			(1 - if mainscreen is displayed) */
+	} WM;
 /* SIM */
 	struct {
 		int state;

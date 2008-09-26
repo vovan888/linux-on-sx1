@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	window.data = NULL;
 	add_window(&window);
 
-	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE |
+	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_EXPOSURE |
 		       GR_EVENT_MASK_KEY_DOWN | GR_EVENT_MASK_KEY_UP |
 		       GR_EVENT_MASK_SCREENSAVER | GR_EVENT_MASK_TIMER | GR_EVENT_MASK_FDINPUT);
 
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	init_screensaver();
 	shdata = ShmMap(SHARED_SYSTEM);
 
-/*	GrGrabKey(GR_ROOT_WINDOW_ID, Menu ,GR_GRAB_EXCLUSIVE); */
+	GrGrabKey(GR_ROOT_WINDOW_ID, Key_Menu ,GR_GRAB_EXCLUSIVE);
 
 	/* Set new root window background color */
 	props.flags = GR_WM_FLAGS_BACKGROUND;
@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	GrUngrabKey(GR_ROOT_WINDOW_ID, Key_Menu);
 	GrClose();
 	ShmUnmap(shdata);
 }

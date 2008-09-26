@@ -213,6 +213,9 @@ int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index);
 void wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR * title, GR_BOOL active,
 			 GR_WM_PROPS props);
 
+/* keypress.c */
+void handle_key_up(GR_EVENT_KEYSTROKE *event);
+
 extern struct SharedSystem *shdata;	/* shared memory segment */
 
 #endif

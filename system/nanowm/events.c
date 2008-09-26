@@ -21,6 +21,9 @@ void do_exposure(GR_EVENT_EXPOSURE * event)
 	Dprintf("do_exposure: wid %d, x %d, y %d, width %d, height %d\n",
 		event->wid, event->x, event->y, event->width, event->height);
 
+	/* shmem stuff */
+	shdata->WM.top_active_window = event->wid;
+
 	if (!(window = find_window(event->wid)))
 		return;
 
@@ -29,7 +32,7 @@ void do_exposure(GR_EVENT_EXPOSURE * event)
 		container_exposure(window, event);
 		break;
 	default:
-		printf("Unhandled exposure on window %d " "(type %d)\n", window->wid, window->type);
+		Dprintf("Unhandled exposure on window %d " "(type %d)\n", window->wid, window->type);
 		break;
 	}
 
@@ -52,7 +55,7 @@ void do_button_down(GR_EVENT_BUTTON * event)
 		container_buttondown(window, event);
 		break;
 	default:
-		printf("Unhandled button down on window %d "
+		Dprintf("Unhandled button down on window %d "
 		       "(type %d)\n", window->wid, window->type);
 		break;
 	}
@@ -75,7 +78,7 @@ void do_button_up(GR_EVENT_BUTTON * event)
 		container_buttonup(window, event);
 		break;
 	default:
-		printf("Unhandled button up on window %d "
+		Dprintf("Unhandled button up on window %d "
 		       "(type %d)\n", window->wid, window->type);
 		break;
 	}
@@ -92,7 +95,7 @@ void do_mouse_enter(GR_EVENT_GENERAL * event)
 
 	switch (window->type) {
 	default:
-		printf("Unhandled mouse enter from window %d "
+		Dprintf("Unhandled mouse enter from window %d "
 		       "(type %d)\n", window->wid, window->type);
 		break;
 	}
@@ -109,7 +112,7 @@ void do_mouse_exit(GR_EVENT_GENERAL * event)
 
 	switch (window->type) {
 	default:
-		printf("Unhandled mouse exit from window %d "
+		Dprintf("Unhandled mouse exit from window %d "
 		       "(type %d)\n", window->wid, window->type);
 		break;
 	}
@@ -132,7 +135,7 @@ void do_mouse_moved(GR_EVENT_MOUSE * event)
 		container_mousemoved(window, event);
 		break;
 	default:
-		printf("Unhandled mouse movement in window %d "
+		Dprintf("Unhandled mouse movement in window %d "
 		       "(type %d)\n", window->wid, window->type);
 		break;
 	}
@@ -142,14 +145,14 @@ void do_focus_in(GR_EVENT_GENERAL * event)
 {
 	win *window;
 
-	printf("do_focus_in: wid %d\n", event->wid);
+	Dprintf("do_focus_in: wid %d\n", event->wid);
 
 	if (!(window = find_window(event->wid)))
 		return;
 
 	switch (window->type) {
 	default:
-		printf("Unhandled focus in from window %d "
+		Dprintf("Unhandled focus in from window %d "
 		       "(type %d)\n", window->wid, window->type);
 		break;
 	}
@@ -163,14 +166,11 @@ void do_key_down(GR_EVENT_KEYSTROKE * event)
 		event->rooty, event->x, event->y, event->buttons,
 		event->modifiers, event->ch, event->scancode);
 
-	/* FIXME: Implement keyboard shortcuts */
 	/* DEBUG keys */
 	if (event->ch == Key_Menu) {
 		int ret = 888;
 		char *str = "Key_Menu";
 		ret = tbus_emit_signal("debugkey", "is", &ret, &str);
-
-		printf("key_down: %d\n", ret);
 	}
 }
 
@@ -182,7 +182,8 @@ void do_key_up(GR_EVENT_KEYSTROKE * event)
 		event->rooty, event->x, event->y, event->buttons,
 		event->modifiers, event->ch, event->scancode);
 
-	handle_key_up(GR_EVENT_KEYSTROKE * event);
+	/* Handle keyboard shortcuts */
+	handle_key_up(event);
 }
 
 void do_update(GR_EVENT_UPDATE * event)

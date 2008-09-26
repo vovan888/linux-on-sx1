@@ -10,7 +10,7 @@
 #include "nano-X.h"
 #include "nxdraw.h"
 /* Uncomment this if you want debugging output from this file */
-/*#define DEBUG*/
+/*#define WMDEBUG*/
 
 #include "nanowm.h"
 

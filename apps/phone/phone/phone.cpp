@@ -172,7 +172,8 @@ void PhoneApp::GreenButtonPressed()
 void PhoneApp::RedButtonPressed()
 {
 	if (AppState == STATE_IDLE) {
-		// exit the application
+		// hide application
+		iconize();
 		return;
 	} else if (AppState == STATE_END_CALL) {
 		Fl::remove_timeout(cb_timeout_end_call);
@@ -188,6 +189,8 @@ void PhoneApp::RedButtonPressed()
 void PhoneApp::GotoState(int newAppState)
 {
 	DPRINT("GotoState (%d)\n", newAppState);
+
+	show();	// just in case we are iconized
 
 	switch (newAppState) {
 	case STATE_IDLE:

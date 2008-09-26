@@ -9,7 +9,7 @@
 #define MWINCLUDECOLORS
 #include "nano-X.h"
 /* Uncomment this to get debugging output from this file */
-/*#define DEBUG*/
+/*#define WMDEBUG*/
 
 #include "nanowm.h"
 
