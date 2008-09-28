@@ -329,6 +329,7 @@ void Fl_Browser::item_draw(void* v, int X, int Y, int W, int H) const {
     Fl_Color lcol = textcolor();
     Fl_Align talign = FL_ALIGN_LEFT;
     // check for all the @-lines recognized by XForms:
+#warning This maybe needs to be more UTF8 aware now...?
     while (*str == format_char() && *++str && *str != format_char()) {
       switch (*str++) {
       case 'l': case 'L': tsize = 24; break;
@@ -339,7 +340,7 @@ void Fl_Browser::item_draw(void* v, int X, int Y, int W, int H) const {
       case 'f': case 't': font = FL_COURIER; break;
       case 'c': talign = FL_ALIGN_CENTER; break;
       case 'r': talign = FL_ALIGN_RIGHT; break;
-      case 'B': 
+      case 'B':
 	if (!(((FL_BLINE*)v)->flags & SELECTED)) {
 	  fl_color((Fl_Color)strtol(str, &str, 10));
 	  fl_rectf(X, Y, w1, H);
@@ -421,7 +422,7 @@ void Fl_Browser::lineposition(int line, Fl_Line_Position pos) {
     case BOTTOM: final -= H; break;
     case MIDDLE: final -= H/2; break;
   }
-  
+
   if (final > (full_height() - H)) final = full_height() -H;
   position(final);
 }

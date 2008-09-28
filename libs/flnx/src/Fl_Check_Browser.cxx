@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Check_Browser.cxx 5985 2007-11-20 21:15:08Z mike $"
+// "$Id: Fl_Check_Browser.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Fl_Check_Browser header file for the Fast Light Tool Kit (FLTK).
 //
@@ -305,5 +305,5 @@ int Fl_Check_Browser::handle(int event) {
 }
 
 //
-// End of "$Id: Fl_Check_Browser.cxx 5985 2007-11-20 21:15:08Z mike $".
+// End of "$Id: Fl_Check_Browser.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

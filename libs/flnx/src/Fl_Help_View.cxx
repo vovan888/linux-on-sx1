@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Help_View.cxx 6000 2007-12-16 18:51:17Z mike $"
+// "$Id: Fl_Help_View.cxx 6029 2008-02-20 17:39:07Z matt $"
 //
 // Fl_Help_View widget routines.
 //
@@ -61,6 +61,7 @@
 #include <FL/x.H>
 #include <stdio.h>
 #include <stdlib.h>
+#include <FL/fl_utf8.H>
 #include "flstring.h"
 #include <ctype.h>
 #include <errno.h>
@@ -465,7 +466,8 @@ Fl_Help_View::draw()
 			attr[1024];	// Attribute buffer
   int			xx, yy, ww, hh;	// Current positions and sizes
   int			line;		// Current line
-  unsigned char		font, fsize;	// Current font and size
+  fntidx		font;
+  unsigned char         fsize;		// Current font and size
   int			head, pre,	// Flags for text
 			needspace;	// Do we need whitespace?
   Fl_Boxtype		b = box() ? box() : FL_DOWN_BOX;
@@ -704,7 +706,7 @@ Fl_Help_View::draw()
 	    }
 	    else if (strcasecmp(buf, "DT") == 0)
 	    {
-	      font  = (uchar)(textfont_ | FL_ITALIC);
+	      font  = (fntidx)(textfont_ | FL_ITALIC);
 	      fsize = textsize_;
 	    }
 	    else if (strcasecmp(buf, "PRE") == 0)
@@ -716,13 +718,13 @@ Fl_Help_View::draw()
 
             if (strcasecmp(buf, "LI") == 0)
 	    {
-#ifdef __APPLE_QUARTZ__
-              fl_font(FL_SYMBOL, fsize); 
-              hv_draw("\245", xx - fsize + x() - leftline_, yy + y());
-#else
-              fl_font(FL_SYMBOL, fsize);
-              hv_draw("\267", xx - fsize + x() - leftline_, yy + y());
-#endif
+//            fl_font(FL_SYMBOL, fsize); // The default SYMBOL font on my XP box is not Unicode...
+              char buf[8];
+              wchar_t b[] = {0x2022, 0x0};
+//            buf[fl_unicode2utf(b, 1, buf)] = 0;
+              unsigned dstlen = fl_utf8fromwc(buf, 8, b, 1);
+              buf[dstlen] = 0;
+              hv_draw(buf, xx - fsize + x() - leftline_, yy + y());
 	    }
 
 	    pushfont(font, fsize);
@@ -777,16 +779,22 @@ Fl_Help_View::draw()
 	    underline = 0;
 	  else if (strcasecmp(buf, "B") == 0 ||
 	           strcasecmp(buf, "STRONG") == 0)
-	    pushfont(font |= FL_BOLD, fsize);
+	  {
+	    font = (fntidx)(font | FL_BOLD);
+	    pushfont(font, fsize);
+	  }
 	  else if (strcasecmp(buf, "TD") == 0 ||
 	           strcasecmp(buf, "TH") == 0)
           {
 	    int tx, ty, tw, th;
 
 	    if (tolower(buf[1]) == 'h')
-	      pushfont(font |= FL_BOLD, fsize);
+	    {
+	      font = (fntidx)(font | FL_BOLD);
+	      pushfont(font, fsize);
+	    }
 	    else
-	      pushfont(font = textfont_, fsize);
+	      pushfont((fntidx)(font = textfont_), fsize);
 
             tx = block->x - 4 - leftline_;
 	    ty = block->y - topline_ - fsize - 3;
@@ -820,7 +828,10 @@ Fl_Help_View::draw()
 	  }
 	  else if (strcasecmp(buf, "I") == 0 ||
                    strcasecmp(buf, "EM") == 0)
-	    pushfont(font |= FL_ITALIC, fsize);
+	  {
+	    font = (fntidx)(font | FL_ITALIC);
+	    pushfont(font, fsize);
+	  }
 	  else if (strcasecmp(buf, "CODE") == 0 ||
 	           strcasecmp(buf, "TT") == 0)
 	    pushfont(font = FL_COURIER, fsize);
@@ -946,7 +957,10 @@ Fl_Help_View::draw()
 	  if (qch < 0)
 	    *s++ = '&';
 	  else {
-	    *s++ = qch;
+            int l;
+            l = fl_utf8encode((unsigned int) qch, s);
+            if (l < 1) l = 1;
+            s += l;
 	    ptr = strchr(ptr, ';') + 1;
 	  }
 
@@ -1082,7 +1096,8 @@ Fl_Help_View::format()
   int		xx, yy, ww, hh;	// Size of current text fragment
   int		line;		// Current line in block
   int		links;		// Links for current line
-  unsigned char	font, fsize;	// Current font and size
+  fntidx	 font;		// Current font
+  unsigned char	fsize;		// Current font size
   unsigned char	border;		// Draw border?
   int		talign,		// Current alignment
 		newalign,	// New alignment
@@ -1101,7 +1116,7 @@ Fl_Help_View::format()
 
 
   // Reset document width...
-  hsize_ = w() - Fl::scrollbar_size();
+  hsize_ = w() - Fl::scrollbar_size() - Fl::box_dw(b);
 
   done = 0;
   while (!done)
@@ -1391,7 +1406,7 @@ Fl_Help_View::format()
 	  }
 	  else if (strcasecmp(buf, "DT") == 0)
 	  {
-	    font  = (uchar)(textfont_ | FL_ITALIC);
+	    font  = (fntidx)(textfont_ | FL_ITALIC);
 	    fsize = textsize_;
 	  }
 	  else if (strcasecmp(buf, "PRE") == 0)
@@ -1460,7 +1475,7 @@ Fl_Help_View::format()
 	    xx       = margins.pop();
 	    block->h += fsize + 2;
 	  }
-          else if (strcasecmp(buf, "/TABLE") == 0) 
+          else if (strcasecmp(buf, "/TABLE") == 0)
           {
 	    block->h += fsize + 2;
             xx       = margins.current();
@@ -1475,6 +1490,7 @@ Fl_Help_View::format()
 
           popfont(font, fsize);
 
+#warning this isspace & 255 test will probably not work on a utf8 stream... And we use it everywhere!
           while (isspace((*ptr)&255))
 	    ptr ++;
 
@@ -1575,7 +1591,7 @@ Fl_Help_View::format()
 	  block->h   += hh;
 
           if (strcasecmp(buf, "TH") == 0)
-	    font = (uchar)(textfont_ | FL_BOLD);
+	    font = (fntidx)(textfont_ | FL_BOLD);
 	  else
 	    font = textfont_;
 
@@ -1654,10 +1670,16 @@ Fl_Help_View::format()
 	  popfont(font, fsize);
 	else if (strcasecmp(buf, "B") == 0 ||
         	 strcasecmp(buf, "STRONG") == 0)
-	  pushfont(font |= FL_BOLD, fsize);
+	{
+	  font = (fntidx)(font | FL_BOLD);
+	  pushfont(font, fsize);
+	}
 	else if (strcasecmp(buf, "I") == 0 ||
         	 strcasecmp(buf, "EM") == 0)
-	  pushfont(font |= FL_ITALIC, fsize);
+	{
+	  font = (fntidx)(font | FL_ITALIC);
+	  pushfont(font, fsize);
+	}
 	else if (strcasecmp(buf, "CODE") == 0 ||
 	         strcasecmp(buf, "TT") == 0)
 	  pushfont(font = FL_COURIER, fsize);
@@ -1755,7 +1777,10 @@ Fl_Help_View::format()
 	if (qch < 0)
 	  *s++ = '&';
 	else {
-	  *s++ = qch;
+          int l;
+          l = fl_utf8encode((unsigned int) qch, s);
+          if (l < 1) l = 1;
+          s += l;
 	  ptr = strchr(ptr, ';') + 1;
 	}
 
@@ -1853,14 +1878,14 @@ Fl_Help_View::format()
 
   // Reset scrolling if it needs to be...
   if (scrollbar_.visible()) {
-    int temph = h() - Fl::box_dh(box());
+    int temph = h() - Fl::box_dh(b);
     if (hscrollbar_.visible()) temph -= ss;
     if ((topline_ + temph) > size_) topline(size_ - temph);
     else topline(topline_);
   } else topline(0);
 
   if (hscrollbar_.visible()) {
-    int tempw = w() - ss - Fl::box_dw(box());
+    int tempw = w() - ss - Fl::box_dw(b);
     if ((leftline_ + tempw) > hsize_) leftline(hsize_ - tempw);
     else leftline(leftline_);
   } else leftline(0);
@@ -1894,7 +1919,8 @@ Fl_Help_View::format_table(int        *table_width,	// O - Total table width
 		*attrs,					// Pointer to attributes
 		*start;					// Start of element
   int		minwidths[MAX_COLUMNS];			// Minimum widths for each column
-  unsigned char	font, fsize;				// Current font and size
+  fntidx	font;					// Current font
+  unsigned char	fsize;					// Current font size
 
 
   // Clear widths...
@@ -1992,7 +2018,7 @@ Fl_Help_View::format_table(int        *table_width,	// O - Total table width
 	}
 	else if (strcasecmp(buf, "DT") == 0)
 	{
-	  font  = (uchar)(textfont_ | FL_ITALIC);
+	  font  = (fntidx)(textfont_ | FL_ITALIC);
 	  fsize = textsize_;
 	}
 	else if (strcasecmp(buf, "PRE") == 0)
@@ -2102,7 +2128,7 @@ Fl_Help_View::format_table(int        *table_width,	// O - Total table width
 	incell    = 1;
 
         if (strcasecmp(buf, "TH") == 0)
-	  font = (uchar)(textfont_ | FL_BOLD);
+	  font = (fntidx)(textfont_ | FL_BOLD);
 	else
 	  font = textfont_;
 
@@ -2125,10 +2151,16 @@ Fl_Help_View::format_table(int        *table_width,	// O - Total table width
       }
       else if (strcasecmp(buf, "B") == 0 ||
                strcasecmp(buf, "STRONG") == 0)
-	pushfont(font |= FL_BOLD, fsize);
+      {
+	font = (fntidx)(font | FL_BOLD);
+	pushfont(font, fsize);
+      }
       else if (strcasecmp(buf, "I") == 0 ||
                strcasecmp(buf, "EM") == 0)
-	pushfont(font |= FL_ITALIC, fsize);
+      {
+	font = (fntidx)(font | FL_ITALIC);
+	pushfont(font, fsize);
+      }
       else if (strcasecmp(buf, "CODE") == 0 ||
                strcasecmp(buf, "TT") == 0)
 	pushfont(font = FL_COURIER, fsize);
@@ -2196,6 +2228,10 @@ Fl_Help_View::format_table(int        *table_width,	// O - Total table width
       if (qch < 0)
 	*s++ = '&';
       else {
+//        int l;
+//        l = fl_utf8encode((unsigned int) qch, s);
+//        if (l < 1) l = 1;
+//        s += l;
 	*s++ = qch;
 	ptr = strchr(ptr, ';') + 1;
       }
@@ -2305,7 +2341,7 @@ Fl_Help_View::format_table(int        *table_width,	// O - Total table width
 
 void
 Fl_Help_View::free_data() {
-  // Releae all images...
+  // Release all images...
   if (value_) {
     const char	*ptr,		// Pointer into block
 		*attrs;		// Pointer to start of element attributes
@@ -2597,7 +2633,7 @@ Fl_Help_View::get_image(const char *name, int W, int H) {
   } else if (name[0] != '/' && strchr(name, ':') == NULL) {
     if (directory_[0]) snprintf(temp, sizeof(temp), "%s/%s", directory_, name);
     else {
-      getcwd(dir, sizeof(dir));
+      fl_getcwd(dir, sizeof(dir));
       snprintf(temp, sizeof(temp), "file:%s/%s", dir, name);
     }
 
@@ -2688,7 +2724,7 @@ void Fl_Help_View::follow_link(Fl_Help_Link *linkp)
 	snprintf(temp, sizeof(temp), "%s/%s", directory_, linkp->filename);
       else
       {
-	getcwd(dir, sizeof(dir));
+	  fl_getcwd(dir, sizeof(dir));
 	snprintf(temp, sizeof(temp), "file:%s/%s", dir, linkp->filename);
       }
     }
@@ -2819,9 +2855,9 @@ static unsigned int command(const char *cmd)
 
 #define CMD(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
-void Fl_Help_View::end_selection(int clipboard) 
+void Fl_Help_View::end_selection(int clipboard)
 {
-  if (!selected || current_view!=this) 
+  if (!selected || current_view!=this)
     return;
   // convert the select part of our html text into some kind of somewhat readable ASCII
   // and store it in the selection buffer
@@ -3131,7 +3167,7 @@ Fl_Help_View::load(const char *f)// I - Filename to load (may also have target)
     if (strncmp(localname, "file:", 5) == 0)
       localname += 5;	// Adjust for local filename...
 
-    if ((fp = fopen(localname, "rb")) != NULL)
+    if ((fp = fl_fopen(localname, "rb")) != NULL)
     {
       fseek(fp, 0, SEEK_END);
       len = ftell(fp);
@@ -3288,11 +3324,8 @@ Fl_Help_View::value(const char *v)	// I - Text to view
 #ifdef ENC
 # undef ENC
 #endif
-#ifdef __APPLE__
-# define ENC(a, b) b
-#else
+// part b in the table seems to be mac_roman - beku
 # define ENC(a, b) a
-#endif
 
 //
 // 'quote_char()' - Return the character code associated with a quoted char.
@@ -3450,5 +3483,5 @@ hscrollbar_callback(Fl_Widget *s, void *)
 
 
 //
-// End of "$Id: Fl_Help_View.cxx 6000 2007-12-16 18:51:17Z mike $".
+// End of "$Id: Fl_Help_View.cxx 6029 2008-02-20 17:39:07Z matt $".
 //

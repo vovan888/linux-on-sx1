@@ -28,6 +28,8 @@
 #ifndef Fl_H
 #  define Fl_H
 
+#  include "fl_utf8.H"
+
 #ifdef NANO_X  //for Nano-x,by tanghao
 #define MWINCLUDECOLORS
 #include <nano-X.h>

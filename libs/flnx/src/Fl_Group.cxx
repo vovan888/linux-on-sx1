@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Group.cxx 6002 2007-12-16 23:34:06Z mike $"
+// "$Id: Fl_Group.cxx 6030 2008-02-20 17:42:08Z matt $"
 //
 // Group widget for the Fast Light Tool Kit (FLTK).
 //
@@ -260,9 +260,7 @@ int Fl_Group::handle(int event) {
 
     if (children()) {
       for (int j = i;;) {
-        if (a[j]->takesevents() || event != FL_MOUSEWHEEL) {
-          if (send(a[j], event)) return 1;
-	}
+        if (a[j]->takesevents()) if (send(a[j], event)) return 1;
         j++;
         if (j >= children()) j = 0;
         if (j == i) break;
@@ -430,9 +428,9 @@ void Fl_Group::init_sizes() {
   delete[] sizes_; sizes_ = 0;
 }
 
-short* Fl_Group::sizes() {
+int* Fl_Group::sizes() {
   if (!sizes_) {
-    short* p = sizes_ = new short[4*(children_+2)];
+    int* p = sizes_ = new int[4*(children_+2)];
     // first thing in sizes array is the group's size:
     if (type() < FL_WINDOW) {p[0] = x(); p[2] = y();} else {p[0] = p[2] = 0;}
     p[1] = p[0]+w(); p[3] = p[2]+h();
@@ -479,7 +477,7 @@ void Fl_Group::resize(int X, int Y, int W, int H) {
 
   } else if (children_) {
 
-    short* p = sizes();
+    int* p = sizes();
 
     // get changes in size/position from the initial size:
     int dx = X - p[0];
@@ -618,5 +616,5 @@ void Fl_Group::draw_outside_label(const Fl_Widget& widget) const {
 }
 
 //
-// End of "$Id: Fl_Group.cxx 6002 2007-12-16 23:34:06Z mike $".
+// End of "$Id: Fl_Group.cxx 6030 2008-02-20 17:42:08Z matt $".
 //

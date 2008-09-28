@@ -57,6 +57,11 @@ void fl_draw(const char* str, int x, int y) {
   fl_draw(str, strlen(str), x, y);
 }
 
+#if !USE_XFT && !__APPLE__ && !NANO_X
+void fl_draw(const char* str, int l, float x, float y) {
+  fl_draw(str, l, (int)x, (int)y);
+}
+#endif
 //
 // End of "$Id: fl_font.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

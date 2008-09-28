@@ -58,7 +58,7 @@ struct FL_EXPORT Fl_Menu_Item {
   void *user_data_;
   int flags;
   uchar labeltype_;
-  uchar labelfont_;
+  fntidx labelfont_;
   uchar labelsize_;
   unsigned labelcolor_;
 
@@ -78,7 +78,7 @@ struct FL_EXPORT Fl_Menu_Item {
   Fl_Color labelcolor() const {return (Fl_Color)labelcolor_;}
   void labelcolor(unsigned a) {labelcolor_ = a;}
   Fl_Font labelfont() const {return (Fl_Font)labelfont_;}
-  void labelfont(uchar a) {labelfont_ = a;}
+  void labelfont(fntidx a) {labelfont_ = a;}
   uchar labelsize() const {return labelsize_;}
   void labelsize(uchar a) {labelsize_ = a;}
   Fl_Callback_p callback() const {return callback_;}

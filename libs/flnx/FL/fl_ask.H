@@ -64,7 +64,7 @@ FL_EXPORT const char *fl_password(const char *label, const char *deflt = 0, ...)
 FL_EXPORT Fl_Widget *fl_message_icon();
 extern FL_EXPORT Fl_Font fl_message_font_;
 extern FL_EXPORT unsigned char fl_message_size_;
-inline void fl_message_font(unsigned char f,unsigned char s) {
+inline void fl_message_font(fntidx f,unsigned char s) {
   fl_message_font_ = (Fl_Font)f; fl_message_size_ = s;}
 
 // pointers you can use to change FLTK to a foreign language:

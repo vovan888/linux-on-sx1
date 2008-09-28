@@ -60,7 +60,7 @@ class FL_EXPORT Fl_Input_ : public Fl_Widget {
   int maximum_size_;
 
   uchar erase_cursor_only;
-  uchar textfont_;
+  fntidx textfont_;
   uchar textsize_;
   unsigned textcolor_;
   unsigned cursor_color_;
@@ -120,7 +120,7 @@ public:
   int copy_cuts();
 
   Fl_Font textfont() const {return (Fl_Font)textfont_;}
-  void textfont(uchar s) {textfont_ = s;}
+  void textfont(fntidx s) {textfont_ = s;}
   uchar textsize() const {return textsize_;}
   void textsize(uchar s) {textsize_ = s;}
   Fl_Color textcolor() const {return (Fl_Color)textcolor_;}
@@ -138,7 +138,7 @@ public:
                          else type((uchar)(type() & ~FL_INPUT_WRAP)); }
 };
 
-#endif 
+#endif
 
 //
 // End of "$Id: Fl_Input_.H 4288 2005-04-16 00:13:17Z mike $".

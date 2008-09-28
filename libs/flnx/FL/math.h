@@ -29,9 +29,9 @@
 #  define fl_math_h
 
 // Apple's ProjectBuilder has the nasty habit of including recursively
-// down the file tree. To avoid re-including <FL/math.h> we must 
-// directly include the systems math file. (Plus, I could not find a 
-// predefined macro for ProjectBuilder builds, so we have to define it 
+// down the file tree. To avoid re-including <FL/math.h> we must
+// directly include the systems math file. (Plus, I could not find a
+// predefined macro for ProjectBuilder builds, so we have to define it
 // in the project)
 #  if defined(__APPLE__) && defined(__PROJECTBUILDER__)
 #    include "/usr/include/math.h"
@@ -60,7 +60,7 @@
 #  if (defined(WIN32) || defined(CRAY)) && !defined(__MINGW32__) && !defined(__MWERKS__)
 
 inline double rint(double v) {return floor(v+.5);}
-inline double copysign(double a, double b) {return b<0 ? -a : a;}
+//inline double copysign(double a, double b) {return b<0 ? -a : a;}
 
 #  endif // (WIN32 || CRAY) && !__MINGW32__ && !__MWERKS__
 

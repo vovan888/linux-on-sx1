@@ -76,7 +76,8 @@ static Fl_Menu_Item* insert(
   m->callback_ = 0;
   m->user_data_ = 0;
   m->flags = flags;
-  m->labeltype_ = m->labelfont_ = m->labelsize_ = m->labelcolor_ = 0;
+  m->labeltype_ = m->labelsize_ = m->labelcolor_ = 0;
+  m->labelfont_ = FL_HELVETICA; // (fntidx)0;
   return array;
 }
 
@@ -102,7 +103,7 @@ static int compare(const char* a, const char* b) {
 int Fl_Menu_Item::add(
   const char *mytext,
   int sc,
-  Fl_Callback *cb,	
+  Fl_Callback *cb,
   void *data,
   int myflags
 ) {

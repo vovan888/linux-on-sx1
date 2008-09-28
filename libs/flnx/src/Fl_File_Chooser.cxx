@@ -165,7 +165,7 @@ Fl_File_Chooser::Fl_File_Chooser(const char *d, const char *p, int t, const char
     { Fl_Group* o = new Fl_Group(10, 10, 470, 25);
       { showChoice = new Fl_Choice(65, 10, 215, 25, "Show:");
         showChoice->down_box(FL_BORDER_BOX);
-        showChoice->labelfont(1);
+        showChoice->labelfont((fntidx)1);
         showChoice->callback((Fl_Callback*)cb_showChoice);
         Fl_Group::current()->resizable(showChoice);
         showChoice->label(show_label);
@@ -214,14 +214,14 @@ Fl_File_Chooser::Fl_File_Chooser(const char *d, const char *p, int t, const char
         o->end();
       } // Fl_Group* o
       { fileName = new Fl_File_Input(115, 300, 365, 35);
-        fileName->labelfont(1);
+        fileName->labelfont((fntidx)1);
         fileName->callback((Fl_Callback*)cb_fileName);
         fileName->when(FL_WHEN_ENTER_KEY);
         Fl_Group::current()->resizable(fileName);
         fileName->when(FL_WHEN_CHANGED | FL_WHEN_ENTER_KEY_ALWAYS);
       } // Fl_File_Input* fileName
       { Fl_Box* o = new Fl_Box(10, 310, 105, 25, "Filename:");
-        o->labelfont(1);
+        o->labelfont((fntidx)1);
         o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         o->label(filename_label);
       } // Fl_Box* o
@@ -257,7 +257,7 @@ Fl_File_Chooser::Fl_File_Chooser(const char *d, const char *p, int t, const char
         favUpButton->callback((Fl_Callback*)cb_favUpButton);
       } // Fl_Button* favUpButton
       { favDeleteButton = new Fl_Button(320, 45, 25, 25, "X");
-        favDeleteButton->labelfont(1);
+        favDeleteButton->labelfont((fntidx)1);
         favDeleteButton->callback((Fl_Callback*)cb_favDeleteButton);
         Fl_Group::current()->resizable(favDeleteButton);
       } // Fl_Button* favDeleteButton
@@ -391,11 +391,11 @@ Fl_Color Fl_File_Chooser::textcolor() {
   return (fileList->textcolor());
 }
 
-void Fl_File_Chooser::textfont(uchar f) {
+void Fl_File_Chooser::textfont(fntidx f) {
   fileList->textfont(f);
 }
 
-uchar Fl_File_Chooser::textfont() {
+fntidx Fl_File_Chooser::textfont() {
   return (fileList->textfont());
 }
 

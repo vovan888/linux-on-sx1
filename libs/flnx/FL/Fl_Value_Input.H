@@ -48,7 +48,7 @@ public:
   char soft() const {return soft_;}
 
   Fl_Font textfont() const {return input.textfont();}
-  void textfont(uchar s) {input.textfont(s);}
+  void textfont(fntidx s) {input.textfont(s);}
   uchar textsize() const {return input.textsize();}
   void textsize(uchar s) {input.textsize(s);}
   Fl_Color textcolor() const {return input.textcolor();}

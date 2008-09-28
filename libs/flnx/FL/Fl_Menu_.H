@@ -42,7 +42,7 @@ protected:
 
   uchar alloc;
   uchar down_box_;
-  uchar textfont_;
+  fntidx textfont_;
   uchar textsize_;
   unsigned textcolor_;
 
@@ -81,7 +81,7 @@ public:
   const char *text(int i) const {return menu_[i].text;}
 
   Fl_Font textfont() const {return (Fl_Font)textfont_;}
-  void textfont(uchar c) {textfont_=c;}
+  void textfont(fntidx c) {textfont_=c;}
   uchar textsize() const {return textsize_;}
   void textsize(uchar c) {textsize_=c;}
   Fl_Color textcolor() const {return (Fl_Color)textcolor_;}

@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Image.cxx 5888 2007-06-07 17:23:41Z matt $"
+// "$Id: Fl_Image.cxx 5825 2007-05-14 13:18:44Z matt $"
 //
 // Image drawing code for the Fast Light Tool Kit (FLTK).
 //
@@ -540,5 +540,5 @@ void Fl_RGB_Image::label(Fl_Menu_Item* m) {
 
 
 //
-// End of "$Id: Fl_Image.cxx 5888 2007-06-07 17:23:41Z matt $".
+// End of "$Id: Fl_Image.cxx 5825 2007-05-14 13:18:44Z matt $".
 //

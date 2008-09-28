@@ -192,10 +192,10 @@ class Fl_Spinner : public Fl_Group
   void		textcolor(Fl_Color c) {
 		  input_.textcolor(c);
 		}
-  uchar		textfont() const {
+  fntidx	textfont() const {
 		  return (input_.textfont());
 		}
-  void		textfont(uchar f) {
+  void		textfont(fntidx f) {
 		  input_.textfont(f);
 		}
   uchar		textsize() const {
@@ -205,13 +205,13 @@ class Fl_Spinner : public Fl_Group
 		  input_.textsize(s);
 		}
   uchar		type() const { return (input_.type()); }
-  void		type(uchar v) { 
+  void		type(uchar v) {
                   if (v==FL_FLOAT_INPUT) {
                     format("%.*f");
                   } else {
                     format("%.0f");
                   }
-                  input_.type(v); 
+                  input_.type(v);
                 }
   double	value() const { return (value_); }
   void		value(double v) { value_ = v; update(); }

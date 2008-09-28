@@ -51,7 +51,7 @@ static const char* const compose_pairs =
 #else
 
 static const char* const compose_pairs =
-"=E  _'f _\"..+ ++^ %%^S< OE  ^Z    ^''^^\"\"^-*- --~ TM^s> oe  ^z:Y" 
+"=E  _'f _\"..+ ++^ %%^S< OE  ^Z    ^''^^\"\"^-*- --~ TM^s> oe  ^z:Y"
 "  ! % # $ y=| & : c a <<~ - r _ * +-2 3 ' u p . , 1 o >>141234? "
 "`A'A^A~A:A*AAE,C`E'E^E:E`I'I^I:I-D~N`O'O^O~O:Ox O/`U'U^U:U'YTHss"
 "`a'a^a~a:a*aae,c`e'e^e:e`i'i^i:i-d~n`o'o^o~o:o-:o/`u'u^u:u'yth:y";
@@ -119,9 +119,13 @@ int Fl::compose(int& del) {
 
     if (ascii == ' ') { // space turns into nbsp
 #ifdef __APPLE__
-      e_text[0] = char(0xCA);
-#else
-      e_text[0] = char(0xA0);
+      int len = fl_utf8encode(0xCA, e_text);
+      e_text[len] = '\0';
+      e_length = len;
+ #else
+      int len = fl_utf8encode(0xA0, e_text);
+      e_text[len] = '\0';
+      e_length = len;
 #endif
       compose_state = 0;
       return 1;
@@ -131,9 +135,14 @@ int Fl::compose(int& del) {
     }
 
     // see if it is either character of any pair:
-    for (const char *p = compose_pairs; *p; p += 2) 
+    for (const char *p = compose_pairs; *p; p += 2)
       if (p[0] == ascii || p[1] == ascii) {
-	if (p[1] == ' ') e_text[0] = (p-compose_pairs)/2+0x80;
+       if (p[1] == ' ') {
+               int len = fl_utf8encode((p-compose_pairs)/2+0xA0, e_text);
+               e_text[len] = '\0';
+               e_length = len;
+       }
+
 	compose_state = ascii;
 	return 1;
       }
@@ -162,7 +171,9 @@ int Fl::compose(int& del) {
     // now search for the pair in either order:
     for (const char *p = compose_pairs; *p; p += 2) {
       if (p[0] == ascii && p[1] == c1 || p[1] == ascii && p[0] == c1) {
-	e_text[0] = (p-compose_pairs)/2+0x80;
+        int len = fl_utf8encode((p-compose_pairs)/2+0xA0, e_text);
+        e_text[len] = '\0';
+        e_length = len;
 	del = 1; // delete the old character and insert new one
 	compose_state = 0;
 	return 1;
@@ -203,7 +214,7 @@ int Fl::compose(int& del) {
     ascii = e_text[0];
     for (const char *p = compose_pairs; *p; p += 2)
       if (p[0] == ascii ||
-          (p[1] == ' ' && (p - compose_pairs) / 2 + 0x80 == ascii)) {
+          (p[1] == ' ' && (p - compose_pairs) / 2 + 0xA0 == ascii)) {
         compose_state = p[0];
         return 1;
       }

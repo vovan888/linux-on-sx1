@@ -32,6 +32,7 @@
 */
 
 #include <FL/filename.H>
+#include <FL/fl_utf8.H>
 #include <stdlib.h>
 #include "flstring.h"
 #include <ctype.h>
@@ -67,7 +68,7 @@ int fl_filename_absolute(char *to, int tolen, const char *from) {
   char *temp = new char[tolen];
   const char *start = from;
 
-  a = getcwd(temp, tolen);
+  a = fl_getcwd(temp, tolen);
   if (!a) {
     strlcpy(to, from, tolen);
     delete[] temp;
@@ -130,7 +131,7 @@ fl_filename_relative(char       *to,	// O - Relative filename
     return 0;
   }
 
-  if (!getcwd(cwd, sizeof(cwd))) {
+  if (!fl_getcwd(cwd, sizeof(cwd))) {
     strlcpy(to, from, tolen);
     return 0;
   }

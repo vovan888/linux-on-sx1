@@ -164,13 +164,13 @@ Fl_Help_Dialog::Fl_Help_Dialog() {
       } // Fl_Button* forward_
       { smaller_ = new Fl_Button(80, 10, 25, 25, "F");
         smaller_->tooltip("Make the help text smaller.");
-        smaller_->labelfont(1);
+        smaller_->labelfont((Fl_Font)1);
         smaller_->labelsize(10);
         smaller_->callback((Fl_Callback*)cb_smaller_);
       } // Fl_Button* smaller_
       { larger_ = new Fl_Button(115, 10, 25, 25, "F");
         larger_->tooltip("Make the help text larger.");
-        larger_->labelfont(1);
+        larger_->labelfont((Fl_Font)1);
         larger_->labelsize(16);
         larger_->callback((Fl_Callback*)cb_larger_);
       } // Fl_Button* larger_
@@ -181,7 +181,7 @@ Fl_Help_Dialog::Fl_Help_Dialog() {
           find_->tooltip("find text in document");
           find_->box(FL_FLAT_BOX);
           find_->labelsize(13);
-          find_->textfont(4);
+          find_->textfont((Fl_Font)4);
           find_->callback((Fl_Callback*)cb_find_);
           find_->when(FL_WHEN_ENTER_KEY_ALWAYS);
         } // Fl_Input* find_

@@ -33,7 +33,8 @@
 #endif
 
 class FL_EXPORT Fl_Value_Output : public Fl_Valuator {
-  uchar textfont_, textsize_, soft_;
+  fntidx textfont_;
+  uchar textsize_, soft_;
   unsigned textcolor_;
 public:
   int handle(int);
@@ -44,7 +45,7 @@ public:
   uchar soft() const {return soft_;}
 
   Fl_Font textfont() const {return (Fl_Font)textfont_;}
-  void textfont(uchar s) {textfont_ = s;}
+  void textfont(fntidx s) {textfont_ = s;}
   uchar textsize() const {return textsize_;}
   void textsize(uchar s) {textsize_ = s;}
   Fl_Color textcolor() const {return (Fl_Color)textcolor_;}

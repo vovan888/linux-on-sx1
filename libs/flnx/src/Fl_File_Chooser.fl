@@ -1,6 +1,6 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
-header_name {../FL/Fl_File_Chooser.H} 
+version 1.0108
+header_name {../FL/Fl_File_Chooser.H}
 code_name {.cxx}
 comment {//
 // "$Id: Fl_File_Chooser.fl 5704 2007-02-21 20:23:03Z matt $"
@@ -29,9 +29,9 @@ comment {//
 //     http://www.fltk.org/str.php
 //
 } {in_source in_header
-} 
+}
 
-decl {\#include <FL/fl_draw.H>} {} 
+decl {\#include <FL/fl_draw.H>} {}
 
 class FL_EXPORT Fl_File_Chooser {open
 } {
@@ -326,11 +326,11 @@ fileName->take_focus();} {}
   } {
     code {return (fileList->textcolor());} {}
   }
-  Function {textfont(uchar f)} {return_type void
+  Function {textfont(fntidx f)} {return_type void
   } {
     code {fileList->textfont(f);} {}
   }
-  Function {textfont()} {return_type uchar
+  Function {textfont()} {return_type fntidx
   } {
     code {return (fileList->textfont());} {}
   }
@@ -406,22 +406,22 @@ else
   }
   decl {static Fl_File_Sort_F *sort;} {public
   }
-} 
+}
 
 decl {FL_EXPORT char *fl_dir_chooser(const char *message,const char *fname,int relative=0);} {public
-} 
+}
 
 decl {FL_EXPORT char *fl_file_chooser(const char *message,const char *pat,const char *fname,int relative=0);} {public
-} 
+}
 
 decl {FL_EXPORT void fl_file_chooser_callback(void (*cb)(const char*));} {public
-} 
+}
 
 decl {FL_EXPORT void fl_file_chooser_ok_label(const char*l);} {public
-} 
+}
 
 comment {
 //
 // End of "$Id: Fl_File_Chooser.fl 5704 2007-02-21 20:23:03Z matt $".
 //} {in_source in_header
-} 
+}

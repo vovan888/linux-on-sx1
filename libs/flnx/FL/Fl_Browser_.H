@@ -53,7 +53,8 @@ class FL_EXPORT Fl_Browser_ : public Fl_Group {
   int offset_;		// how far down top_ item the real_position is
   int max_width;	// widest object seen so far
   uchar has_scrollbar_;	// which scrollbars are enabled
-  uchar textfont_, textsize_;
+  fntidx textfont_;
+  uchar textsize_;
   unsigned textcolor_;
   void* top_;		// which item scrolling position is in
   void* selection_;	// which is selected (except for FL_MULTI_BROWSER)
@@ -132,7 +133,7 @@ public:
   };
 
   Fl_Font textfont() const {return (Fl_Font)textfont_;}
-  void textfont(uchar s) {textfont_ = s;}
+  void textfont(fntidx s) {textfont_ = s;}
   uchar textsize() const {return textsize_;}
   void textsize(uchar s) {textsize_ = s;}
   Fl_Color textcolor() const {return (Fl_Color)textcolor_;}

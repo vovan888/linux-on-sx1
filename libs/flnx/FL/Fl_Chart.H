@@ -59,7 +59,8 @@ class FL_EXPORT Fl_Chart : public Fl_Widget {
     FL_CHART_ENTRY *entries;
     double min,max;
     uchar autosize_;
-    uchar textfont_,textsize_;
+    fntidx textfont_;
+    uchar textsize_;
     unsigned textcolor_;
 protected:
     void draw();
@@ -77,7 +78,7 @@ public:
     int maxsize() const {return maxnumb;}
     void maxsize(int);
     Fl_Font textfont() const {return (Fl_Font)textfont_;}
-    void textfont(uchar s) {textfont_ = s;}
+    void textfont(fntidx s) {textfont_ = s;}
     uchar textsize() const {return textsize_;}
     void textsize(uchar s) {textsize_ = s;}
     Fl_Color textcolor() const {return (Fl_Color)textcolor_;}

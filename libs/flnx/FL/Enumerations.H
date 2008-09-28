@@ -310,6 +310,10 @@ enum Fl_Font {	// standard fonts
   FL_ITALIC		= 2	// add this to helvetica, courier, or times
 };
 
+//typedef Fl_Font fntidx;
+typedef int fntidx;
+//#define fntidx Fl_Font
+
 extern FL_EXPORT int FL_NORMAL_SIZE;
 
 enum Fl_Color {	// standard colors

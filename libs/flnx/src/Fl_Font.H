@@ -42,6 +42,8 @@
 
 #  if USE_XFT
 typedef struct _XftFont XftFont;
+#  elif !defined(WIN32) && !defined(__APPLE__) && !defined(NANO_X)
+#    include <FL/Xutf8.h>
 #  endif // USE_XFT
 
 class Fl_FontSize {
@@ -49,7 +51,7 @@ public:
   Fl_FontSize *next;	// linked list for this Fl_Fontdesc
 #  ifdef WIN32
   HFONT fid;
-  int width[256];
+  int *width[64];
   TEXTMETRIC metr;
   FL_EXPORT Fl_FontSize(const char* fontname, int size);
 #  elif defined(__APPLE_QD__)
@@ -63,28 +65,29 @@ public:
   ATSUTextLayout layout;
   ATSUStyle style;
   short ascent, descent, q_width;
-  short width[256];
-  bool knowWidths;
+//  short width[256];
+//  bool knowWidths;
   char *q_name;
   int size;
 #  elif USE_XFT
   XftFont* font;
-  const char* encoding;
+//  const char* encoding;
   int size;
   FL_EXPORT Fl_FontSize(const char* xfontname);
 #  elif defined(NANO_X)
-  GR_FONT_ID font;	
+  GR_FONT_ID font;
   bool isTTF;	// is a truetype font
   void Resize(int size);	// resize an existing font
   FL_EXPORT Fl_FontSize(const char* fontname, int size = 16);
 #  else
-  XFontStruct* font;	// X font information
+  XUtf8FontStruct* font;	// X UTF-8 font information
   FL_EXPORT Fl_FontSize(const char* xfontname);
 #  endif
   int minsize;		// smallest point size that should use this
   int maxsize;		// largest point size that should use this
 #  if HAVE_GL
   unsigned int listbase;// base of display list, 0 = none
+  char glok[64];
 #  endif
   FL_EXPORT ~Fl_FontSize();
 };

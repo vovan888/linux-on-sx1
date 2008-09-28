@@ -52,7 +52,7 @@ void Fl_Color_Chooser::hsv2rgb(
   if (S < 5.0e-6) {
     R = G = B = V;
   } else {
-    int i = (int)H;  
+    int i = (int)H;
     double f = H - (float)i;
     double p1 = V*(1.0-S);
     double p2 = V*(1.0-S*f);
@@ -134,7 +134,7 @@ int Fl_Color_Chooser::rgb(double R, double G, double B) {
 #endif
     valuebox.damage(FL_DAMAGE_EXPOSE);}
   if (hue_ != ph || saturation_ != ps) {
-    huebox.damage(FL_DAMAGE_EXPOSE); 
+    huebox.damage(FL_DAMAGE_EXPOSE);
     valuebox.damage(FL_DAMAGE_SCROLL);
   }
   return 1;
@@ -155,7 +155,7 @@ int Fl_Color_Chooser::hsv(double H, double S, double V) {
 #endif
     valuebox.damage(FL_DAMAGE_EXPOSE);}
   if (hue_ != ph || saturation_ != ps) {
-    huebox.damage(FL_DAMAGE_EXPOSE); 
+    huebox.damage(FL_DAMAGE_EXPOSE);
     valuebox.damage(FL_DAMAGE_SCROLL);
   }
   hsv2rgb(H,S,V,r_,g_,b_);

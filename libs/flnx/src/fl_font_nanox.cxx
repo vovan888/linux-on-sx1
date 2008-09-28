@@ -189,10 +189,8 @@ Fl_FontSize::~Fl_FontSize() {
 ////////////////////////////////////////////////////////////////
 
 /* JHC - Major hack! */
-
 //#if defined(CONFIG_PDA) || defined (CONFIG_PHONE)
-#if 1
-
+#if 0
 static Fl_Fontdesc built_in_table[] = {
     {GR_FONT_GUI_VAR},
     {GR_FONT_GUI_VAR},
@@ -211,73 +209,30 @@ static Fl_Fontdesc built_in_table[] = {
     {GR_FONT_SYSTEM_FIXED},
     {"pda3x6.fnt"}
 };
-
 #else
 // WARNING: if you add to this table, you must redefine FL_FREE_FONT
 // in Enumerations.H & recompile!!
 static Fl_Fontdesc built_in_table[] = {
 
-    {"/usr/local/microwin/fonts/arial.ttf"},
-    {"/usr/local/microwin/fonts/arialb.ttf"},
-    {"/usr/local/microwin/fonts/ariali.ttf"},
-    {"/usr/local/microwin/fonts/arialz.ttf"},
-    {"/usr/local/microwin/fonts/cour.ttf"},
-    {"/usr/local/microwin/fonts/courb.ttf"},
-    {"/usr/local/microwin/fonts/couri.ttf"},
-    {"/usr/local/microwin/fonts/courz.ttf"},
-    {"/usr/local/microwin/fonts/times.ttf"},
-    {"/usr/local/microwin/fonts/timesb.ttf"},
-    {"/usr/local/microwin/fonts/timesi.ttf"},
-    {"/usr/local/microwin/fonts/timesz.ttf"},
-    {"/usr/local/microwin/fonts/impact.ttf"},
-    {"/usr/local/microwin/fonts/comic.ttf"},
-    {"/usr/local/microwin/fonts/comicbd.ttf"},
+    {"arial.ttf"},
+    {"arialb.ttf"},
+    {"ariali.ttf"},
+    {"arialz.ttf"},
+    {"cour.ttf"},
+    {"courb.ttf"},
+    {"couri.ttf"},
+    {"courz.ttf"},
+    {"times.ttf"},
+    {"timesb.ttf"},
+    {"timesi.ttf"},
+    {"timesz.ttf"},
+    {"impact.ttf"},
+    {"comic.ttf"},
+    {"comicbd.ttf"},
     {"Terminal"}
-
-    /*
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"},
-       {"HZKFONT"}
-     */
 
 };
 #endif /* PDA */
-
-#ifndef NANO_X
-// WARNING: if you add to this table, you must redefine FL_FREE_FONT
-// in Enumerations.H & recompile!!
-static Fl_Fontdesc built_in_table[] = {
-{"-*-helvetica-medium-r-normal--*"},
-{"-*-helvetica-bold-r-normal--*"},
-{"-*-helvetica-medium-o-normal--*"},
-{"-*-helvetica-bold-o-normal--*"},
-{"-*-courier-medium-r-normal--*"},
-{"-*-courier-bold-r-normal--*"},
-{"-*-courier-medium-o-normal--*"},
-{"-*-courier-bold-o-normal--*"},
-{"-*-times-medium-r-normal--*"},
-{"-*-times-bold-r-normal--*"},
-{"-*-times-medium-i-normal--*"},
-{"-*-times-bold-i-normal--*"},
-{"-*-symbol-*"},
-{"-*-lucidatypewriter-medium-r-normal-sans-*"},
-{"-*-lucidatypewriter-bold-r-normal-sans-*"},
-{"-*-*zapf dingbats-*"}
-};
-#endif
 
 Fl_Fontdesc* fl_fonts = built_in_table;
 
@@ -314,7 +269,7 @@ int fl_correct_encoding(const char* name) {
   return (*c++ && !strcmp(c,fl_encoding));
 }
 
-// font choosers - if the fonts change in built_in_table, 
+// font choosers - if the fonts change in built_in_table,
 // these and the enum in Fl/Enumerations.H will have to change
 
 inline bool
@@ -462,6 +417,15 @@ double fl_width(uchar c) {
     return fwidths[c];
 }
 
+double fl_width(unsigned int c) {
+	int width, height, base;
+	if (fl_xfont) {
+		GrGetGCTextSize(fl_gc, &c, 1, GR_TFUC16, &width, &height, &base);
+		return (double)width;
+	} else
+		return -1;
+}
+
 void fl_draw(const char* str, int n, int x, int y) {
   if (font_gc != fl_gc) {
     if (!fl_xfont) fl_font(FL_HELVETICA, 14);
@@ -469,7 +433,7 @@ void fl_draw(const char* str, int n, int x, int y) {
 //    XSetFont(fl_display, fl_gc, fl_xfont->fid);
     GrSetGCFont(fl_gc, fl_xfont);//++vovan888
   }
-    //FIXME hack becasue nano-X will not draw a true type font
+    //FIXME hack because nano-X will not draw a true type font
     // correctly without first setting its background!!!
     GR_GC_INFO info;
 
@@ -479,10 +443,11 @@ void fl_draw(const char* str, int n, int x, int y) {
     else
 	GrSetGCBackground(fl_gc, MWRGB(255, 255, 255));
     GrSetGCUseBackground(fl_gc, GR_FALSE);
-    GrText(fl_window, fl_gc, x, y, (GR_CHAR *) str, n, GR_TFASCII);
+    /** \todo check flags */
+    GrText(fl_window, fl_gc, x, y, (GR_CHAR *) str, n, GR_TFUTF8 /*| GR_TFANTIALIAS*/ );
 //  XDrawString(fl_display, fl_window, fl_gc, x, y, str, n);
 }
-  
+
 void fl_draw(const char* str, int n, float x, float y) {
   fl_draw(str, n, (int)x, (int)y);
 }

@@ -109,7 +109,7 @@ class FL_EXPORT Fl_Text_Display: public Fl_Group {
     int word_start(int pos) { return buffer()->word_start(pos); }
     int word_end(int pos) { return buffer()->word_end(pos); }
 
-    
+
     void highlight_data(Fl_Text_Buffer *styleBuffer,
                         const Style_Table_Entry *styleTable,
                         int nStyles, char unfinishedStyle,
@@ -120,7 +120,7 @@ class FL_EXPORT Fl_Text_Display: public Fl_Group {
                        int dispIndex);
 
     Fl_Font textfont() const {return (Fl_Font)textfont_;}
-    void textfont(uchar s) {textfont_ = s;}
+    void textfont(fntidx s) {textfont_ = s;}
     uchar textsize() const {return textsize_;}
     void textsize(uchar s) {textsize_ = s;}
     Fl_Color textcolor() const {return (Fl_Color)textcolor_;}
@@ -280,7 +280,7 @@ class FL_EXPORT Fl_Text_Display: public Fl_Group {
     int display_insert_position_hint;
     struct { int x, y, w, h; } text_area;
 
-    uchar textfont_;
+    fntidx textfont_;
     uchar textsize_;
     unsigned textcolor_;
 

@@ -329,7 +329,8 @@ static Fl_Menu_Item* additem(menu *m) {
   Fl_Menu_Item* i = &(m->m[n]);
   i->shortcut_ = 0;
   i->flags = 0;
-  i->labeltype_ = i->labelfont_ = i->labelsize_ = i->labelcolor_ = 0;
+  i->labeltype_ = i->labelsize_ = i->labelcolor_ = 0;
+  i->labelfont_ = FL_HELVETICA; // (Fl_Font)0;
   return i;
 }
 
@@ -390,7 +391,7 @@ int glutGet(GLenum type) {
     else
       return 0;
 //case GLUT_WINDOW_NUM_CHILDREN:
-//case GLUT_WINDOW_CURSOR: return 
+//case GLUT_WINDOW_CURSOR: return
   case GLUT_SCREEN_WIDTH: return Fl::w();
   case GLUT_SCREEN_HEIGHT: return Fl::h();
 //case GLUT_SCREEN_WIDTH_MM:
@@ -481,7 +482,7 @@ int glutExtensionSupported( const char* extension )
 
   const char *extensions, *start;
   const int len = strlen( extension );
-  
+
   start = extensions = (const char *) glGetString(GL_EXTENSIONS);
 
   if (!extensions) return 0;

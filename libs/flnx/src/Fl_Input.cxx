@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Input.cxx 5671 2007-02-08 07:58:47Z matt $"
+// "$Id: Fl_Input.cxx 6031 2008-02-20 17:59:13Z matt $"
 //
 // Input widget for the Fast Light Tool Kit (FLTK).
 //
@@ -409,9 +409,10 @@ int Fl_Input::handle(int event) {
       // user double or triple clicked to select word or whole text
       copy(0);
     }
-    // For output widgets, do the callback so the app knows the user
-    // did something with the mouse...
-    if (readonly()) do_callback();
+
+    // perform the RELEASE callback
+    if (when() & FL_WHEN_RELEASE)
+      maybe_do_callback();
     return 1;
 
   case FL_DND_ENTER:
@@ -468,5 +469,5 @@ Fl_Input::Fl_Input(int X, int Y, int W, int H, const char *l)
 }
 
 //
-// End of "$Id: Fl_Input.cxx 5671 2007-02-08 07:58:47Z matt $".
+// End of "$Id: Fl_Input.cxx 6031 2008-02-20 17:59:13Z matt $".
 //

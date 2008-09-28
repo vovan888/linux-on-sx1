@@ -1,5 +1,5 @@
 //
-// "$Id: fl_shortcut.cxx 5981 2007-11-19 16:21:19Z matt $"
+// "$Id: fl_shortcut.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // Shortcut support routines for the Fast Light Tool Kit (FLTK).
 //
@@ -240,5 +240,5 @@ int Fl_Widget::test_shortcut() {
 }
 
 //
-// End of "$Id: fl_shortcut.cxx 5981 2007-11-19 16:21:19Z matt $".
+// End of "$Id: fl_shortcut.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

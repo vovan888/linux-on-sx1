@@ -1,5 +1,5 @@
 //
-// "$Id: fl_read_image_win32.cxx 4288 2005-04-16 00:13:17Z mike $"
+// "$Id: fl_read_image_win32.cxx 5190 2006-06-09 16:16:34Z mike $"
 //
 // WIN32 image reading routines for the Fast Light Tool Kit (FLTK).
 //
@@ -55,11 +55,11 @@ fl_read_image(uchar *p,		// I - Pixel buffer or NULL to allocate
     for (x = 0; x < w; x ++, ptr += d) {
       COLORREF c = GetPixel(fl_gc, X + x, Y + y);
 
-      ptr[0] = c;
+      ptr[0] = (uchar)c;
       c >>= 8;
-      ptr[1] = c;
+      ptr[1] = (uchar)c;
       c >>= 8;
-      ptr[2] = c;
+      ptr[2] = (uchar)c;
     }
   }
 
@@ -68,5 +68,5 @@ fl_read_image(uchar *p,		// I - Pixel buffer or NULL to allocate
 
 
 //
-// End of "$Id: fl_read_image_win32.cxx 4288 2005-04-16 00:13:17Z mike $".
+// End of "$Id: fl_read_image_win32.cxx 5190 2006-06-09 16:16:34Z mike $".
 //

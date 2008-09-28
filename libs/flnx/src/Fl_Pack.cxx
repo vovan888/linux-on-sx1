@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Pack.cxx 5981 2007-11-19 16:21:19Z matt $"
+// "$Id: Fl_Pack.cxx 5526 2006-10-20 01:07:16Z mike $"
 //
 // Packing widget for the Fast Light Tool Kit (FLTK).
 //
@@ -143,5 +143,5 @@ void Fl_Pack::draw() {
 }
 
 //
-// End of "$Id: Fl_Pack.cxx 5981 2007-11-19 16:21:19Z matt $".
+// End of "$Id: Fl_Pack.cxx 5526 2006-10-20 01:07:16Z mike $".
 //

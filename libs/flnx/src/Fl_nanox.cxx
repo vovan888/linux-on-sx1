@@ -352,12 +352,13 @@ void fl_open_display() {
     }
   }
 
-  //      for nanox,by tanghao
+  // for nanox,by tanghao
   fl_display = d;
 
   // for nanox,by tanghao
   fl_screen = 0;
 
+  GrReqShmCmds(4096);
   //end nanox
 }
 
@@ -1230,3 +1231,10 @@ void Fl_Window::make_current () {
 }
 
 
+void fl_reset_spot()
+{
+}
+
+void fl_set_spot(int font, int size, int x, int y, int w, int h)
+{
+}
