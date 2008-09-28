@@ -69,7 +69,6 @@ int maindatetime_create(struct indicator *ind)
 /* show current datetime state */
 static int maindatetime_show(void)
 {
-	/*TODO - check if the root window is displayed, or not */
 	/*FIXME just a test implementation */
 	time_t curtime;
 	struct tm *loctime;

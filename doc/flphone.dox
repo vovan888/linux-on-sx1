@@ -1,0 +1,40 @@
+/**
+ * @defgroup flnx     FLNX
+ *
+ * FLTK for Nano-X
+ */
+/**
+ * @defgroup flgui    flgui
+ *
+ * flgui - FLTK widgets for GUI applications
+ */
+/**
+ * @defgroup libflphone     libflphone
+ *
+ * Different helper functions
+ */
+/**
+ * @defgroup libtheme     libtheme
+ *
+ * graphical functions (obsolete?)
+ */
+/**
+ * @defgroup libtpl     libtpl
+ *
+ * Fast and easy serialization in C
+ */
+/**
+ * @defgroup gsmd2     gsmd2
+ *
+ * GSMD with T-BUS interface
+ */
+/**
+ * @defgroup tbus     T-BUS.
+ *
+ * Tiny-BUS - an IPC system
+ */
+/**
+ * @defgroup thal     T-HAL
+ *
+ * Hardware abstraction daemon
+ */

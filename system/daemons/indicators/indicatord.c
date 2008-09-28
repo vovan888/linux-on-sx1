@@ -36,7 +36,7 @@ static int indicators_number;
 static int terminate = 0;
 
 /* signal handler */
-void signal_handler(int param)
+static void signal_handler(int param)
 {
 	terminate = 1;
 }
@@ -66,7 +66,7 @@ static void mainloop(void)
 	}
 }
 
-int main_load_indicators()
+static int main_load_indicators()
 {
 	memset(indicators, 0, sizeof(indicators));
 
@@ -91,9 +91,8 @@ int main_load_indicators()
 	return 0;
 }
 
-int main(int argc, char *argv[])
+static void indicatord_init()
 {
-
 	pid_t pid = 0;
 	int pathfd_;
 	char buf[512];
@@ -136,17 +135,27 @@ int main(int argc, char *argv[])
 	GrReqShmCmds(4096);
 	gc = GrNewGC();
 
-	main_load_indicators();
-
 	ipc_start("indicatord");
 
 	shdata = ShmMap(SHARED_SYSTEM);
+}
 
-	mainloop();
-
+static void indicatord_exit()
+{
 	GrClose();
 	ShmUnmap(shdata);
 	unlink(lockfile);
+}
+
+int main(int argc, char *argv[])
+{
+	indicatord_init();
+
+	main_load_indicators();
+
+	mainloop();
+
+	indicatord_exit();
 
 	return 0;
 }

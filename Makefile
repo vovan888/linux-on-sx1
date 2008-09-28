@@ -175,3 +175,10 @@ defconfig_sx1:
 dummy:
 
 .PHONY: menuconfig textconfig oldconfig defconfig dummy packages 
+
+.PHONY: doc doc-clean
+
+doc:
+	doxygen Doxyfile
+doc-clean:
+	rm -rf ./doc/html

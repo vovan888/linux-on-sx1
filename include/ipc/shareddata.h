@@ -38,8 +38,9 @@ struct SharedSystem {
 	} powerup;
 /* nanowm data */
 	struct {
-		int top_active_window;	/* Nano-X GR_WINDOW_ID for the top active window
+		int top_active_window;	/** Nano-X GR_WINDOW_ID for the top active window
 			(1 - if mainscreen is displayed) */
+		int ScreenSaverRunning;	/** 1, if screensaver is currently running */
 	} WM;
 /* SIM */
 	struct {
@@ -54,55 +55,60 @@ struct SharedSystem {
 	} sim;
 /* battery */
 	struct {
-		/* Status:
-		0 - MT is powered by battery,
-		1 - MT has a battery connected, but is not powered by it
-		2 - MT does not have a battery connected
-		3 - Recognized power fault, calls inhibited */
+		/** Status:
+		* 0 - MT is powered by battery,
+		* 1 - MT has a battery connected, but is not powered by it
+		* 2 - MT does not have a battery connected
+		* 3 - Recognized power fault, calls inhibited */
 		enum gsmd_bat_conn_status Status;
-		int ChargeLevel;	/* charge level - 0...5 */
-		int Charging;		/* is battery charging ? */
-		int Low;		/* 1 when battery is very low */
+		int ChargeLevel;	/** charge level - 0...5 */
+		int Charging;		/** is battery charging ? */
+		int Low;		/** 1 when battery is very low */
 	} Battery;
 /* PhoneServer status */
 	struct {
-		int Ready;	/* 1 - if GSMD finished init (after PIN enter)*/
+		int Ready;	/** 1 - if GSMD finished init (after PIN enter)*/
 		enum gsmd_netreg_state CREG_State;
 		int CREG_Lac;
 		int CREG_Ci;
 		enum gsmd_pin_type PIN_Type;
 
-		char Phone_Manuf[32];		/* manufacturer */
-		char Phone_Model[32];		/* model */
-		char Phone_Revision[32];	/* revision */
-		char Phone_Serial[32];		/* serial number */
+		char Phone_Manuf[32];		/** manufacturer */
+		char Phone_Model[32];		/** model */
+		char Phone_Revision[32];	/** revision */
+		char Phone_Serial[32];		/** serial number */
 
-		int  Network_Service_Avail;	/* service abailable */
-		int  Network_Signal;		/* network signal strength 0..5 */
-		char Network_Operator[64+8];	/* current operator alpha in HEX */
-		char Network_OperatorNum[8];	/* current operator num in HEX (MCC+MNC)*/
+		int  Network_Service_Avail;	/** service abailable */
+		int  Network_Signal;		/** network signal strength 0..5 */
+		char Network_Operator[64+8];	/** current operator alpha in HEX */
+		char Network_OperatorNum[8];	/** current operator num in HEX (MCC+MNC)*/
 
-		int Call_InProgress;		/* is Call in progress now? */
+		int Call_InProgress;		/** is Call in progress now? */
 
-		int GPRS_CoverageAvailable;	/* 1 - GPRS coverage available, 0 - no GPRS */
-		int GPRS_RegStatus;		/* CGREG */
+		int GPRS_CoverageAvailable;	/** 1 - GPRS coverage available, 0 - no GPRS */
+		int GPRS_RegStatus;		/** CGREG */
 	} PhoneServer;
+/* T-HAL */
+	struct {
+		int DisplayBrightness;		/** display brightness 0..5 */
+		int KbdBrightness;		/** keyboard brightness 0..5 */
+	} HAL;
 };
 
-/* Map shared memory segment
+/** Map shared memory segment
  * returns its adress
 */
 DLLEXPORT void *ShmMap (unsigned int shared_id);
 
-/* UnMap shared memory segment
+/** UnMap shared memory segment
  * returns
 */
 DLLEXPORT int ShmUnmap (void *ptr);
 
-/* blocks till the shared mem is busy then locks it */
+/** blocks till the shared mem is busy then locks it */
 DLLEXPORT int ShmLock (unsigned int shared_id);
 
-/* unlocks shared memory segment */
+/** unlocks shared memory segment */
 DLLEXPORT int ShmUnlock (unsigned int shared_id);
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

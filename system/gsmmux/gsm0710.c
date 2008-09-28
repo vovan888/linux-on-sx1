@@ -1117,7 +1117,7 @@ int main(int argc, char *argv[], char *env[])
 
 	serportdev = "/dev/modem";
 
-	while ((opt = getopt(argc, argv, "p:f:h?dwrm:b:P:s:")) > 0) {
+	while ((opt = getopt(argc, argv, "p:f:h?dwrm:b:P:s:n:")) > 0) {
 		switch (opt) {
 		case 'p':
 			serportdev = optarg;

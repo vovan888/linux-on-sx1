@@ -12,7 +12,7 @@
 #include <common/libini.h>
 #include <flphone/libflphone.h>
 /* Uncomment this if you want debugging output from this file */
-/*#define DEBUG*/
+/*#define WMDEBUG*/
 
 #include "nanowm.h"
 #include <ipc/tbus.h>
@@ -44,6 +44,8 @@ static int ipc_handle(GR_EVENT * e)
 
 	if (ret < 0)
 		return -1;
+
+	tbus_msg_free(&msg);
 
 	return 0;
 }

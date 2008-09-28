@@ -13,17 +13,7 @@
 #include <flphone/debug.h>
 
 static int terminate = 0;
-
-static void handle_signal(struct tbus_message *msg)
-{
-	DPRINT("%d,%s->%s/%s\n", msg->type, msg->service_sender,
-	       msg->service_dest, msg->object);
-
-	if (!strcmp(msg->service_dest, "PhoneServer")) {
-		if (!strcmp(msg->object, "NetworkBars"))
-			;
-	}
-}
+struct SharedSystem *shdata;	/* shared memory segment */
 
 static void t_hal_mainloop(void)
 {
@@ -40,6 +30,9 @@ static void t_hal_mainloop(void)
 			case TBUS_MSG_SIGNAL:
 				handle_signal(&msg);
 			break;
+			case TBUS_MSG_CALL_METHOD:
+				handle_method(&msg);
+			break;
 		}
 
 		tbus_msg_free(&msg);
@@ -50,10 +43,13 @@ static void t_hal_init(void)
 {
 	int ret;
 	/* IPC init */
-	ret = tbus_register_service("HAL");
+	ret = tbus_register_service("T-HAL");
 	if (ret < 0)
 		exit(1);
 
+	shdata = ShmMap(SHARED_SYSTEM);
+	if (shdata == NULL)
+		exit(1);
 }
 
 static void t_hal_exit(void)

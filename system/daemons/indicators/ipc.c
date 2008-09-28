@@ -45,6 +45,9 @@ static int ipc_signal(struct tbus_message *msg)
 	DPRINT("%d,%s->%s/%s\n", msg->type, msg->service_sender,
 	       msg->service_dest, msg->object);
 
+	if (shdata->WM.top_active_window != GR_ROOT_WINDOW_ID)
+		return 0;
+
 	if (!strcmp(msg->service_dest, "PhoneServer")) {
 		if (!strcmp(msg->object, "Signal"))
 			indicators[THEME_MAINSIGNAL].changed(0);

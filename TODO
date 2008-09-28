@@ -1,12 +1,13 @@
 TODO
 Flphone:
-+ipc - T-BUS is ready
-+indicators,
++ ipc - T-BUS is ready
++ indicators,
 phone,
- +poweroff
+ + poweroff
  stability!!!!
  ldconfig
- +handle "no network, no pin" errors in Phone
+ + handle "no network, no pin" errors in Phone
 
  Nano-X:
  - timestamp in key_up and keydown event - to catch long button press
+ - ttf fonts and utf-8

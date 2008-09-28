@@ -19,7 +19,8 @@
  * @param arg string to pass to the program as argv[1]
  * @return pid of the new process or -1 if error
  */
-int fl_spawn(const char *filename, const char *arg) {
+int fl_spawn(const char *filename, const char *arg)
+{
 
 	int ret;
 	const char *argv[3];
@@ -33,7 +34,7 @@ int fl_spawn(const char *filename, const char *arg) {
 
 	ret = vfork();
 	if (!ret) {
-		execv(filename, argv);
+		execvp(filename, argv);
 		exit(1);
 	}
 

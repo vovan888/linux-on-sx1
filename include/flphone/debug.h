@@ -16,7 +16,7 @@
 #include <syslog.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <flphone_config.h>
+//#include <flphone_config.h>
 
 
 #define EPRINT(fmt, arg...) do {								\
@@ -35,7 +35,7 @@
 		printf(fmt "FATAL", ##arg); exit(0);} while(0)
 
 
-#ifdef CONFIG_DEBUG
+#ifdef DEBUG
 #define DPRINT(fmt, arg...) do{											\
 		printf("[%d] %s-%s:%d, " fmt, getpid(), __BASE_FILE__, __FUNCTION__, __LINE__, ##arg); \
 		} while(0)

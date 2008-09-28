@@ -173,24 +173,23 @@ int tbus_client_emit_signal(struct tbus_client *sender_client,
 	str = service_signal_str(sender_client->service, msg->object, &len);
 
 	connection = tbus_find_connection(str, len);
-	DPRINT("%s, %d\n", str, (int)connection);
-	free(str);
+/*	DPRINT("%s, %d\n", str, (int)connection);*/
 
 	if (connection && (connection->clients_head != NULL)) {
 		tmp1 = msg->service_dest;
 		tmp2 = msg->service_sender;
 		msg->service_dest = msg->service_sender =
 		    sender_client->service;
-		DPRINT("%s, %s\n", tmp2,
-		       connection->clients_head->client->service);
+/* 		DPRINT("%s, %s\n", tmp2,
+ 		       connection->clients_head->client->service);*/
 
 		cur = connection->clients_head;
 		while (cur != NULL) {
 			int sock = cur->client->socket_fd;
 			if (sock > 0) {
 				ret = tbus_write_message(sock, msg);
-				DPRINT("sent to %s ,ret = %d\n",
-				       cur->client->service, ret);
+				DPRINT("%s sent to %s ,ret = %d\n",
+				       str, cur->client->service, ret);
 				/*FIXME check ret here*/
 			} else {
 				DPRINT("empty client!\n");
@@ -199,8 +198,8 @@ int tbus_client_emit_signal(struct tbus_client *sender_client,
 		}
 		msg->service_dest = tmp1;
 		msg->service_sender = tmp2;
-		return 0;	/* OK */
 	}
+	free(str);
 
 	return ret;
 }

@@ -57,7 +57,7 @@ $(BASE_DIR)/libs/flnx/.configured:
 	(cd $(BASE_DIR)/libs/flnx; ./configure \
 	--host=$(SYS) \
 	--build=$(BUILD_SYS) \
-	--enable-shared \
+	--enable-shared=yes \
 	--enable-gl=no \
 	--enable-debug=$(FLNX_DEBUG) \
 	--with-microwin=$(strip $(subst ",, $(MW_PREFIX))))
@@ -67,9 +67,9 @@ _build_flnx: $(BASE_DIR)/libs/flnx/.configured
 	make -C $(BASE_DIR)/libs/flnx/src -e -j3
 
 	rm -f $(STAGE_DIR)/lib/libfltk.a $(STAGE_DIR)/lib/libfltk.so*
-	ln -s $(BASE_DIR)/libs/flnx/lib/libfltk.a $(STAGE_DIR)/lib/libfltk.a
-	ln -s $(BASE_DIR)/libs/flnx/src/libfltk.so.1.1 $(STAGE_DIR)/lib/libfltk.so
-	ln -s $(BASE_DIR)/libs/flnx/src/libfltk.so.1.1 $(STAGE_DIR)/lib/libfltk.so.1.1
+	ln -fs $(BASE_DIR)/libs/flnx/lib/libfltk.a $(STAGE_DIR)/lib/libfltk.a
+	ln -fs $(BASE_DIR)/libs/flnx/src/libfltk.so.1.1 $(STAGE_DIR)/lib/libfltk.so
+	ln -fs $(BASE_DIR)/libs/flnx/src/libfltk.so.1.1 $(STAGE_DIR)/lib/libfltk.so.1.1
 
 _install_flnx: dummy
 	cp -fP flnx/src/libfltk.so* $(INSTALL_DIR)/lib/

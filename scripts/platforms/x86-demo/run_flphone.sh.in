@@ -11,8 +11,9 @@
 
 BASE_DIR=@installdir@
 MWDIR=@mwdir@
-export MWFONTDIR=$BASE_DIR/share/fonts/
+export MWFONTS=$BASE_DIR/share/fonts/
 export LD_LIBRARY_PATH=$BASE_DIR/lib:$MWDIR/lib
+export PATH=$BASE_DIR/bin:$BASE_DIR/sbin:$PATH
 
 # Verify that everything exists
 if [ ! -x "$MWDIR/bin/nano-X" ]; then 
@@ -20,12 +21,14 @@ if [ ! -x "$MWDIR/bin/nano-X" ]; then
     exit 1
 fi
 
-# Start the TBUS server
-$BASE_DIR/sbin/tbus-daemon &
+# Start the T-BUS server
+$BASE_DIR/sbin/t-bus &
 # Start the Nano-X server
 $MWDIR/bin/nano-X -e -x 176 -y 220 &
 # Start up the Nano-X window manager
 $BASE_DIR/sbin/nanowm &
+# Start the T-HAL server
+$BASE_DIR/sbin/t-hal &
 sleep 1
 # Start Indicator daemon
 $BASE_DIR/sbin/indicatord &
@@ -37,11 +40,12 @@ $BASE_DIR/sbin/alarmserver &
 echo "-------------------"
 echo "Press Enter to exit"
 echo "-------------------"
-read
+read ch
 
 ## Welcome back  Shut down pending daemons
 killall -TERM -q $BASE_DIR/sbin/alarmserver
 killall -TERM -q $BASE_DIR/sbin/indicatord
 killall -TERM -q $BASE_DIR/sbin/nanowm
-killall -TERM -q $BASE_DIR/sbin/tbus-daemon
+killall -TERM -q $BASE_DIR/sbin/t-bus
+killall -TERM -q $BASE_DIR/sbin/t-hal
 killall -TERM -q $MWDIR/bin/nano-X

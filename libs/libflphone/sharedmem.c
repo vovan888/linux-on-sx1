@@ -102,6 +102,7 @@ void *ShmMap(unsigned int shared_id)
 		if (ptr == (void *) -1 ) {
 			ERRLOG("Cant shmat segment\n");
 			shmid = -1;
+			ptr = NULL;
 		}
 	}
 

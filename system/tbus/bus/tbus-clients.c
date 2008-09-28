@@ -7,6 +7,7 @@
  */
 
 #include "tbus-server.h"
+#undef DEBUG
 #include <flphone/debug.h>
 
 struct tbus_client *clients_by_service, *clients_by_fd;

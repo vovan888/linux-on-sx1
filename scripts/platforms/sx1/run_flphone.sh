@@ -7,14 +7,12 @@ export LD_LIBRARY_PATH=/lib:/usr/flphone/lib:/usr/lib
 export MWFONTDIR=/usr/flphone/share/fonts/
 export PATH=/usr/flphone/sbin:/usr/flphone/bin:$PATH
 
-#
-ldconfig
-# Start the TBUS server
-tbus-daemon >/tmp/logtbus 2>/tmp/logtbus2 &
+# Start the T-BUS server
+t-bus >/tmp/logtbus 2>/tmp/logtbus2 &
 # start multiplexer daemon
 # -r options is not working....
-gsmMuxd -p /dev/ttyS1 -d -w -s /dev/mux  /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx /dev/ptmx
-
+gsmMuxd -n 6 >/tmp/logmux 2>/tmp/logmux2
+sleep 1
 # start indication server daemon
 ipc_dsy  2>/tmp/logdsy1 &
 # start extension server
@@ -29,6 +27,9 @@ gsmd2 -p /dev/mux1 -s 38400 -v siemens -m sx1 >/tmp/loggsmd 2>/tmp/loggsmd2 &
 nano-X &
 # Start up the Nano-X window manager
 nanowm &
+
+# Start the T-HAL server
+t-hal >/tmp/logthal 2>/tmp/logthal2 &
 # Start Indicator daemon
 indicatord &
 # start alarm server

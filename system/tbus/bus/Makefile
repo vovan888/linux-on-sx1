@@ -1,9 +1,9 @@
 #tbus/Makefile
 
-TARGET=tbus-daemon
+TARGET=t-bus
 INSTALL_BINDIR=$(INSTALL_DIR)/sbin
 
-SRC=${shell ls *.c} 
+SRC=${shell ls *.c}
 OBJS=${SRC:.c=.o}
 
 LIBS+=-ltpl
