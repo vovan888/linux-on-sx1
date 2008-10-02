@@ -51,8 +51,11 @@
 #    include <wchar.h>
 #    include <sys/stat.h>
 #  elif defined(NANO_X)
+#define wchar_t unsigned int
+#    include "Xutf8.h"
 #    include <sys/types.h>
 #    include <sys/stat.h>
+#    include <locale.h>
 #  else
 #    include <sys/types.h>
 #    include <sys/stat.h>

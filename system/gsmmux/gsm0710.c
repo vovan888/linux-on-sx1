@@ -917,7 +917,7 @@ int daemonize(void)
 		exit(1);
 	}
 
-	umask(0);	/*FIXME ???*/
+//	umask(0);	/*FIXME ???*/
 
 	return 0;
 }

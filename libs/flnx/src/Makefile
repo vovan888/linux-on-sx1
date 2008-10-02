@@ -418,6 +418,7 @@ mgwfltknox_images-1.1.dll: $(IMGLIBNAME) mgwfltknox-1.1.dll
 
 clean:
 	-$(RM) *.o *.dll.a core.* *~ *.bck *.bck
+	-$(RM) xutf8/*.o xutf8/*.dll.a xutf8/core.* xutf8/*~ xutf8/*.bck xutf8/*.bck
 	-$(RM) $(DSONAME) $(FLDSONAME) $(GLDSONAME) $(IMGDSONAME) \
 		../lib/$(LIBNAME) ../lib/$(FLLIBNAME) ../lib/$(GLLIBNAME) \
 		../lib/$(IMGLIBNAME) \

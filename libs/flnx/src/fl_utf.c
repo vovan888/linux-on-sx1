@@ -674,6 +674,8 @@ unsigned fl_utf8to_mb(const char* src, unsigned srclen,
 	WideCharToMultiByte(GetACP(), 0, buf, length, 0, 0, 0, 0);
     if (buf != lbuf) free((void*)buf);
     return ret;
+#elif defined(NANO_X)
+    return 0;
 #else
     wchar_t lbuf[1024];
     wchar_t* buf = lbuf;
@@ -742,6 +744,8 @@ unsigned fl_utf8from_mb(char* dst, unsigned dstlen,
     ret = fl_utf8fromwc(dst, dstlen, buf, length);
     if (buf != lbuf) free((void*)buf);
     return ret;
+#elif defined(NANO_X)
+    return 0;
 #else
     wchar_t lbuf[1024];
     wchar_t* buf = lbuf;

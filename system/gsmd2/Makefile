@@ -5,7 +5,7 @@ INSTALL_BINDIR=$(INSTALL_DIR)/sbin
 TARGET=gsmd2
 CFLAGS += -D PLUGINDIR=\"$(INSTALL_DIR)/lib\"
 
-TARGET_EXTRAS += plugins/libgsmd-machine_generic.so
+#TARGET_EXTRAS += plugins/libgsmd-machine_generic.so
 TARGET_EXTRAS += plugins/libgsmd-machine_sx1.so
 #TARGET_EXTRAS += plugins/libgsmd-machine_tihtc.so 
 #TARGET_EXTRAS += plugins/libgsmd-vendor_qc.so 

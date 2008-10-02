@@ -68,6 +68,14 @@ extern "C" {
   unsigned short XUtf8IsNonSpacing(unsigned int ucs);
 };
 
+#elif defined(NANO_X)
+
+# include <FL/Xutf8.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+# include <unistd.h>
+
 #else // X-windows platform
 
 # include <FL/Xutf8.h>

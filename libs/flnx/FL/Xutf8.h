@@ -46,6 +46,7 @@
 extern "C" {
 #  endif
 
+#if !defined(NANO_X)
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xlocale.h>
@@ -162,6 +163,8 @@ XUtf8LookupString(
     int                 bytes_buffer,
     KeySym*             keysym,
     Status*             status_return);
+
+#endif
 
 unsigned short 
 XUtf8IsNonSpacing(
