@@ -14,8 +14,6 @@
 #define MWINCLUDECOLORS
 #include "nano-X.h"
 #include "nxdraw.h"
-/* Uncomment this if you want debugging output from this file */
-#define WMDEBUG
 
 #include "nanowm.h"
 
@@ -161,9 +159,9 @@ int new_client_window(GR_WINDOW_ID wid)
 
 	Dprintf("New client window %d container %d\n", wid, pid);
 
-	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_UPDATE
+	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE
 		       | GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_BUTTON_DOWN
-		       | GR_EVENT_MASK_MOUSE_POSITION | GR_EVENT_MASK_EXPOSURE);
+		       /*| GR_EVENT_MASK_MOUSE_POSITION*/ | GR_EVENT_MASK_EXPOSURE);
 
 	/* reparent client to container window (child is already mapped) */
 	GrReparentWindow(wid, pid, xoffset, yoffset);
@@ -375,8 +373,9 @@ void client_window_remap(win * window)
 
 	Dprintf("client_window_remap %d (parent %d)\n", window->wid, window->pid);
 	GrGetWindowInfo(pwin->wid, &winfo);
-	if (winfo.mapped == GR_FALSE)
-		GrMapWindow(pwin->wid);
+	container_show(pwin);
+//	if (winfo.mapped == GR_FALSE)
+//		GrMapWindow(pwin->wid);
 }
 
 /* If the client chooses to unmap the window, then we should also unmap the container */
@@ -390,7 +389,7 @@ void client_window_unmap(win * window)
 		return;
 	}
 
-	GrUnmapWindow(pwin->wid);
+	container_hide(pwin);
 }
 
 void client_window_resize(win * window)
@@ -454,7 +453,7 @@ void client_window_destroy(win * window)
 
 	zwin = get_top_window();
 	if (zwin != NULL)
-		container_activate(zwin);
+		container_show(zwin);
 
 	Dprintf("Destroying container %d\n", pid);
 	GrDestroyWindow(pid);

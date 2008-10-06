@@ -6,7 +6,6 @@
 #include <nano-X.h>
 #include <common/libini.h>
 
-#define WMDEBUG
 #include "nanowm.h"
 
 void do_screensaver (GR_EVENT_SCREENSAVER *event)

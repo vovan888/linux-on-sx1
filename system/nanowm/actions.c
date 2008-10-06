@@ -9,8 +9,6 @@
 #define MWINCLUDECOLORS
 #include "nano-X.h"
 #include "nxdraw.h"
-/* Uncomment this if you want debugging output from this file */
-/*#define WMDEBUG*/
 
 #include "nanowm.h"
 
@@ -21,9 +19,8 @@ void redraw_ncarea(win * window)
 {
 	GR_WINDOW_INFO info;
 	GR_WM_PROPERTIES props;
-	GR_BOOL active;
 
-	Dprintf("container_exposure window %d\n", window->wid);
+	Dprintf("redraw_ncarea window %d\n", window->wid);
 
 	GrGetWindowInfo(window->wid, &info);
 
@@ -37,8 +34,10 @@ void redraw_ncarea(win * window)
 	if (props.flags == 0)
 		return;
 
-	active = (window->clientid == GrGetFocus());
-	wm_paint_statusarea(window->wid, info.width, info.height, props.title, active, props.props);
+	window->active = (window->clientid == GrGetFocus());
+	wm_paint_statusarea(window->wid, info.width, info.height, props.title,
+			    window->active, props.props);
+	Dprintf("redraw_ncarea active= %d\n", window->active);
 
 	/* free title returned from GrGetWMProperties */
 	if (props.title)
@@ -161,10 +160,7 @@ void container_buttondown(win * window, GR_EVENT_BUTTON * event)
 		return;
 
 	/* Raise window if mouse down and allowed */
-	if (!(info.props & GR_WM_PROPS_NORAISE)) {
-		GrRaiseWindow(window->wid);
-		raise_window(window);
-	}
+	container_show(window);
 
 	/* Don't allow window move if NOMOVE property set */
 	if (info.props & GR_WM_PROPS_NOMOVE)
@@ -518,13 +514,20 @@ void rightbar_mousemoved(win * window, GR_EVENT_MOUSE * event)
 }
 #endif /* 0000 */
 
-int container_activate(win *w)
+void container_activate(win *w)
 {
+	Dprintf("container_activate window %d\n", w->wid);
+	w->active = GR_TRUE;
+	GrSetFocus(w->clientid);
+}
+
+void container_show(win *w)
+{
+	Dprintf("container_show window %d\n", w->wid);
 	GR_WINDOW_INFO info;
 
 	GrGetWindowInfo(w->wid, &info);
 
-	w->active = GR_TRUE;
 	raise_window(w);
 	if (!info.mapped) {
 		GrMapWindow(w->wid);
@@ -532,13 +535,15 @@ int container_activate(win *w)
 		GrRaiseWindow(w->wid);
 	}
 
+	w->active = GR_TRUE;
 	if (info.props & GR_WM_PROPS_NOFOCUS)
 		return;
 	GrSetFocus(w->clientid);
 }
 
-int container_hide(win *w)
+void container_hide(win *w)
 {
+	Dprintf("container_hide window %d\n", w->wid);
 	w->active = GR_FALSE;
 	GrUnmapWindow(w->wid);
 }

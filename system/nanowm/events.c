@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #define MWINCLUDECOLORS
 #include <nano-X.h>
-/* Uncomment this if you want debugging output from this file */
-#define WMDEBUG
 
 #include "nanowm.h"
 #include <ipc/tbus.h>
@@ -188,7 +186,7 @@ void do_key_up(GR_EVENT_KEYSTROKE * event)
 
 void do_update(GR_EVENT_UPDATE * event)
 {
-	win *window;
+	win *window, *zwin;
 
 	Dprintf("do_update: wid %d, subwid %d, x %d, y %d, width %d, height %d, "
 		"utype %d\n", event->wid, event->subwid, event->x, event->y, event->width,
@@ -197,6 +195,14 @@ void do_update(GR_EVENT_UPDATE * event)
 	if (!(window = find_window(event->subwid))) {
 		if (event->utype == GR_UPDATE_MAP)
 			new_client_window(event->subwid);
+		else if(event->utype == GR_UPDATE_DESTROY) {
+			/* some other client destroyed
+			 raise top level window */
+			zwin = get_top_window();
+			if (zwin != NULL)
+				container_show(zwin);
+
+		}
 		return;
 	}
 

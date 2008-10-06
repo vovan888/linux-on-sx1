@@ -11,6 +11,8 @@
 #include <flphone/theme.h>
 #include <ipc/tbus.h>
 
+//#define WMDEBUG
+
 #ifdef WMDEBUG
 #define Dprintf printf
 #else
@@ -179,7 +181,9 @@ void bottombar_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void rightresize_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void rightbar_mousemoved(win * window, GR_EVENT_MOUSE * event);
 
-int container_activate(win *w);
+void container_activate(win *w);
+void container_show(win *w);
+void container_hide(win *w);
 
 void do_screensaver (GR_EVENT_SCREENSAVER *event);
 

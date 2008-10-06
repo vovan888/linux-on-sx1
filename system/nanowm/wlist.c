@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #define MWINCLUDECOLORS
 #include "nano-X.h"
-/* Uncomment this to get debugging output from this file */
-/*#define WMDEBUG*/
 
 #include "nanowm.h"
 
@@ -117,12 +115,22 @@ int remove_window_and_children(win * window)
 /** Get top active window from the window stack */
 win *get_top_window()
 {
-	return windows;
+	win *w = windows;
+// 	while (w) {
+// 		if (w->active == GR_TRUE) {
+// 			break;
+// 		}
+// 		w = w->next;
+// 	}
+
+	Dprintf("Top window=%d, type=%d\n", w->wid, w->type);
+	return w;
 }
 
 /** Raise window - move it to the top of the list */
 int raise_window(win *window)
 {
+	Dprintf("Raise window=%d, type=%d\n", window->wid, window->type);
 	if(window->prev == NULL)
 		return 0;
 	
@@ -140,4 +148,5 @@ int raise_window(win *window)
 	window->next = windows;
 	window->prev = NULL;
 	windows = window;
+	return 0;
 }
