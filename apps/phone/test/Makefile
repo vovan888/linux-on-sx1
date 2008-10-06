@@ -5,17 +5,7 @@ TARGET_CXX=test
 SRC=${shell ls *.cxx}
 OBJS=${SRC:.cxx=.o}
 
-LIBS=
-
-ifeq ($(CONFIG_PAR),y)
-LIBS+=-lpar
-endif
-
-ifeq ($(CONFIG_SYNC),y)
-LIBS+=-lpixil-sync
-endif
-
-LIBS+=-lfltk -ltbus -ltpl
+LIBS=-lfltk -lflgui -ltbus -ltpl
 
 ifeq ($(CONFIG_NANOX),y)
 LIBS+=-lnano-X
@@ -23,10 +13,6 @@ endif
 
 ifeq ($(CONFIG_X11),y)
 LIBS+=-lX11
-endif
-
-ifeq ($(CONFIG_COLOSSEUM),y)
-LIBS+=-lipc
 endif
 
 include $(BASE_DIR)/Rules.make

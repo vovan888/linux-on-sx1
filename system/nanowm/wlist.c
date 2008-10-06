@@ -133,7 +133,7 @@ int raise_window(win *window)
 	Dprintf("Raise window=%d, type=%d\n", window->wid, window->type);
 	if(window->prev == NULL)
 		return 0;
-	
+
 	/* remove window from list */
 	if (window->prev == NULL)
 		windows = window->next;

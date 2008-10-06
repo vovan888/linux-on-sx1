@@ -326,6 +326,8 @@ int fl_ready ()
 
 ////////////////////////////////////////////////////////////////
 //for nanoX ,by tanghao
+static   GR_SCREEN_INFO si; /* information about screen */
+static int si_valid = 0;
 
 int fl_display = 0;
 int fl_screen;
@@ -344,8 +346,7 @@ void fl_open_display() {
     char buffer[256];
     /* run server and window manager */
     //sprintf(buffer, "%s/nano-X -p &; %s/nanowm &", NANOXFOLDER, NANOXFOLDER);
-    sprintf (buffer, "%s/nano-X -p &", NANOXFOLDER);
-    system (buffer);
+    system ("nano-X -p &; nanowm &");
     if ((d = GrOpen ()) < 0) {
       printf ("cannot open Nano-X graphics,Please run 'nano-X -p' first.\n");
       exit (1);
@@ -359,6 +360,11 @@ void fl_open_display() {
   fl_screen = 0;
 
   GrReqShmCmds(4096);
+
+  if (!si_valid) {
+	GrGetScreenInfo (&si);
+	si_valid = 1;
+  }
   //end nanox
 }
 
@@ -379,8 +385,6 @@ int Fl::y() {
 int Fl::h () {
   fl_open_display();
 
-  GR_SCREEN_INFO si;		/* information about screen */
-  GrGetScreenInfo (&si);
   return si.rows;
 //  return DisplayHeight(fl_display,fl_screen);
 }
@@ -388,8 +392,6 @@ int Fl::h () {
 int Fl::w () {
   fl_open_display();
 
-  GR_SCREEN_INFO si;		/* information about screen */
-  GrGetScreenInfo (&si);
   return si.cols;
   //  return DisplayWidth(fl_display,fl_screen);
 }

@@ -16,10 +16,10 @@ void do_screensaver (GR_EVENT_SCREENSAVER *event)
 	shdata->WM.ScreenSaverRunning = type;
 
 	if (type == 1) {
-		br = 0;
+		br = cfg_readInt("etc/nanowm.cfg", "Brightness", "Dim");
 		tbus_call_method("T-HAL", "DisplaySetBrightness", "i", &br);
 	} else {
-		br = 5;
+		br = cfg_readInt("etc/nanowm.cfg", "Brightness", "Full");
 		tbus_call_method("T-HAL", "DisplaySetBrightness", "i", &br);
 		return;
 	}

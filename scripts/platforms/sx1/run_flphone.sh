@@ -4,14 +4,14 @@
 
 
 export LD_LIBRARY_PATH=/lib:/usr/flphone/lib:/usr/lib
-export MWFONTDIR=/usr/flphone/share/fonts/
+export MWFONTS=/usr/flphone/share/fonts/
 export PATH=/usr/flphone/sbin:/usr/flphone/bin:$PATH
 
 # Start the T-BUS server
 t-bus >/tmp/logtbus 2>/tmp/logtbus2 &
 # start multiplexer daemon
 # -r options is not working....
-gsmMuxd -n 6 >/tmp/logmux 2>/tmp/logmux2
+gsmMuxd -n 6 -p /dev/ttyS1 >/tmp/logmux 2>/tmp/logmux2 &
 sleep 1
 # start indication server daemon
 ipc_dsy  2>/tmp/logdsy1 &

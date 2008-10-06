@@ -159,7 +159,7 @@ int new_client_window(GR_WINDOW_ID wid)
 
 	Dprintf("New client window %d container %d\n", wid, pid);
 
-	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE
+	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_UPDATE
 		       | GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_BUTTON_DOWN
 		       /*| GR_EVENT_MASK_MOUSE_POSITION*/ | GR_EVENT_MASK_EXPOSURE);
 

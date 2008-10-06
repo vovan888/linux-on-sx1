@@ -29,7 +29,7 @@ DEST_DIR:=$(SCRIPT_DIR)-sx1
 HTML_FILES =  `find $(BASE_DIR)/data/html -path $(BASE_DIR)/data/html/.svn -prune -path $(BASE_DIR)/data/html/CVS -prune -o -type f -print`
 MP3_FILES   = `find $(BASE_DIR)/data/media -name *.mp3`
 MPEG_FILES  = `find $(BASE_DIR)/data/media -name *.mpeg -o -name *.mpg`
-FONT_FILES  = `find $(BASE_DIR)/data/fonts -name *.fnt`
+FONT_FILES  = `find $(BASE_DIR)/data/fonts -name *.ttf`
 
 # Empty targets
 
@@ -44,7 +44,7 @@ copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_
 #	@ cp $(HTML_FILES) $(HTML_DIR)
 #	@ cp $(MP3_FILES) $(MP3_DIR)
 #	@ cp $(MPEG_FILES) $(MPEG_DIR)
-#	@ cp $(FONT_FILES) $(FONT_DIR)
+	@ cp $(FONT_FILES) $(FONT_DIR)
 	@ cp $(BASE_DIR)/data/activetheme/* $(THEME_DIR)
 	@ cp $(BASE_DIR)/etc/* $(ETC_DIR)
 

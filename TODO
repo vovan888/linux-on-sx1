@@ -10,4 +10,4 @@ phone,
 
  Nano-X:
  - timestamp in key_up and keydown event - to catch long button press
- - ttf fonts and utf-8
+ +- ttf fonts and utf-8

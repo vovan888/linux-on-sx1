@@ -219,7 +219,7 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 //	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
 	/* configure message format as PDU mode */
 	/* FIXME: TEXT mode support!! */
-	rc |= gsmd_simplecmd(gsmd, "AT+CMGF=0");
+//	rc |= gsmd_simplecmd(gsmd, "AT+CMGF=0");
 	/* turn off CB messages */
 	rc |= gsmd_simplecmd(gsmd, "AT+CSCB=0,\"\",\"\"");
 
