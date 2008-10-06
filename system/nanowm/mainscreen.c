@@ -153,34 +153,5 @@ wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR * title, GR_BOOL active
  *
  */
 
-/*	Bring application to top
- */
-void container_raise(win * window)
-{
-	struct pos_size *pos;
-	GR_RECT r;
-	GR_COORD cxborder = 0, cyborder = 0;
-	GR_WINDOW_INFO info;
-	GR_GC_ID gc;
-	Dprintf("container_raise window %d\n", window->wid);
-
-	if (window->active)
-		return;
-
-	/* Set focus on button down */
-	GrSetFocus(window->clientid);
-
-	/* Raise window */
-	GrRaiseWindow(window->wid);
-
-	/* Map window */
-	GrMapWindow(window->wid);
-
-	window->active = GR_TRUE;
-}
-
-/*	Hide application
- */
-
 /*	Show application switcher
  */

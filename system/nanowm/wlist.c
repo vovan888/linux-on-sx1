@@ -39,7 +39,7 @@ win *find_window(GR_WINDOW_ID wid)
 }
 
 /*
- * Add a new entry to the front of the windowlist.
+ * Add a new entry to the top of the windowlist.
  * Returns -1 on failure or 0 on success.
  */
 int add_window(win * window)
@@ -59,6 +59,9 @@ int add_window(win * window)
 	w->clientid = window->clientid;
 	w->data = window->data;
 	w->next = windows;
+	w->prev = NULL;
+	if(windows != NULL)
+		windows->prev = w;
 	windows = w;
 
 	return 0;
@@ -66,32 +69,23 @@ int add_window(win * window)
 
 /*
  * Remove an entry from the windowlist.
- * We must search through the list for it so that we can find the previous
- * entry in the list and fix the next pointer. The alternative is to add a
- * prev pointer to the structure which would increase the memory usage.
  * Returns -1 on failure or 0 on success.
  */
 int remove_window(win * window)
 {
-	win *w = windows;
-	win *prev = NULL;
+	if (window->prev == NULL)
+		windows = window->next;
+	else
+		window->prev->next = window->next;
+	if (window->next == NULL)
+		window->prev->next = NULL;
+	else
+		window->next->prev = window->prev;
 
-	while (w) {
-		if (w == window) {
-			if (!prev)
-				windows = w->next;
-			else
-				prev->next = w->next;
-			if (w->data)
-				free(w->data);
-			free(w);
-			return 0;
-		}
-		prev = w;
-		w = w->next;
-	}
-
-	return -1;
+	if (window->data)
+		free(window->data);
+	free(window);
+	return 0;
 }
 
 /*
@@ -101,7 +95,6 @@ int remove_window(win * window)
 int remove_window_and_children(win * window)
 {
 	win *t, *w = windows;
-	win *prev = NULL;
 	GR_WINDOW_ID pid = window->wid;
 
 	Dprintf("Removing window %d and children\n", window->wid);
@@ -110,20 +103,41 @@ int remove_window_and_children(win * window)
 		Dprintf("Examining window %d (pid %d)\n", w->wid, w->pid);
 		if ((w->pid == pid) || (w == window)) {
 			Dprintf("Removing window %d (pid %d)\n", w->wid, w->pid);
-			if (prev)
-				prev->next = w->next;
-			else
-				windows = w->next;
 			t = w->next;
-			if (w->data)
-				free(w->data);
-			free(w);
+			remove_window (w);
 			w = t;
 			continue;
 		}
-		prev = w;
 		w = w->next;
 	}
 
-	return -1;
+	return 0;
+}
+
+/** Get top active window from the window stack */
+win *get_top_window()
+{
+	return windows;
+}
+
+/** Raise window - move it to the top of the list */
+int raise_window(win *window)
+{
+	if(window->prev == NULL)
+		return 0;
+	
+	/* remove window from list */
+	if (window->prev == NULL)
+		windows = window->next;
+	else
+		window->prev->next = window->next;
+	if (window->next == NULL)
+		window->prev->next = NULL;
+	else
+		window->next->prev = window->prev;
+
+	/* add window to the top */
+	window->next = windows;
+	window->prev = NULL;
+	windows = window;
 }

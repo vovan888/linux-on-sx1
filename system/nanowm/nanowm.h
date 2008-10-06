@@ -64,6 +64,7 @@ struct windowlist {
 	void *data;		/* Data associated with this window */
 
 	struct windowlist *next;	/* The next window in the list */
+	struct windowlist *prev;	/* The previous window in the list */
 };
 typedef struct windowlist win;
 
@@ -102,6 +103,9 @@ win *find_window(GR_WINDOW_ID wid);
 int add_window(win * window);
 int remove_window(win * window);
 int remove_window_and_children(win * window);
+win *get_top_window();
+int raise_window(win *window);
+
 int new_client_window(GR_WINDOW_ID wid);
 void client_window_resize(win * window);
 void client_window_destroy(win * window);
@@ -174,6 +178,9 @@ void leftresize_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void bottombar_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void rightresize_mousemoved(win * window, GR_EVENT_MOUSE * event);
 void rightbar_mousemoved(win * window, GR_EVENT_MOUSE * event);
+
+int container_activate(win *w);
+
 void do_screensaver (GR_EVENT_SCREENSAVER *event);
 
 extern GR_SCREEN_INFO si;

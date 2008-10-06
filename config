@@ -43,7 +43,7 @@ CONFIG_PHONE=y
 # CONFIG_MESSAGES is not set
 # CONFIG_MENUPUSK is not set
 # CONFIG_MAINMENU is not set
-# CONFIG_TEST is not set
+CONFIG_TEST=y
 
 #
 # Media Applications

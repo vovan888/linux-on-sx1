@@ -161,8 +161,10 @@ void container_buttondown(win * window, GR_EVENT_BUTTON * event)
 		return;
 
 	/* Raise window if mouse down and allowed */
-	if (!(info.props & GR_WM_PROPS_NORAISE))
+	if (!(info.props & GR_WM_PROPS_NORAISE)) {
 		GrRaiseWindow(window->wid);
+		raise_window(window);
+	}
 
 	/* Don't allow window move if NOMOVE property set */
 	if (info.props & GR_WM_PROPS_NOMOVE)
@@ -515,3 +517,28 @@ void rightbar_mousemoved(win * window, GR_EVENT_MOUSE * event)
 
 }
 #endif /* 0000 */
+
+int container_activate(win *w)
+{
+	GR_WINDOW_INFO info;
+
+	GrGetWindowInfo(w->wid, &info);
+
+	w->active = GR_TRUE;
+	raise_window(w);
+	if (!info.mapped) {
+		GrMapWindow(w->wid);
+	} else {
+		GrRaiseWindow(w->wid);
+	}
+
+	if (info.props & GR_WM_PROPS_NOFOCUS)
+		return;
+	GrSetFocus(w->clientid);
+}
+
+int container_hide(win *w)
+{
+	w->active = GR_FALSE;
+	GrUnmapWindow(w->wid);
+}

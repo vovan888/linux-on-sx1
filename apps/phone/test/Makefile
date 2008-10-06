@@ -2,8 +2,8 @@
 
 TARGET_CXX=test
 
-SRC=${shell ls *.cpp}
-OBJS=${SRC:.cpp=.o}
+SRC=${shell ls *.cxx}
+OBJS=${SRC:.cxx=.o}
 
 LIBS=
 
@@ -15,7 +15,7 @@ ifeq ($(CONFIG_SYNC),y)
 LIBS+=-lpixil-sync
 endif
 
-LIBS+=-lfltk -lflgui
+LIBS+=-lfltk -ltbus -ltpl
 
 ifeq ($(CONFIG_NANOX),y)
 LIBS+=-lnano-X

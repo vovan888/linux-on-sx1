@@ -149,7 +149,7 @@ int new_client_window(GR_WINDOW_ID wid)
 	window.pid = GR_ROOT_WINDOW_ID;
 	window.type = WINDOW_TYPE_CONTAINER;
 	window.sizing = GR_FALSE;
-	window.active = 0;
+	window.active = GR_TRUE;
 	window.data = NULL;
 	window.clientid = wid;
 	add_window(&window);
@@ -161,7 +161,7 @@ int new_client_window(GR_WINDOW_ID wid)
 
 	Dprintf("New client window %d container %d\n", wid, pid);
 
-	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE
+	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_UPDATE
 		       | GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_BUTTON_DOWN
 		       | GR_EVENT_MASK_MOUSE_POSITION | GR_EVENT_MASK_EXPOSURE);
 
@@ -178,7 +178,7 @@ int new_client_window(GR_WINDOW_ID wid)
 	window.pid = pid;
 	window.type = WINDOW_TYPE_CLIENT;
 	window.sizing = GR_FALSE;
-	window.active = 0;
+	window.active = GR_TRUE;
 	window.clientid = 0;
 	window.data = NULL;
 	add_window(&window);
@@ -438,7 +438,7 @@ void client_window_resize(win * window)
  */
 void client_window_destroy(win * window)
 {
-	win *pwin;
+	win *pwin, *zwin;
 	GR_WINDOW_ID pid;
 
 	Dprintf("Client window %d has been destroyed\n", window->wid);
@@ -451,6 +451,10 @@ void client_window_destroy(win * window)
 	/* Do it this way around so we don't handle events after destroying */
 	pid = pwin->wid;
 	remove_window_and_children(pwin);
+
+	zwin = get_top_window();
+	if (zwin != NULL)
+		container_activate(zwin);
 
 	Dprintf("Destroying container %d\n", pid);
 	GrDestroyWindow(pid);
