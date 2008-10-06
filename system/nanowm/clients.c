@@ -385,9 +385,10 @@ void client_window_unmap(win * window)
 	win *pwin;
 
 	if (!(pwin = find_window(window->pid))) {
-		fprintf(stderr, "Couldn't find parent of destroyed window " "%d\n", window->wid);
+		fprintf(stderr, "Couldn't find parent of unmapped window " "%d\n", window->wid);
 		return;
 	}
+	Dprintf("client_window_unmap %d (parent %d)\n", window->wid, window->pid);
 
 	container_hide(pwin);
 }

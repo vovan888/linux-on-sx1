@@ -11,7 +11,7 @@
 #include <flphone/theme.h>
 #include <ipc/tbus.h>
 
-//#define WMDEBUG
+#define WMDEBUG
 
 #ifdef WMDEBUG
 #define Dprintf printf

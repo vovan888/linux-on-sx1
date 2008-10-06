@@ -116,12 +116,12 @@ int remove_window_and_children(win * window)
 win *get_top_window()
 {
 	win *w = windows;
-// 	while (w) {
-// 		if (w->active == GR_TRUE) {
-// 			break;
-// 		}
-// 		w = w->next;
-// 	}
+	while (w) {
+		if (w->active == GR_TRUE) {
+			break;
+		}
+		w = w->next;
+	}
 
 	Dprintf("Top window=%d, type=%d\n", w->wid, w->type);
 	return w;
