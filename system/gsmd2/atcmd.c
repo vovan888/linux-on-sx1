@@ -504,7 +504,6 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 				len = cr - pos->cur;
 			else
 				len = pos->buflen - 1;	/* assuming zero-terminated strings */
-//                              len = strlen(pos->cur);  /* assuming zero-terminated strings */
 //DEBUGP("Send to UART=");
 //int i;
 //for(i=0;i<len;i++) printf("%x ",pos->cur[i]);
@@ -521,7 +520,7 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 				rc++;	/* Skip the \n or \0 */
 			pos->buflen -= rc;
 			pos->cur += rc;
-			write(fd, "\r", 1);
+			write(fd, "\r\n", 2);	/*check this*/
 
 			if (!pos->buflen) {
 				/* success: create atcommand timeout timer */
