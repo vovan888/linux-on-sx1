@@ -435,18 +435,12 @@ int open_pty(char *devname, int idx)
 				       symLinkName, ptsSlaveName, strerror(errno), errno);
 			}
 		}
-		// get the parameters
-		tcgetattr(fd, &options);
+		cfmakeraw(&options);
 		// set raw input
-		options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-		options.c_iflag &= ~(INLCR | ICRNL | IGNCR);
-
+		options.c_lflag = 0;
+		options.c_iflag = IGNBRK;
 		// set raw output
-		options.c_oflag &= ~OPOST;
-		options.c_oflag &= ~OLCUC;
-		options.c_oflag &= ~ONLRET;
-		options.c_oflag &= ~ONOCR;
-		options.c_oflag &= ~OCRNL;
+		options.c_oflag = 0;
 		tcsetattr(fd, TCSANOW, &options);
 
 		if (strcmp(devname, "/dev/ptmx") == 0) {
@@ -539,47 +533,23 @@ int open_serialport(char *dev)
 	SYSLOG("is in %s", __FUNCTION__);
 	fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd != -1) {
-		int index = indexOfBaud(baudrate);
+//		int index = indexOfBaud(baudrate);
 		SYSLOG("serial opened");
-		if (index > 0) {
+/*		if (index > 0) {
 			// Switch the baud rate to zero and back up to wake up
 			// the modem
 			setAdvancedOptions(fd, baud_bits[index]);
-		} else {
+		} else */{
 			struct termios options;
 			// The old way. Let's not change baud settings
-			fcntl(fd, F_SETFL, 0);
-
-			// get the parameters
-			tcgetattr(fd, &options);
-
-			// Set the baud rates to 57600...
-			// cfsetispeed(&options, B57600);
-			// cfsetospeed(&options, B57600);
-
+			cfmakeraw(&options);
 			// Enable the receiver and set local mode...
-			options.c_cflag |= (CLOCAL | CREAD);
-
-			// No parity (8N1):
-			options.c_cflag &= ~PARENB;
-			options.c_cflag &= ~CSTOPB;
-			options.c_cflag &= ~CSIZE;
-			options.c_cflag |= CS8;
-
-			// enable hardware flow control (CNEW_RTCCTS)
-			options.c_cflag |= CRTSCTS;
-
-			// set raw input
-			options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-			options.c_iflag &= ~(INLCR | ICRNL | IGNCR);
-
-			// set raw output
-			options.c_oflag &= ~OPOST;
-			options.c_oflag &= ~OLCUC;
-			options.c_oflag &= ~ONLRET;
-			options.c_oflag &= ~ONOCR;
-			options.c_oflag &= ~OCRNL;
-
+			options.c_iflag = IGNBRK;
+			options.c_cflag = (CLOCAL | CREAD | CS8 | HUPCL);
+			options.c_cflag |= CRTSCTS; // enable hardware flow control
+			options.c_cflag |= B115200; // Set speed
+			options.c_lflag = 0; // set raw input
+			options.c_oflag = 0; // set raw output
 			// Set the new options for the port...
 			tcsetattr(fd, TCSANOW, &options);
 		}
