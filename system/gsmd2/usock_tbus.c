@@ -1521,6 +1521,11 @@ static struct gsmd_user *usock_connect(struct gsmd *g, struct tbus_message *msg)
 		return NULL;
 
 	newuser->gsmd = g;
+#ifdef GSMD_SLOW_MUX_DEVICE
+	newuser->gsmd_slow = &g_slow;
+#else
+	newuser->gsmd_slow = &g;
+#endif
 	newuser->subscriptions = 0xffffffff;
 	newuser->service_sender = strdup(msg->service_sender);
 	INIT_LLIST_HEAD(&newuser->finished_ucmds);

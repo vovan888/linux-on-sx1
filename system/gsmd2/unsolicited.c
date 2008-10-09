@@ -148,7 +148,7 @@ static int creg_parse(const char *buf, int len, const char *param, struct gsmd *
 
 	/* Initialize things that depend on network registration */
 	if (gsmd->dev_state.registered && !prev_registered) {
-		sms_cb_network_init(gsmd);
+		sms_cb_network_init(&g_slow);
 	}
 
 	/* Notify clients */

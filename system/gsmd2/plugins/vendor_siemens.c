@@ -241,6 +241,16 @@ static int siemens_initsettings(struct gsmd *g)
 
 	return rc;
 }
+
+static int siemens_initsettings_slow(struct gsmd *g)
+{
+	int rc = 0;
+	/* reset the mux 3 channel to factory defaults */
+	rc |= gsmd_simplecmd(g, "AT&F3");
+
+	return rc;
+}
+
 static int siemens_initsettings_after_pin(struct gsmd *g)
 {
 	/* AT^SCII=  enable ^SCII: ciphering reporting */
@@ -269,5 +279,6 @@ struct gsmd_vendor_plugin gsmd_vendor_plugin = {
 	.unsolicit = siemens_unsolicit,
 	.detect = &siemens_detect,
 	.initsettings = &siemens_initsettings,
+	.initsettings_slow = &siemens_initsettings_slow,
 	.initsettings_after_pin = &siemens_initsettings_after_pin,
 };
