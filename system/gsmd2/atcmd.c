@@ -261,7 +261,7 @@ static int ml_parse(const char *buf, int len, void *ctx)
 	int cme_error = 0;
 	int cms_error = 0;
 
-	DEBUGP("buf='%s'(%d)\n", buf, len);
+	DEBUGP("(%s) buf='%s'(%d)\n", (g==g_slow)?"s":"f", buf, len);
 
 	/* FIXME: This needs to be part of the vendor plugin. If we receive
 	 * an empty string or that 'ready' string, we need to init the modem */
@@ -604,7 +604,7 @@ struct gsmd_atcmd *atcmd_fill(const char *cmd, int rlen,
 	if (rlen > buflen)
 		buflen = rlen;
 
-	atcmd = talloc_size(__atcmd_ctx, sizeof(*atcmd) + buflen);
+	atcmd = talloc_size(__atcmd_ctx, sizeof(struct gsmd_atcmd) + buflen);
 	if (!atcmd)
 		return NULL;
 
@@ -649,7 +649,7 @@ int atcmd_submit(struct gsmd *g, struct gsmd_atcmd *cmd)
 		DEBUGP("extra-submiting command\n");
 		g->machinepl->ex_submit(g);
 	}
-	DEBUGP("submitting command '%s'\n", cmd->buf);
+	DEBUGP("(%s) submitting command '%s'\n", (g==g_slow)?"s":"f", cmd->buf);
 
 	llist_add_tail(&cmd->list, &g->pending_atcmds);
 	if (llist_empty(&g->busy_atcmds) && !llist_empty(&g->pending_atcmds)) {

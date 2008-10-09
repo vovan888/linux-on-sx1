@@ -166,7 +166,7 @@ static speed_t baud_bits[] = {
 */
 int psc_wakeup_modem()
 {
-
+	return 0;
 }
 
 /** Writes a frame to a logical channel. C/R bit is set to 1.

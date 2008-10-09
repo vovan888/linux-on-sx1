@@ -472,7 +472,6 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct tbus_message *msg)
 		char *oldpin, *newpin;
 
 		tbus_get_message_args(msg, "ss", &oldpin, &newpin);
-		DEBUGP(" oldpin='%s', newpin='%s'\n", oldpin, newpin);
 
 		int newpinlen = strlen(newpin);
 		int atcmdlen = 8 + strlen(oldpin) + 1;
@@ -493,13 +492,12 @@ static int usock_rcv_pin(struct gsmd_user *gu, struct tbus_message *msg)
 		free(oldpin);
 		free(newpin);
 	} else if (!strcmp("PIN/GetStatus", msg->object)) {
-//              return tbus_method_return(gu->service_sender, "PIN/GetStatus", "i", &gu->pin_type);
 		cmd = atcmd_fill("AT+CPIN?", 0, &get_cpin_cb, gu, 0, NULL);
 	} else {
 		return -EINVAL;
 	}
 
-	return atcmd_submit(gu->gsmd, cmd);
+	return atcmd_submit(gu->gsmd_slow, cmd);
 }
 
 static int phone_powerup_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
@@ -1521,11 +1519,7 @@ static struct gsmd_user *usock_connect(struct gsmd *g, struct tbus_message *msg)
 		return NULL;
 
 	newuser->gsmd = g;
-#ifdef GSMD_SLOW_MUX_DEVICE
-	newuser->gsmd_slow = &g_slow;
-#else
-	newuser->gsmd_slow = &g;
-#endif
+	newuser->gsmd_slow = g_slow;
 	newuser->subscriptions = 0xffffffff;
 	newuser->service_sender = strdup(msg->service_sender);
 	INIT_LLIST_HEAD(&newuser->finished_ucmds);

@@ -53,7 +53,7 @@
 #define GSMD_ALIVE_INTERVAL	5*60
 #define GSMD_ALIVE_TIMEOUT	30
 
-struct gsmd *g;
+struct gsmd *g_main;
 static int daemonize = 0;
 struct gsmd *g_slow;
 
@@ -177,7 +177,7 @@ static int gsmd_get_imsi_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 int gsmd_simplecmd(struct gsmd *gsmd, char *cmdtxt)
 {
 	struct gsmd_atcmd *cmd;
-	cmd = atcmd_fill(cmdtxt, -1, &gsmd_test_atcb, NULL, 0, NULL);
+	cmd = atcmd_fill(cmdtxt, 0, &gsmd_test_atcb, NULL, 0, NULL);
 	if (!cmd)
 		return -ENOMEM;
 
@@ -190,7 +190,10 @@ int gsmd_initsettings_slow(struct gsmd *gsmd)
 
 	if (gsmd->vendorpl && gsmd->vendorpl->initsettings_slow)
 		rc |= gsmd->vendorpl->initsettings_slow(gsmd);
-	
+
+	/* get PIN status */
+	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", 0, &gsmd_get_cpin_cb, gsmd, 0, NULL));
+
 	return rc;
 }
 
@@ -202,12 +205,10 @@ int gsmd_initsettings2(struct gsmd *gsmd)
 		rc |= gsmd->vendorpl->initsettings(gsmd);
 
 	/* echo off, display acknowledgments as text */
-	rc |= gsmd_simplecmd(gsmd, "ATE0V1");
+//	rc |= gsmd_simplecmd(gsmd, "ATE0V1");
+	rc |= gsmd_simplecmd(gsmd, "ATE0");
 	/* use +CME ERROR: instead of ERROR */
 	rc |= gsmd_simplecmd(gsmd, "AT+CMEE=1");
-
-	/* get PIN status */
-	atcmd_submit(gsmd, atcmd_fill("AT+CPIN?", -1, &gsmd_get_cpin_cb, gsmd, 0, NULL));
 
 	return rc;
 }
@@ -227,12 +228,12 @@ int gsmd_initsettings_after_pin(struct gsmd *gsmd)
 	/* set it 0 to disable subscriber info and avoid cme err 512 ?FIXME? */
 	rc |= gsmd_simplecmd(gsmd, "AT+COLP=1");
 	/* use +CCWA: to indicate waiting call */
-	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1,1");
-	/* turn off CB messages */
-	rc |= gsmd_simplecmd(gsmd, "AT+CSCB=0,\"\",\"\"");
+	rc |= gsmd_simplecmd(gsmd, "AT+CCWA=1");
+	/* activate the unsolicited reporting of CCM value */
+	rc |= gsmd_simplecmd(gsmd, "AT+CAOC=2");
 
 	/* get imsi */
-	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", -1, &gsmd_get_imsi_cb, gsmd, 0, NULL));
+	atcmd_submit(gsmd, atcmd_fill("AT+CIMI", 0, &gsmd_get_imsi_cb, gsmd, 0, NULL));
 
 	sms_cb_init(g_slow);
 
@@ -314,26 +315,22 @@ static int set_baudrate(int fd, int baudrate, int hwflow)
 		return -EINVAL;
 
 	i = tcgetattr(fd, &ti);
-	if (i < 0) {
+	if (i < 0)
 		return -errno;
-	}
 
-	i = cfsetispeed(&ti, B0);
-	if (i < 0) {
-		return -errno;
-	}
+	tcflush(fd, TCIOFLUSH);
+	cfmakeraw(&ti);
 
-	i = cfsetospeed(&ti, bd);
-	if (i < 0) {
+	i = cfsetspeed (&ti, bd);
+	if (i < 0)
 		return -errno;
-	}
 
 	if (hwflow)
 		ti.c_cflag |= CRTSCTS;
 	else
 		ti.c_cflag &= ~CRTSCTS;
 
-	return tcsetattr(fd, 0, &ti) ? -errno : 0;
+	return tcsetattr(fd, TCSANOW, &ti) ? -errno : 0;
 }
 
 static int gsmd_open_serial(char *device, int bps, int hwflow)
@@ -356,7 +353,7 @@ static int gsmd_open_serial(char *device, int bps, int hwflow)
 static int gsmd_initialize(struct gsmd *g)
 {
 	INIT_LLIST_HEAD(&g->users);
-	
+
 
 	g->mlbuf = talloc_array(gsmd_tallocs, unsigned char, MLPARSE_BUF_SIZE);
 	if (!g->mlbuf)
@@ -404,6 +401,7 @@ static void print_usage(void)
 		"\t-h\t--help\t\tDisplay this help message\n"
 		"\t-p dev\t--device dev\tSpecify serial device to be used\n"
 		"\t-P dev\t--slowdevice dev\tSpecify second serial device for \"slow\" commands\n"
+		"\t-D dev\t--datadevice dev\tSpecify serial device for data commands\n"
 		"\t-s spd\t--speed spd\tSpecify speed in bps (9600,38400,115200,...)\n"
 		"\t-F\t--hwflow\tHardware Flow Control (RTS/CTS)\n"
 		"\t-L\t--leak-report\tLeak Report of talloc memory allocator\n"
@@ -432,12 +430,13 @@ static void sig_handler(int signr)
 
 int main(int argc, char **argv)
 {
-	int fd, fd_slow, argch;
+	int fd, fd_slow, fd_data, argch;
 
 	int bps = 38400;
 	int hwflow = 0;
 	char *device = NULL;
 	char *slowdevice = NULL;
+	char *datadevice = NULL;
 	char *vendor_name = NULL;
 	char *machine_name = NULL;
 	int wait = -1;
@@ -452,7 +451,7 @@ int main(int argc, char **argv)
 	print_header();
 
 	/*FIXME: parse commandline, set daemonize, device, ... */
-	while ((argch = getopt_long(argc, argv, "FVLdhpP:s:l:v:m:w:", opts, NULL)) != -1) {
+	while ((argch = getopt_long(argc, argv, "FVLdhp:P:D:s:l:v:m:w:", opts, NULL)) != -1) {
 		switch (argch) {
 		case 'V':
 			print_version();
@@ -477,6 +476,9 @@ int main(int argc, char **argv)
 			break;
 		case 'P':
 			slowdevice = optarg;
+			break;
+		case 'D':
+			datadevice = optarg;
 			break;
 		case 's':
 			bps = atoi(optarg);
@@ -507,64 +509,81 @@ int main(int argc, char **argv)
 
 	fd = gsmd_open_serial(device, bps, hwflow);
 
-	g = malloc (sizeof(struct gsmd));
-	if (gsmd_initialize(g) < 0) {
+	g_main = malloc (sizeof(struct gsmd));
+	if (gsmd_initialize(g_main) < 0) {
 		fprintf(stderr, "internal error\n");
 		exit(1);
 	}
 
 #ifdef GSMD_SLOW_MUX_DEVICE
-	fd_slow = gsmd_open_serial(slowdevice, bps, hwflow);
+	if (slowdevice) {
+		fd_slow = gsmd_open_serial(slowdevice, bps, hwflow);
 
-	g_slow = malloc (sizeof(struct gsmd));
-	if (gsmd_initialize(g_slow) < 0) {
-		fprintf(stderr, "internal error\n");
-		exit(1);
-	}
-#else
-	g_slow = g;
+		g_slow = malloc (sizeof(struct gsmd));
+		if (gsmd_initialize(g_slow) < 0) {
+			fprintf(stderr, "internal error\n");
+			exit(1);
+		}
+		write(fd_slow, "AT&F3\r\n", 7);
+	} else
 #endif
+	g_slow = g_main;
+
+#ifdef GSMD_DATA_MUX_DEVICE
+	if (datadevice) {
+		fd_data = gsmd_open_serial(datadevice, bps, hwflow);
+		write(fd_data, "AT&F1\r\n", 7);
+	}
+#endif
+
 	gsmd_timer_init();
 
-	if (gsmd_machine_plugin_init(g, machine_name, vendor_name) < 0) {
+	if (gsmd_machine_plugin_init(g_main, machine_name, vendor_name) < 0) {
 		fprintf(stderr, "no machine plugins found\n");
 		exit(1);
 	}
 
 	/* initialize the machine plugin */
-	if (g->machinepl->init && (g->machinepl->init(g, fd) < 0)) {
+	if (g_main->machinepl->init && (g_main->machinepl->init(g_main, fd) < 0)) {
 		fprintf(stderr, "couldn't initialize machine plugin\n");
 		exit(1);
 	}
 
 	if (wait >= 0)
-		g->interpreter_ready = !wait;
+		g_main->interpreter_ready = !wait;
 
-	if (atcmd_init(g, fd) < 0) {
+	if (atcmd_init(g_main, fd) < 0) {
 		fprintf(stderr, "can't initialize UART device\n");
 		exit(1);
 	}
 
+#ifdef GSMD_SLOW_MUX_DEVICE
+	if (atcmd_init(g_slow, fd_slow) < 0) {
+		fprintf(stderr, "can't initialize UART device\n");
+		exit(1);
+	}
+#endif
+
 	write(fd, "\r", 1);
 	atcmd_drain(fd);
 
-	if (usock_init(g) < 0) {
+	if (usock_init(g_main) < 0) {
 		fprintf(stderr, "can't open T-BUS connection\n");
 		exit(1);
 	}
 
 	/* select a vendor plugin */
-	gsmd_vendor_plugin_find(g);
+	gsmd_vendor_plugin_find(g_main);
 
-	unsolicited_init(g);
+	unsolicited_init(g_main);
 
-	if (g->interpreter_ready) {
-		gsmd_initsettings(g);
+	if (g_main->interpreter_ready) {
+		gsmd_initsettings(g_main);
 		gsmd_initsettings_slow(g_slow);
-		gsmd_alive_start(g);
+		gsmd_alive_start(g_main);
 	}
 
-	gsmd_opname_init(g);
+	gsmd_opname_init(g_main);
 
 	while (1) {
 		int ret = gsmd_select_main();
@@ -582,8 +601,8 @@ int main(int argc, char **argv)
 	}
 
 	tbus_close();
-	ShmUnmap(g->shmem);
-	free (g);
+	ShmUnmap(g_main->shmem);
+	free (g_main);
 	free (g_slow);
 
 	exit(0);

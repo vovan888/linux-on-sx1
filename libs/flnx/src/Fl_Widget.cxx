@@ -69,7 +69,7 @@ Fl_Widget *Fl::readqueue() {
   if (obj_tail >= QUEUE_SIZE) obj_tail = 0;
   return o;
 }
-    
+
 ////////////////////////////////////////////////////////////////
 
 int Fl_Widget::handle(int) {

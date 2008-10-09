@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <errno.h>
 
 #define SOFIA_MAX_LIGHT_VAL     0x30    // (was 0x2B)
 
@@ -30,14 +31,36 @@
 #define SOFIA_DIMMING_REG       0x09
 
 
+static int set_brightness(int file, int br)
+{
+	uint8_t buf[2];
+
+	/* Using I2C Write, equivalent of i2c_smbus_write_word_data(file,register,0x6543) */
+	buf[0] = SOFIA_BACKLIGHT_REG;
+	buf[1] = br;
+	if ( write(file, buf, 2) != 2 ) {
+		return -1;
+	}
+
+	/* Using I2C Write, equivalent of i2c_smbus_write_word_data(file,register,0x6543) */
+	buf[0] = SOFIA_KEYLIGHT_REG;
+	buf[1] = br;
+	if ( write(file, buf, 2) != 2 ) {
+		return -1;
+	}
+	return 0;
+}
 
  /* set display brightness 0..5 */
 int mach_set_display_brightness(int n)
 {
-	shdata->HAL.DisplayBrightness = n;
 	int file;
 	uint8_t s_br;
 
+	if (n < 0 || n > 5)
+		return -EINVAL;
+
+	shdata->HAL.DisplayBrightness = n;
 	s_br = SOFIA_MAX_LIGHT_VAL * n / 5;
 
 	if ((file = open("/dev/i2c-0",O_RDWR)) < 0) {
@@ -48,21 +71,8 @@ int mach_set_display_brightness(int n)
 	if (ioctl(file, I2C_SLAVE, addr) < 0) {
 		return -1;
 	}
-	uint8_t buf[2];
 
-	/* Using I2C Write, equivalent of i2c_smbus_write_word_data(file,register,0x6543) */
-	buf[0] = SOFIA_BACKLIGHT_REG;
-	buf[1] = s_br;
-	if ( write(file, buf, 2) != 2 ) {
-		return -1;
-	}
-
-	/* Using I2C Write, equivalent of i2c_smbus_write_word_data(file,register,0x6543) */
-	buf[0] = SOFIA_KEYLIGHT_REG;
-	buf[1] = s_br;
-	if ( write(file, buf, 2) != 2 ) {
-		return -1;
-	}
+	set_brightness(file, s_br);
 
 	return 0;
 }

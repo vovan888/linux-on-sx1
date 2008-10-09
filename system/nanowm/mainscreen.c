@@ -11,7 +11,7 @@
 
 #include "nanowm.h"
 
-/* 
+/*
  * Load wallpaper "filename" to the background of "wid" window
  */
 int wm_loadwallpaper(GR_WINDOW_ID wid, int group_index, int image_index)
@@ -45,7 +45,7 @@ wm_paint_statusarea(GR_DRAW_ID id, int w, int h, GR_CHAR * title, GR_BOOL active
 	int x = 0;
 	int y = 0;
 	GR_GC_ID gc = GrNewGC();
-	GR_RECT r;
+//	GR_RECT r;
 	/* *static GR_FONT_ID fontid = 0;** */
 
 #if 0

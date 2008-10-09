@@ -57,7 +57,7 @@ enum llparse_state {
 #define LLPARSE_BUF_SIZE	1024
 
 /* we can't pare a mutiline response biger than this: */
-#define MLPARSE_BUF_SIZE	65535
+#define MLPARSE_BUF_SIZE	4096
 
 struct llparser {
 	enum llparse_state state;
@@ -104,6 +104,7 @@ struct gsmd_user {
 	struct llist_head list;		/* our entry in the global list */
 	struct llist_head finished_ucmds;	/* our busy gsmd_ucmds */
 	struct gsmd *gsmd;
+	struct gsmd *gsmd_slow;
 	struct gsmd_fd gfd;				/* the socket */
 	u_int32_t subscriptions;		/* bitmaks of subscribed event groups */
 	char *service_sender;		/* T-BUS service name of client */

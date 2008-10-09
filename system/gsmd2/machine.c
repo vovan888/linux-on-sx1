@@ -33,7 +33,7 @@
 int gsmd_machine_plugin_init(struct gsmd *gsmd, char *machine_name, char *vendor_name)
 {
 	gsmd->machinepl = &gsmd_machine_plugin;
-	g_slow.machinepl = &gsmd_machine_plugin;
+	g_slow->machinepl = &gsmd_machine_plugin;
 
 	return 0;
 }

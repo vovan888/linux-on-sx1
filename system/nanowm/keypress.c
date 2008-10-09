@@ -47,7 +47,7 @@ static int start_app_for_key(GR_KEY ch)
 		free(AppPath);
 	}
 
-	return 0;	
+	return 0;
 }
 
 /** Alt-Tab switcher
@@ -76,5 +76,5 @@ void handle_key_up(GR_EVENT_KEYSTROKE *event)
 	if (event->wid != GR_ROOT_WINDOW_ID)
 		return;
 
-	return start_app_for_key(event->ch);
+	start_app_for_key(event->ch);
 }

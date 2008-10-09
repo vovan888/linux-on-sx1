@@ -7,6 +7,7 @@
 
 /* if defined - use second mux channel for "slow" commands */
 #define GSMD_SLOW_MUX_DEVICE	1
+#define GSMD_DATA_MUX_DEVICE	1
 
 struct gsmd_user;
 extern struct gsmd *g_slow;

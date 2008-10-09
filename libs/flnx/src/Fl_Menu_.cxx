@@ -49,7 +49,7 @@
     { len += strlen(s); if ( len >= namelen ) { *name='\0'; return(-2); } else strcat(name,(s)); }
 int Fl_Menu_::item_pathname(char *name, int namelen, const Fl_Menu_Item *finditem) const {
     int len = 0;
-    finditem = finditem ? finditem : mvalue();    
+    finditem = finditem ? finditem : mvalue();
     name[0] = '\0';
     for ( int t=0; t<size(); t++ ) {
         const Fl_Menu_Item *m = &(menu()[t]);

@@ -410,7 +410,7 @@ static int cbmi_parse(const char *buf, int len, const char *param, struct gsmd *
 {
 	char memstr[3];
 	struct gsmd_evt_auxdata *aux;
-	
+
 	aux = (struct gsmd_evt_auxdata *)malloc(sizeof(struct gsmd_evt_auxdata));
 	if (sscanf(param, "\"%2[A-Z]\",%i", memstr, &aux->u.cbm.index) < 2) {
 		return -EINVAL;
@@ -516,7 +516,6 @@ static const struct gsmd_unsolicit gsm0705_unsolicit[] = {
 int sms_cb_init(struct gsmd *gsmd)
 {
 	struct gsmd_atcmd *atcmd;
-	char buffer[10];
 
 	unsolicited_register_array(gsm0705_unsolicit, ARRAY_SIZE(gsm0705_unsolicit));
 
@@ -529,15 +528,9 @@ int sms_cb_init(struct gsmd *gsmd)
 	}
 
 	/* Switch into desired mode (Section 3.2.3) */
-	atcmd = atcmd_fill(buffer, snprintf(buffer, sizeof(buffer),
-					    "AT+CMGF=%i",
-					    (gsmd->flags & GSMD_FLAG_SMS_FMT_TEXT) ?
-					    GSMD_SMS_FMT_TEXT : GSMD_SMS_FMT_PDU) + 1,
-			   NULL, gsmd, 0, NULL);
-	if (!atcmd)
-		return -ENOMEM;
+	char *str = (gsmd->flags & GSMD_FLAG_SMS_FMT_TEXT) ? "AT+CMGF=1":"AT+CMGF=0";
 
-	return atcmd_submit(gsmd, atcmd);
+	return gsmd_simplecmd(gsmd, str);
 }
 
 /* Called everytime the phone registers to the network and we want to start
@@ -557,8 +550,12 @@ int sms_cb_network_init(struct gsmd *gsmd)
 	 *
 	 * FIXME: ask for supported +CNMI values first.
 	 */
+	/* turn off CB messages */
+	ret |= gsmd_simplecmd(gsmd, "AT+CSCB=0,\"\",\"\"");
+	// AT+CNMI=1,1,2,0,1
 //	ret |= gsmd_simplecmd(gsmd, "AT+CNMI=2,1,2,1,0");
-	ret |= gsmd_simplecmd(gsmd, "AT+CNMI=0,2,2,1");
+	ret |= gsmd_simplecmd(gsmd, "AT+CNMI=1,1,2,1,1");
 
+	ret |= gsmd_simplecmd(gsmd, "AT+CMGL=4");
 	return ret;
 }
