@@ -228,7 +228,7 @@ int write_frame(int channel, const unsigned char *input, int count, unsigned cha
 			FD_SET(serial_fd, &rfds);
 
 			timeout.tv_sec = 0;
-			timeout.tv_usec = 10000;	// flagdelay
+			timeout.tv_usec = 20000;	// flagdelay = 10ms
 
 			if ((sel = select(serial_fd + 1, &rfds, NULL, NULL, &timeout)) > 0) {
 				if (FD_ISSET(serial_fd, &rfds)) {
@@ -261,6 +261,16 @@ int write_frame(int channel, const unsigned char *input, int count, unsigned cha
 	}
 	if (count > 0) {
 		c = write(serial_fd, input, count);
+#ifdef DEBUG
+{char str[1024]="", temp[8];
+int j;
+for(j = 0; j < count; j++) {
+	sprintf(temp, " %02X", input[j]);
+	strcat(str, temp);
+}
+SYSLOG("= %s", str);
+};
+#endif
 		if (count != c) {
 			SYSLOG
 			    ("Couldn't write all data to the serial port from the virtual port %d. Wrote only %d bytes.",
@@ -317,6 +327,16 @@ int ussp_send_data(unsigned char *buf, int n, int port)
 {
 	SYSLOG("send data to port virtual port %d", port);
 	write(ussp_fd[port], buf, n);
+#ifdef DEBUG
+{char str[1024]="", temp[8];
+int j;
+for(j = 0; j < n; j++) {
+	sprintf(temp, " %02X", buf[j]);
+	strcat(str, temp);
+}
+SYSLOG("= %s", str);
+};
+#endif
 	return n;
 }
 
@@ -648,8 +668,8 @@ void handle_command(GSM0710_Frame * frame)
 			case C_PSC:
 				SYSLOG("Power saving command: ");
 				SYSLOG
-				    ("frame->data = %s  / frame->data_length = %d",
-				     frame->data + i, frame->data_length - i);
+				    ("frame->data = %d  / frame->data_length = %d",
+				     *(frame->data + i), frame->data_length - i);
 				break;
 			case C_MSC:
 				if (i + 1 < frame->data_length) {
@@ -992,6 +1012,7 @@ static int read_modem_port(int serial_fd)
 	if ((size = gsm0710_buffer_free(in_buf)) > 0
 		&& (len = read(serial_fd, buf, min(size, sizeof(buf)))) > 0) {
 		SYSLOG("serial data len = %d", len);
+#ifdef DEBUG
 {char str[1024]="", temp[8];
 int i;
 for(i = 0; i < len; i++) {
@@ -1000,6 +1021,7 @@ for(i = 0; i < len; i++) {
 }
 SYSLOG("= %s", str);
 }
+#endif
 		gsm0710_buffer_write(in_buf, buf, len);
 		// extract and handle ready frames
 		if (extract_frames(in_buf) > 0 && faultTolerant) {
@@ -1041,6 +1063,7 @@ static int read_virtual_port(int serial_fd, int port_num)
 			maxfd = ussp_fd[i];
 	}
 	SYSLOG("Data from ptya%d: %d bytes", i, len);
+#ifdef DEBUG
 {char str[1024]="", temp[8];
 int j;
 for(j = 0; j < len; j++) {
@@ -1049,6 +1072,7 @@ for(j = 0; j < len; j++) {
 }
 SYSLOG("= %s", str);
 };
+#endif
 	/* copy remaining bytes from last packet into tmp */
 	if (remaining[i] > 0) {
 		tmp[i] = malloc(remaining[i]);

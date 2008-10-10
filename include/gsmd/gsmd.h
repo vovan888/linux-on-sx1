@@ -77,6 +77,15 @@ struct gsmd;
 
 #define GSMD_ATCMD_TIMEOUT	60	/* If doesn get respond within 60 secs, discard */
 
+struct gsmd_channel {
+	struct gsmd_fd gfd_uart;
+	struct llparser llp;
+	struct llist_head pending_atcmds;	/* our busy gsmd_atcmds */
+	struct llist_head busy_atcmds;		/* our busy gsmd_atcmds */
+	unsigned char *mlbuf;		/* ml_parse buffer */
+	unsigned int mlbuf_len;
+}
+
 struct gsmd {
 	unsigned int flags;
 	int interpreter_ready;

@@ -145,7 +145,7 @@ int gsmd_alive_start(struct gsmd *gsmd)
 
 static int gsmd_test_atcb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
-	DEBUGP("`%s' returned `%s'\n", cmd->buf, resp);
+	DEBUGP("'%s' returned '%s'\n", cmd->buf, resp);
 	return 0;
 }
 
@@ -524,7 +524,6 @@ int main(int argc, char **argv)
 			fprintf(stderr, "internal error\n");
 			exit(1);
 		}
-		write(fd_slow, "AT&F3\r\n", 7);
 	} else
 #endif
 	g_slow = g_main;
@@ -532,7 +531,8 @@ int main(int argc, char **argv)
 #ifdef GSMD_DATA_MUX_DEVICE
 	if (datadevice) {
 		fd_data = gsmd_open_serial(datadevice, bps, hwflow);
-		write(fd_data, "AT&F1\r\n", 7);
+		/*FIXME*/
+		write(fd_data, "AT&F1\r", 6);
 	}
 #endif
 

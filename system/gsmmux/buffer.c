@@ -134,13 +134,13 @@ GSM0710_Frame *gsm0710_buffer_get_frame(GSM0710_Buffer * buf)
 	}
 
 	// SX1: check for case s3
-	if (power_state == PWR_WAKING) {
-		// frame should have extra F9 on both ends..
-		// here we should skip one F9
-		if (*buf->readp == F_FLAG) {
-			INC_BUF_POINTER(buf, buf->readp);
-		}
-	}
+// 	if (power_state == PWR_WAKING) {
+// 		// frame should have extra F9 on both ends..
+// 		// here we should skip one F9
+// 		if (*buf->readp == F_FLAG) {
+// 			INC_BUF_POINTER(buf, buf->readp);
+// 		}
+// 	}
 
 	// Find start flag
 	while (!buf->flag_found && gsm0710_buffer_length(buf) > 0) {
@@ -243,7 +243,7 @@ GSM0710_Frame *gsm0710_buffer_get_frame(GSM0710_Buffer * buf)
 		buf->readp = data;
 	}
 
-	// SX1: check for case s3
+/*	// SX1: check for case s3
 	if (power_state == PWR_WAKING) {
 		// frame should have extra F9 on both ends..
 		// here we should skip one F9
@@ -251,7 +251,7 @@ GSM0710_Frame *gsm0710_buffer_get_frame(GSM0710_Buffer * buf)
 			INC_BUF_POINTER(buf, buf->readp);
 		}
 	}
-
+*/
 	return frame;
 }
 

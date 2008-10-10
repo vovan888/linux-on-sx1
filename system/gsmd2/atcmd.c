@@ -448,6 +448,9 @@ static int ml_parse(const char *buf, int len, void *ctx)
       final_cb:
 	/* if reach here, the final result code of a command has been reached */
 	DEBUGP("final_cb, cmd=%d\n", (int)cmd);
+	if (cmd)
+		DEBUGP("final_cb, cmd=%s\n", cmd->buf);
+
 	if (!cmd)
 		return rc;
 
@@ -520,7 +523,7 @@ static int atcmd_select_cb(int fd, unsigned int what, void *data)
 				rc++;	/* Skip the \n or \0 */
 			pos->buflen -= rc;
 			pos->cur += rc;
-			write(fd, "\r\n", 2);	/*check this*/
+			write(fd, "\r", 1);
 
 			if (!pos->buflen) {
 				/* success: create atcommand timeout timer */

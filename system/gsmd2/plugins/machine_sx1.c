@@ -46,6 +46,7 @@ static int sx1_init(struct gsmd *g, int fd)
 {
     /* Modem is always powered on on SX1. Check EgoldWakeUp */
 	g->interpreter_ready = 1;
+	g_slow->interpreter_ready = 1;
 
 	return 0;
 }
