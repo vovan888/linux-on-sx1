@@ -106,16 +106,6 @@ static int usock_rcv_passthrough(struct gsmd_user *gu, struct tbus_message *msg)
 	return atcmd_submit(gu->gsmd, cmd);
 }
 
-/* Event method - not needed
- */
-static int usock_rcv_event(struct gsmd_user *gu, struct tbus_message *msg)
-{
-//      u_int32_t *evtmask = ;
-//
-//      gu->subscriptions = *evtmask;
-	return 0;
-}
-
 static int voicecall_get_stat_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 //      struct gsmd_user *gu = ctx;
@@ -1464,7 +1454,7 @@ static int usock_rcv_phonebook(struct gsmd_user *gu, struct gsmd_msg_hdr *gph, i
 	}
 
 	if (cmd)
-		return atcmd_submit(gu->gsmd, cmd);
+		return atcmd_submit(gu->gsmd_slow, cmd);
 	else
 		return 0;
 }
@@ -1475,7 +1465,7 @@ static struct usock_methods {
 } pcmd_type_handlers[] = {
 	{
 	"Passthrough",	&usock_rcv_passthrough}, {
-	"Event",	&usock_rcv_event}, {
+//	"Event",	&usock_rcv_event}, {
 	"VoiceCall",	&usock_rcv_voicecall}, {
 	"PIN",		&usock_rcv_pin}, {
 	"Phone",	&usock_rcv_phone}, {
@@ -1485,7 +1475,8 @@ static struct usock_methods {
 	"PhoneBook",	&usock_rcv_phonebook}, {
 	"Modem",	&usock_rcv_modem}, {
 	"Connect",	&usock_rcv_connect}, {
-NULL, NULL},};
+	NULL, NULL},
+};
 
 static int usock_rcv_pcmd(struct gsmd_user *gu, struct tbus_message *msg)
 {

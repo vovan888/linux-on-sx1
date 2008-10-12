@@ -1212,9 +1212,11 @@ void Fl_Window::show() {
     Fl_X::make_xid (this);
   } else {
      //tanghao   XMapRaised(fl_display, i->xid);
+     GrMapWindow(i->xid);
      GrRaiseWindow (i->xid);
   }
 }
+
 Window fl_window;
 //Gr_Window
 Fl_Window *Fl_Window::current_;

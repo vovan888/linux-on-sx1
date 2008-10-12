@@ -11,3 +11,9 @@ phone,
  Nano-X:
  - timestamp in key_up and keydown event - to catch long button press
  +- ttf fonts and utf-8
+
+ Nanowm
+ - get list of running applications
+ - for every app: path, pid, caption, icon name (path), state (shown, hidden), flag (application, fullscreen app)
+ - funtions for app: show, hide, close,
+ - function for apps: cycle,
