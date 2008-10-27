@@ -76,8 +76,9 @@ int main(int argc, char *argv[])
 	window.pid = GR_ROOT_WINDOW_ID;
 	window.type = WINDOW_TYPE_ROOT;
 	window.clientid = 1;
-	window.sizing = GR_FALSE;
-	window.active = GR_TRUE;
+/*	window.sizing = GR_FALSE;
+	window.active = GR_TRUE;*/
+	window.state = WM_STATE_ACTIVE;
 	window.data = NULL;
 	add_window(&window);
 

@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <errno.h>
+#include <string.h>
 
 #define SOFIA_MAX_LIGHT_VAL     0x30    // (was 0x2B)
 
@@ -77,3 +78,34 @@ int mach_set_display_brightness(int n)
 	return 0;
 }
 
+int mach_connect_signals()
+{
+	int err;
+
+	err = tbus_connect_signal("sx1_dsy", "BatteryChargeLevel");
+	err |= tbus_connect_signal("PhoneServer", "BatteryChargeLevel");
+
+	return err;
+}
+
+/* returns 1-message was handled here, 0 - not handled */
+int mach_handle_signal(struct tbus_message *msg)
+{
+	if (!strcmp(msg->service_dest, "PhoneServer")) {
+		if (!strcmp(msg->object, "BatteryChargeLevel")) {
+			int value;
+			tbus_get_message_args(msg, "i", &value);
+			tbus_emit_signal("BatteryCharge", "i", &value);
+		}
+	} else
+	if (!strcmp(msg->service_dest, "sx1_dsy")) {
+		if (!strcmp(msg->object, "BatteryChargeLevel")) {
+			int value;
+			tbus_get_message_args(msg, "i", &value);
+			tbus_emit_signal("BatteryCharge", "i", &value);
+		}
+	} else
+		return 0;
+
+	return 1;
+}

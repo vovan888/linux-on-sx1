@@ -210,8 +210,7 @@ void do_update(GR_EVENT_UPDATE * event)
 		if (event->utype == GR_UPDATE_ACTIVATE)
 			redraw_ncarea(window);
 		return;
-	}
-
+	} else
 	if (window->type == WINDOW_TYPE_CLIENT) {
 		if (event->utype == GR_UPDATE_MAP)
 			client_window_remap(window);
@@ -221,5 +220,25 @@ void do_update(GR_EVENT_UPDATE * event)
 			client_window_unmap(window);
 		if (event->utype == GR_UPDATE_SIZE)
 			client_window_resize(window);
-	}
+	} else
+	if (window->type == WINDOW_TYPE_APP) {
+		if (event->utype == GR_UPDATE_MAP)
+			remap_app_window(window);
+		if (event->utype == GR_UPDATE_DESTROY)
+			destroy_app_window(window);
+		if (event->utype == GR_UPDATE_UNMAP)
+			unmap_app_window(window);
+// 		if (event->utype == GR_UPDATE_SIZE)
+// 			resize_app_window(window);
+	}/* else
+	if (window->type == WINDOW_TYPE_MENU) {
+		if (event->utype == GR_UPDATE_MAP)
+			remap_menu_window(window);
+		if (event->utype == GR_UPDATE_DESTROY)
+			destroy_menu_window(window);
+		if (event->utype == GR_UPDATE_UNMAP)
+			unmap_menu_window(window);
+		if (event->utype == GR_UPDATE_SIZE)
+			resize_menu_window(window);
+	}*/
 }

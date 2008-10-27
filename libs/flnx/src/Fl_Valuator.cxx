@@ -49,9 +49,9 @@ const double epsilon = 4.66e-10;
 
 void Fl_Valuator::step(double s) {
   if (s < 0) s = -s;
-  A = rint(s);
+  A = floor(s);	/* rint */
   B = 1;
-  while (fabs(s-A/B) > epsilon && B<=(0x7fffffff/10)) {B *= 10; A = rint(s*B);}
+  while (fabs(s-A/B) > epsilon && B<=(0x7fffffff/10)) {B *= 10; A = floor(s*B);} /* rint */
 }
 
 void Fl_Valuator::precision(int p) {
@@ -102,7 +102,7 @@ void Fl_Valuator::handle_release() {
 }
 
 double Fl_Valuator::round(double v) {
-  if (A) return rint(v*B/A)*A/B;
+  if (A) return floor(v*B/A)*A/B;	/* rint */
   else return v;
 }
 

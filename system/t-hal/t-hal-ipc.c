@@ -17,9 +17,9 @@ void handle_signal(struct tbus_message *msg)
 	DPRINT("%d,%s->%s/%s\n", msg->type, msg->service_sender,
 	       msg->service_dest, msg->object);
 
-	if (!strcmp(msg->service_dest, "PhoneServer")) {
-		if (!strcmp(msg->object, "NetworkBars"))
-			;
+	int handled = mach_handle_signal(msg);
+	if (!handled) {
+		// handle here
 	}
 }
 

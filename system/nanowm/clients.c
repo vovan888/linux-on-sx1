@@ -18,9 +18,12 @@
 #include "nanowm.h"
 
 /* default window style for GR_WM_PROPS_APPWINDOW*/
-#define DEFAULT_WINDOW_STYLE	(GR_WM_PROPS_APPFRAME | GR_WM_PROPS_CAPTION |\
-				  GR_WM_PROPS_NOAUTOMOVE | GR_WM_PROPS_NOAUTORESIZE)
-/*					GR_WM_PROPS_CLOSEBOX | \*/
+#define DEFAULT_WINDOW_STYLE  ( GR_WM_PROPS_CAPTION | GR_WM_PROPS_CLOSEBOX | \
+				GR_WM_PROPS_NOAUTOMOVE | GR_WM_PROPS_NOAUTORESIZE | \
+				GR_WM_PROPS_NODECORATE )
+/*				GR_WM_PROPS_APPFRAME | */
+#define DEFAULT_APP_STYLE  ( GR_WM_PROPS_NODECORATE )
+#define DEFAULT_MENU_STYLE  ( GR_WM_PROPS_NODECORATE | GR_WM_PROPS_MENU)
 
 /*static GR_COORD lastx = FIRST_WINDOW_LOCATION;
 static GR_COORD lasty = FIRST_WINDOW_LOCATION;
@@ -38,6 +41,7 @@ int new_client_window(GR_WINDOW_ID wid)
 	GR_COORD x, y, width, height, xoffset, yoffset;
 	GR_WM_PROPS style;
 	GR_WM_PROPERTIES props;
+	int wtype;	/* window type */
 
 	/* get client window information */
 	GrGetWindowInfo(wid, &winfo);
@@ -75,28 +79,26 @@ int new_client_window(GR_WINDOW_ID wid)
 #endif
 	/* if default decoration style asked for, set real draw bits */
 	if ((style & GR_WM_PROPS_APPMASK) == GR_WM_PROPS_APPWINDOW) {
-		GR_WM_PROPERTIES pr;
-
-		style = (style & ~GR_WM_PROPS_APPMASK) | DEFAULT_WINDOW_STYLE;
-		pr.flags = GR_WM_FLAGS_PROPS;
-		pr.props = style;
-		GrSetWMProperties(wid, &pr);
+		style = (style & ~GR_WM_PROPS_APPMASK) | DEFAULT_APP_STYLE;
+		wtype = WINDOW_TYPE_APP;
+	} else if (style & GR_WM_PROPS_MENU) {
+		style = DEFAULT_MENU_STYLE;
+		wtype = WINDOW_TYPE_MENU;
+	} else {
+		style = DEFAULT_WINDOW_STYLE;
+		wtype = WINDOW_TYPE_CLIENT;
 	}
+	GR_WM_PROPERTIES pr;
+	pr.flags = GR_WM_FLAGS_PROPS;
+	pr.props = style;
+	GrSetWMProperties(wid, &pr);
 
 	/* determine container widths and client child window offsets */
 	if (style & GR_WM_PROPS_APPFRAME) {
-#if 0
 		width = winfo.width + CXFRAME;
 		height = winfo.height + CYFRAME;
 		xoffset = CXBORDER;
 		yoffset = CYBORDER;
-#else
-		/* we have no border for APP window */
-		width = winfo.width;
-		height = winfo.height;
-		xoffset = 0;
-		yoffset = 0;
-#endif
 	} else if (style & GR_WM_PROPS_BORDER) {
 		width = winfo.width + 2;
 		height = winfo.height + 2;
@@ -111,13 +113,11 @@ int new_client_window(GR_WINDOW_ID wid)
 	if (style & GR_WM_PROPS_CAPTION) {
 		height += APPVIEW_STATUS_HEIGHT;
 		yoffset += APPVIEW_STATUS_HEIGHT;
-#if 0
 		if (style & GR_WM_PROPS_APPFRAME) {
 			/* extra line under caption with appframe */
 			++height;
 			++yoffset;
 		}
-#endif
 	}
 #if 0
 	/* determine x,y window location */
@@ -141,42 +141,47 @@ int new_client_window(GR_WINDOW_ID wid)
 	x = 0;
 	y = 0;
 #endif
-	/* create container window */
-	pid = GrNewWindow(GR_ROOT_WINDOW_ID, x, y, width, height, 0, LTGRAY, BLACK);
-	window.wid = pid;
-	window.pid = GR_ROOT_WINDOW_ID;
-	window.type = WINDOW_TYPE_CONTAINER;
-	window.sizing = GR_FALSE;
-	window.active = GR_TRUE;
-	window.data = NULL;
-	window.clientid = wid;
-	add_window(&window);
 
-	/* don't erase background of container window */
-	props.flags = GR_WM_FLAGS_PROPS;
-	props.props = style | GR_WM_PROPS_NOBACKGROUND;
-	GrSetWMProperties(pid, &props);
+	if (wtype == WINDOW_TYPE_CLIENT) {
+		/* create container window */
+		pid = GrNewWindow(GR_ROOT_WINDOW_ID, x, y, width, height, 0, LTGRAY, BLACK);
+		window.wid = pid;
+		window.pid = GR_ROOT_WINDOW_ID;
+		window.type = WINDOW_TYPE_CONTAINER;
+	/*	window.sizing = GR_FALSE;
+		window.active = GR_TRUE;*/
+		window.state = WM_STATE_ACTIVE;
+		window.data = NULL;
+		window.clientid = wid;
+		add_window(&window);
 
-	Dprintf("New client window %d container %d\n", wid, pid);
+		/* don't erase background of container window */
+		props.flags = GR_WM_FLAGS_PROPS;
+		props.props = style | GR_WM_PROPS_NOBACKGROUND;
+		GrSetWMProperties(pid, &props);
 
-	GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_UPDATE
-		       | GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_BUTTON_DOWN
-		       /*| GR_EVENT_MASK_MOUSE_POSITION*/ | GR_EVENT_MASK_EXPOSURE);
+		Dprintf("New client window %d container %d\n", wid, pid);
 
-	/* reparent client to container window (child is already mapped) */
-	GrReparentWindow(wid, pid, xoffset, yoffset);
+		GrSelectEvents(pid, GR_EVENT_MASK_CHLD_UPDATE | GR_EVENT_MASK_UPDATE
+			| GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_BUTTON_DOWN
+			/*| GR_EVENT_MASK_MOUSE_POSITION*/ | GR_EVENT_MASK_EXPOSURE);
 
-	/* map container window */
-	GrMapWindow(pid);
+		/* reparent client to container window (child is already mapped) */
+		GrReparentWindow(wid, pid, xoffset, yoffset);
+
+		/* map container window */
+		GrMapWindow(pid);
+	}
 
 	GrSetFocus(wid);	/* force fixed focus */
 
 	/* add client window */
 	window.wid = wid;
 	window.pid = pid;
-	window.type = WINDOW_TYPE_CLIENT;
-	window.sizing = GR_FALSE;
-	window.active = GR_TRUE;
+	window.type = wtype;
+/*	window.sizing = GR_FALSE;
+	window.active = GR_TRUE;*/
+	window.state = WM_STATE_ACTIVE;
 	window.clientid = 0;
 	window.data = NULL;
 	add_window(&window);
@@ -458,4 +463,27 @@ void client_window_destroy(win * window)
 
 	Dprintf("Destroying container %d\n", pid);
 	GrDestroyWindow(pid);
+}
+
+/* ----------------------------------------------------------- */
+void remap_app_window(win * window)
+{
+	Dprintf("remap_app_window %d\n", window->wid);
+}
+
+void unmap_app_window(win * window)
+{
+	Dprintf("unmap_app_window %d\n", window->wid);
+}
+
+void destroy_app_window(win * window)
+{
+	win *zwin;
+	Dprintf("destroy_app_window - %d\n", window->wid);
+
+	remove_window_and_children(window);
+
+	zwin = get_top_window();
+	if (zwin != NULL)
+		container_show(zwin);
 }

@@ -166,7 +166,7 @@ static int ciev_parse(const char *buf, int len, const char *param, struct gsmd *
 		case 1: /* battery charge level 0..5*/
 			if (gsmd->shmem)
 				gsmd->shmem->Battery.ChargeLevel = value;
-			ret = tbus_emit_signal("BatteryCharge","i", &value);
+			ret = tbus_emit_signal("BatteryChargeLevel","i", &value);
 			break;
 		case 2: /* signal quality  0..5*/
 			if (gsmd->shmem)

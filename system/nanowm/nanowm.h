@@ -29,7 +29,9 @@
 enum {
 	WINDOW_TYPE_ROOT,
 	WINDOW_TYPE_CONTAINER,
-	WINDOW_TYPE_CLIENT
+	WINDOW_TYPE_CLIENT,
+	WINDOW_TYPE_APP,
+	WINDOW_TYPE_MENU,
 	    /*WINDOW_TYPE_TOPBAR,
 	       WINDOW_TYPE_LEFTBAR,
 	       WINDOW_TYPE_RIGHTBAR,
@@ -48,6 +50,17 @@ enum {
 	       WINDOW_TYPE_ROOTMENUENTRY */
 };
 
+/* current window state bits */
+#define WM_STATE_FULLSCREEN	(1<<1)
+#define WM_STATE_SHOWN		(1<<2)
+#define WM_STATE_DECORATED	(1<<3)
+#define WM_STATE_ACTIVE		(1<<4)
+#define WM_STATE_SIZING		(1<<5)
+
+#define SET_STATE(w,b) {w->state |= b;}
+#define CLEAR_STATE(w,b) {w->state &= ~b;}
+#define TEST_STATE(w,b) (w->state & b)
+
 /*
  * Used to keep a list of all the windows we know about so we can quickly
  * find out whether a window is "one of ours", and if it is, what kind of
@@ -61,8 +74,11 @@ struct windowlist {
 	GR_WINDOW_ID pid;	/* The ID of this window's parent */
 	GR_WINDOW_ID clientid;	/* clientid for container window */
 	int type;		/* What kind of window this is */
-	int sizing;		/* True if in the middle of a sizing request */
-	int active;		/* Whether this window is active or not */
+//	int sizing;		/* True if in the middle of a sizing request */
+//	int active;		/* Whether this window is active or not */
+	int state;		/* current window state */
+	char *title;		/* Title (caption) (utf8) */
+	GR_WINDOW_ID  icon;	/* icon id */
 	void *data;		/* Data associated with this window */
 
 	struct windowlist *next;	/* The next window in the list */

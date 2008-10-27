@@ -257,7 +257,7 @@ DLLEXPORT int tbus_get_message(struct tbus_message *msg)
  * Extract message args from message struct
  * @param msg pointer to the message structure
  *
- * returns msg->type, or -1 if error
+ * returns 0 - OK, or -1 if error
  */
 DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, const char *fmt, ...)
 {

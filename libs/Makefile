@@ -49,7 +49,7 @@ $(subdir-install): dummy
 ###### Local targets #######
 
 FLNX_DEBUG=no
-ifeq ($(CONFIG_DEBUG),y)
+ifeq ($(CONFIG_FLNX_DEBUG),y)
 FLNX_DEBUG=yes
 endif
 

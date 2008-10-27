@@ -30,7 +30,7 @@ int ipc_start(char *servername)
 
 	/* Subscribe to different signals */
 	tbus_connect_signal("PhoneServer", "Signal");
-	tbus_connect_signal("PhoneServer", "BatteryCharge");
+	tbus_connect_signal("T-HAL", "BatteryCharge");
 
 	tbus_connect_signal("AlarmServer", "PPM");
 
@@ -51,14 +51,16 @@ static int ipc_signal(struct tbus_message *msg)
 	if (!strcmp(msg->service_dest, "PhoneServer")) {
 		if (!strcmp(msg->object, "Signal"))
 			indicators[THEME_MAINSIGNAL].changed(0);
-		else if (!strcmp(msg->object, "BatteryCharge"))
+	} else
+	if (!strcmp(msg->service_dest, "T-HAL")) {
+		if (!strcmp(msg->object, "BatteryCharge"))
 			indicators[THEME_MAINBATTERY].changed(0);
-	}
+	} else
 
 	if (!strcmp(msg->service_dest, "AlarmServer")) {
 		if (!strcmp(msg->object, "PPM"))
 			indicators[THEME_DATETIME].changed(0);
-	}
+	} else
 
 /*DEBUG signal*/
 	if (!strcmp(msg->service_dest, "WM")) {

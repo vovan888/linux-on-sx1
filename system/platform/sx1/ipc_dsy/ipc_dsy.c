@@ -289,11 +289,11 @@ int HandleBattery(unsigned char *buf, unsigned char *res)
 	case BAT_BarsRes:	// CCDsyIndicationHandler::NotifyBatteryBars(TPtr8 &)
 		bars = *(unsigned char *)(buf + 6);
 		//CDosEventManager::BatteryBars(int)  c1 = 0..7
-		if (!bars_done) {
+//		if (!bars_done) {
 			shdata->Battery.ChargeLevel = (bars > 2)?bars - 2:0;
 			tbus_emit_signal("BatteryChargeLevel","i", &bars);
 			bars_done = 1;
-		}
+//		}
 		break;
 	case BAT_LowWarningRes:	// CDsyIndicationHandler::NotifyBatteryLowWarning(TPtr8 &)
 		c1 = *(unsigned char *)(buf + 6);

@@ -511,7 +511,7 @@ int main(int argc, char **argv)
 
 	g_main = malloc (sizeof(struct gsmd));
 	if (gsmd_initialize(g_main) < 0) {
-		fprintf(stderr, "internal error\n");
+		fprintf(stderr, "internal error - main channel\n");
 		exit(1);
 	}
 
@@ -521,8 +521,8 @@ int main(int argc, char **argv)
 
 		g_slow = malloc (sizeof(struct gsmd));
 		if (gsmd_initialize(g_slow) < 0) {
-			fprintf(stderr, "internal error\n");
-			exit(1);
+			fprintf(stderr, "internal error - slow channel\n");
+			g_slow = g_main;
 		}
 	} else
 #endif
@@ -553,14 +553,14 @@ int main(int argc, char **argv)
 		g_main->interpreter_ready = !wait;
 
 	if (atcmd_init(g_main, fd) < 0) {
-		fprintf(stderr, "can't initialize UART device\n");
+		fprintf(stderr, "can't initialize main UART device\n");
 		exit(1);
 	}
 
 #ifdef GSMD_SLOW_MUX_DEVICE
 	if (atcmd_init(g_slow, fd_slow) < 0) {
-		fprintf(stderr, "can't initialize UART device\n");
-		exit(1);
+		fprintf(stderr, "can't initialize slow UART device\n");
+		g_slow = g_main;
 	}
 #endif
 

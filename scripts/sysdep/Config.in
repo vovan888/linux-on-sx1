@@ -14,23 +14,27 @@ choice
 	  Select the desired build platform.  Among other things
 	  this will install default scripts and other information.
 
+
+config CONFIG_PLATFORM_GTA02
+        bool "Neo Freerunner"
+
 config CONFIG_PLATFORM_SX1
         bool "Siemens SX1"
 
 config CONFIG_PLATFORM_X86DEMO
-       bool" Desktop"
+	bool "Desktop"
 
 endchoice
 
 config CONFIG_CPU_ARM
        bool
-       depends CONFIG_PLATFORM_SX1
+       depends on CONFIG_PLATFORM_GTA02 || CONFIG_PLATFORM_SX1
        default y
 
 config CONFIG_CPU_INTEL
        bool
-       depends CONFIG_PLATFORM_X86DEMO 
-       default y
+       depends on CONFIG_PLATFORM_X86DEMO
+       default n
 
 choice
 	prompt "Graphical Engine"

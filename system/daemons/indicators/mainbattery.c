@@ -39,6 +39,7 @@ static void mainbattery_changed_callback(int new_value)
 static void mainbattery_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
 {
 	DBGMSG("\n");
+	battery_current = shdata->Battery.ChargeLevel;
 
 	mainbattery_show(battery_current);
 }

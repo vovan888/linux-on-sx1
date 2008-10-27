@@ -52,8 +52,9 @@ int add_window(win * window)
 	w->wid = window->wid;
 	w->pid = window->pid;
 	w->type = window->type;
-	w->sizing = GR_FALSE;	/* window->sizing */
-	w->active = window->active;
+//	w->sizing = GR_FALSE;	/* window->sizing */
+//	w->active = window->active;
+	w->state = window->state;
 	w->clientid = window->clientid;
 	w->data = window->data;
 	w->next = windows;
@@ -117,7 +118,7 @@ win *get_top_window()
 {
 	win *w = windows;
 	while (w) {
-		if (w->active == GR_TRUE) {
+		if (TEST_STATE(w, WM_STATE_ACTIVE)) {
 			break;
 		}
 		w = w->next;

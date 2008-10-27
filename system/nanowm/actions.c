@@ -34,10 +34,15 @@ void redraw_ncarea(win * window)
 	if (props.flags == 0)
 		return;
 
-	window->active = (window->clientid == GrGetFocus());
+	int active = window->clientid == GrGetFocus();
+	if(active) {
+		SET_STATE (window, WM_STATE_ACTIVE);
+	} else {
+		CLEAR_STATE (window, WM_STATE_ACTIVE);
+	}
 	wm_paint_statusarea(window->wid, info.width, info.height, props.title,
-			    window->active, props.props);
-	Dprintf("redraw_ncarea active= %d\n", window->active);
+			    active, props.props);
+	Dprintf("redraw_ncarea active= %d\n", active);
 
 	/* free title returned from GrGetWMProperties */
 	if (props.title)
@@ -66,7 +71,7 @@ void container_buttondown(win * window, GR_EVENT_BUTTON * event)
 	GR_GC_ID gc;
 	Dprintf("container_buttondown window %d\n", window->wid);
 
-	if (window->active)
+	if (TEST_STATE(window, WM_STATE_ACTIVE))
 		return;
 
 	GrGetWindowInfo(window->wid, &info);
@@ -121,7 +126,7 @@ void container_buttondown(win * window, GR_EVENT_BUTTON * event)
 			if (!(window->data = malloc(sizeof(struct pos_size))))
 				return;
 
-		window->sizing = GR_TRUE;
+		SET_STATE(window, WM_STATE_SIZING)
 		pos = (struct pos_size *)window->data;
 
 		/* save off the width/height offset from the window manager */
@@ -188,14 +193,14 @@ void container_buttondown(win * window, GR_EVENT_BUTTON * event)
 	GrRect(GR_ROOT_WINDOW_ID, gc, info.x, info.y, info.width, info.height);
 	GrDestroyGC(gc);
 #endif
-	window->active = GR_TRUE;
+	SET_STATE(window, WM_STATE_ACTIVE);
 }
 
 void container_buttonup(win * window, GR_EVENT_BUTTON * event)
 {
 	Dprintf("container_buttonup window %d\n", window->wid);
 
-	if (window->active) {
+	if (TEST_STATE(window, WM_STATE_ACTIVE)) {
 		struct pos_size *pos = (struct pos_size *)window->data;
 #ifdef OUTLINE_MOVE
 		GR_GC_ID gc;
@@ -207,11 +212,11 @@ void container_buttonup(win * window, GR_EVENT_BUTTON * event)
 
 #endif
 		free(pos);
-		window->active = GR_FALSE;
+		CLEAR_STATE(window, WM_STATE_ACTIVE);
 		window->data = 0;
 	}
 
-	if (window->sizing) {
+	if (TEST_STATE(window, WM_STATE_SIZING)) {
 		GR_WINDOW_INFO info;
 		GR_GC_ID gc;
 
@@ -229,7 +234,7 @@ void container_buttonup(win * window, GR_EVENT_BUTTON * event)
 			       event->rooty - info.y - pos->yoff);
 		GrDestroyGC(gc);
 		free(window->data);
-		window->sizing = GR_FALSE;
+		CLEAR_STATE(window, WM_STATE_SIZING);
 		window->data = 0;
 	}
 }
@@ -242,7 +247,7 @@ void container_mousemoved(win * window, GR_EVENT_MOUSE * event)
 
 	Dprintf("container_mousemoved window %d\n", window->wid);
 
-	if (window->sizing) {
+	if (TEST_STATE(window, WM_STATE_SIZING)) {
 
 		struct pos_size *pos = (struct pos_size *)window->data;
 		GrGetWindowInfo(window->wid, &info);
@@ -265,7 +270,7 @@ void container_mousemoved(win * window, GR_EVENT_MOUSE * event)
 		return;
 	}
 
-	if (!window->active)
+	if (!TEST_STATE(window, WM_STATE_ACTIVE))
 		return;
 
 	pos = (struct pos_size *)window->data;
@@ -517,7 +522,7 @@ void rightbar_mousemoved(win * window, GR_EVENT_MOUSE * event)
 void container_activate(win *w)
 {
 	Dprintf("container_activate window %d\n", w->wid);
-	w->active = GR_TRUE;
+	SET_STATE(w, WM_STATE_ACTIVE);
 	GrSetFocus(w->clientid);
 }
 
@@ -535,15 +540,16 @@ void container_show(win *w)
 		GrRaiseWindow(w->wid);
 	}
 
-	w->active = GR_TRUE;
+	SET_STATE(w, WM_STATE_ACTIVE);
 	if (info.props & GR_WM_PROPS_NOFOCUS)
 		return;
-	GrSetFocus(w->clientid);
+	if (w->clientid)
+		GrSetFocus(w->clientid);
 }
 
 void container_hide(win *w)
 {
 	Dprintf("container_hide window %d\n", w->wid);
-	w->active = GR_FALSE;
+	CLEAR_STATE(w, WM_STATE_ACTIVE);
 	GrUnmapWindow(w->wid);
 }

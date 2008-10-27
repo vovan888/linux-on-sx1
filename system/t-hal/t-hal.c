@@ -50,6 +50,8 @@ static void t_hal_init(void)
 	shdata = ShmMap(SHARED_SYSTEM);
 	if (shdata == NULL)
 		exit(1);
+
+	mach_connect_signals();
 }
 
 static void t_hal_exit(void)

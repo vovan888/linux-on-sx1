@@ -11,3 +11,11 @@ int mach_set_display_brightness(int n)
 
 	return 0;
 }
+
+int mach_connect_signals()
+{
+}
+
+int mach_handle_signal(struct tbus_message *msg)
+{
+}

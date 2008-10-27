@@ -23,12 +23,12 @@ fi
 
 # Start the T-BUS server
 $BASE_DIR/sbin/t-bus &
+# Start the T-HAL server
+$BASE_DIR/sbin/t-hal &
 # Start the Nano-X server
 $MWDIR/bin/nano-X -e -x 176 -y 220 &
 # Start up the Nano-X window manager
 $BASE_DIR/sbin/nanowm &
-# Start the T-HAL server
-$BASE_DIR/sbin/t-hal &
 sleep 1
 # Start Indicator daemon
 $BASE_DIR/sbin/indicatord &

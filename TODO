@@ -15,5 +15,5 @@ phone,
  Nanowm
  - get list of running applications
  - for every app: path, pid, caption, icon name (path), state (shown, hidden), flag (application, fullscreen app)
- - funtions for app: show, hide, close,
+ - funtions for app: show (will hide all other windows), hide (will show next window), close,
  - function for apps: cycle,

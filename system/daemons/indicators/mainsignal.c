@@ -39,6 +39,7 @@ static void mainsignal_changed_callback(int new_value)
 static void mainsignal_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
 {
 	DBGMSG("\n");
+	signal_current = shdata->PhoneServer.Network_Signal;
 
 	mainsignal_show(signal_current);
 }

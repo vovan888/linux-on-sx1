@@ -55,9 +55,9 @@ static void draw_barchart(int x,int y,int w,int h,
       incr = (h - lh + min*incr)/(max-min);
       zeroh = int(y+h-lh);
   } else {
-      zeroh = (int)rint(y+h+min * incr);
+      zeroh = (int)floor(y+h+min * incr); /* rint */
   }
-  int bwidth = (int)rint(w/double(autosize?numb:maxnumb));
+  int bwidth = (int)floor(w/double(autosize?numb:maxnumb)); /* rint */
   /* Draw base line */
   fl_color(textcolor);
   fl_line(x, zeroh, x+w, zeroh);

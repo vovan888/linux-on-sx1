@@ -13,3 +13,5 @@ extern struct SharedSystem *shdata;	/* shared memory segment */
 
 /* set display brightness 0..100 */
 int mach_set_display_brightness(int n);
+int mach_connect_signals();
+int mach_handle_signal(struct tbus_message *msg);
