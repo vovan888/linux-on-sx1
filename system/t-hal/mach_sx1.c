@@ -83,6 +83,7 @@ int mach_connect_signals()
 	int err;
 
 	err = tbus_connect_signal("sx1_dsy", "BatteryChargeLevel");
+	err |= tbus_connect_signal("sx1_dsy", "BatteryCharging");
 	err |= tbus_connect_signal("PhoneServer", "BatteryChargeLevel");
 
 	return err;
@@ -103,6 +104,13 @@ int mach_handle_signal(struct tbus_message *msg)
 			int value;
 			tbus_get_message_args(msg, "i", &value);
 			tbus_emit_signal("BatteryCharge", "i", &value);
+		} else
+		if (!strcmp(msg->object, "BatteryCharging")) {
+			int state;
+			tbus_get_message_args(msg, "i", &state);
+			tbus_emit_signal("BatteryCharging", "i", &state);
+			mach_set_display_brightness(1);
+			/*TODO play a sound here on start and stop charging */
 		}
 	} else
 		return 0;

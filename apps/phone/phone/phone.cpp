@@ -132,7 +132,7 @@ void PhoneApp::handle_signal(struct tbus_message *msg)
 			int ret;
 			ret = tbus_get_message_args(msg, "s", &clip);
 			Number->value(clip);
-			delete clip;
+			free(clip);
 		} else if (!strcmp("OutgoingCOLP", msg->object)) {
 			char *colp;
 			int ret;

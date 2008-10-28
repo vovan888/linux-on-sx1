@@ -44,7 +44,9 @@ phone
 killall alarmserver
 killall indicatord
 killall nanowm
-killall gsmd2
+#killall gsmd2
+killall nano-X
 
 sync
+umount -a -r
 sx1_poweroff

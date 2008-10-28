@@ -16,12 +16,15 @@
 #include <nxcolors.h>
 #include "indicators.h"
 
+#define CHARGING_ANIMATE_PERIOD	  1000
+
 static GR_IMAGE_ID battery_image;
 static int battery_frame_width;
 static int battery_frame_height;
 static int battery_current = 0;
  /*FIXME*/ static int xcoord, ycoord;	/* XY coordinates of indicator */
 #define MAINBATTERY_NUMFRAMES	6
+static GR_TIMER_ID timerid;
 
 static int mainbattery_show(int frame);
 
@@ -42,6 +45,31 @@ static void mainbattery_event_callback(GR_WINDOW_ID window, GR_EVENT * event)
 	battery_current = shdata->Battery.ChargeLevel;
 
 	mainbattery_show(battery_current);
+}
+
+void mainbattery_charging_timercallback(void)
+{
+	battery_current++;
+	if (battery_current > 5)
+		battery_current = 0;
+
+	mainbattery_show(battery_current);
+}
+
+/* enable/disable charging state indication */
+void mainbattery_charging(int state)
+{
+	if(state) {
+		/* start charging indication */
+		/**/
+		timerid = GrCreateTimer(GR_ROOT_WINDOW_ID, CHARGING_ANIMATE_PERIOD);
+	} else {
+		/* stop indication */
+		GrDestroyTimer(timerid);
+
+		battery_current = shdata->Battery.ChargeLevel;
+		mainbattery_show(battery_current);
+	}
 }
 
 /* create mainbattery indicator */

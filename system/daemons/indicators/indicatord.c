@@ -62,6 +62,10 @@ static void mainloop(void)
 		case GR_EVENT_TYPE_FDINPUT:
 			ipc_handle(&event);
 			break;
+		case GR_EVENT_TYPE_TIMER:
+			/*FIXME check event.timer.tid */
+			mainbattery_charging_timercallback();
+			break;
 		}
 	}
 }
@@ -71,7 +75,7 @@ static int main_load_indicators()
 	memset(indicators, 0, sizeof(indicators));
 
 	/* Select events for the ROOT window */
-	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT);
+	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT | GR_EVENT_MASK_TIMER);
 
 // debug - draw a cross
 	GrLine(GR_ROOT_WINDOW_ID, gc, 0, 0, 176, 220);

@@ -31,6 +31,7 @@ int ipc_start(char *servername)
 	/* Subscribe to different signals */
 	tbus_connect_signal("PhoneServer", "Signal");
 	tbus_connect_signal("T-HAL", "BatteryCharge");
+	tbus_connect_signal("T-HAL", "BatteryCharging");
 
 	tbus_connect_signal("AlarmServer", "PPM");
 
@@ -55,6 +56,11 @@ static int ipc_signal(struct tbus_message *msg)
 	if (!strcmp(msg->service_dest, "T-HAL")) {
 		if (!strcmp(msg->object, "BatteryCharge"))
 			indicators[THEME_MAINBATTERY].changed(0);
+		else if (!strcmp(msg->object, "BatteryCharging")) {
+			int state;
+			tbus_get_message_args(msg, "i", &state);
+			mainbattery_charging(state);
+		}
 	} else
 
 	if (!strcmp(msg->service_dest, "AlarmServer")) {
@@ -72,6 +78,7 @@ static int ipc_signal(struct tbus_message *msg)
 			free(str);
 			shdata->Battery.ChargeLevel = 3;
 			indicators[THEME_MAINBATTERY].changed(3);
+			mainbattery_charging(1);
 		}
 	}
 
