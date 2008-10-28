@@ -343,7 +343,7 @@ void fl_open_display() {
 
   int d = 0;
   if ((d = GrOpen ()) < 0) {
-    char buffer[256];
+//    char buffer[256];
     /* run server and window manager */
     //sprintf(buffer, "%s/nano-X -p &; %s/nanowm &", NANOXFOLDER, NANOXFOLDER);
     system ("nano-X -p &; nanowm &");
@@ -626,8 +626,8 @@ int fl_handle(const GR_EVENT & xevent) {
 		GrGetWindowInfo(xid,&info);
 	//printf("GR_UPDATE_MAP wid: %d\t%d, %d, %d, %d\n", xid,xevent.update.x, xevent.update.y, info.width, info.height);
 	//	if(!window->parent())
-//v8		  window->Fl_Widget::resize(xevent.update.x, xevent.update.y,
-//v8					    info.width, info.height);
+		  window->Fl_Widget::resize(xevent.update.x, xevent.update.y,
+					    info.width, info.height);
 //	window->resize_notify(xevent.update.x, xevent.update.y, info.width, info.height);
 	break;
 

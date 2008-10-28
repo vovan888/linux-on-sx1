@@ -21,7 +21,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 	if (leftsoft) {
 		LeftSoftMenu = new Fl_Menu_Button(0, APPVIEW_AREA_HEIGHT,
 						  APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT,
-						  "Options");
+						  "&Options");
 		LeftSoftMenu->box(FL_FLAT_BOX);
 		LeftSoft = NULL;
 	} else {
@@ -35,7 +35,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 	if (rightsoft) {
 		RightSoftMenu = new Fl_Menu_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
 						   APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT,
-						   "Close");
+						   "&Close");
 		RightSoftMenu->box(FL_FLAT_BOX);
 		RightSoft = NULL;
 	} else {

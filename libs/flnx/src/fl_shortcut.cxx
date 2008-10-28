@@ -88,7 +88,7 @@ int Fl::test_shortcut(int shortcut) {
   return 0;
 }
 
-#if defined(WIN32) || defined(__APPLE__) // if not X
+#if defined(WIN32) || defined(__APPLE__) || defined(NANO_X)// if not X
 // This table must be in numeric order by fltk (X) keysym number:
 struct Keyname {int key; const char* name;};
 static Keyname table[] = {
@@ -154,7 +154,7 @@ const char * fl_shortcut_label(int shortcut) {
   if (shortcut & FL_CTRL) {strcpy(p,"Ctrl+"); p += 5;}
 #endif // __APPLE__
   int key = shortcut & 0xFFFF;
-#if defined(WIN32) || defined(__APPLE__) // if not X
+#if defined(WIN32) || defined(__APPLE__) || defined(NANO_X) // if not X
   if (key >= FL_F && key <= FL_F_Last) {
     *p++ = 'F';
     if (key > FL_F+9) *p++ = (key-FL_F)/10+'0';
@@ -188,11 +188,7 @@ const char * fl_shortcut_label(int shortcut) {
   if (key == FL_Enter || key == '\r') q="Enter";  // don't use Xlib's "Return":
   else if (key > 32 && key < 0x100) q = 0;
   else
-#ifdef NANO_X
-	q=(char *)&key;
-#else
 	q = XKeysymToString(key);
-#endif //tanghao
   if (!q) {*p++ = uchar(toupper(key & 255)); *p = 0; return buf;}
   if (p > buf) {strcpy(p,q); return buf;} else return q;
 #endif
