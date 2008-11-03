@@ -18,7 +18,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- */ 
+ */
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "gsmd.h"
+#include "../gsmd.h"
 
 #include <gsmd/gsmd.h>
 #include <gsmd/usock.h>
@@ -41,25 +41,26 @@
 static int csq_parse(const char *buf, int len, const char *param,
 		     struct gsmd *gsmd)
 {
-	struct gsmd_evt_auxdata *aux;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-			GSMD_EVT_SIGNAL, sizeof(*aux));
+	struct gsmd_signal_quality gsq;
+	int signal, ret;
 
 	DEBUGP("entering csq_parse param=`%s'\n", param);
-	if (!ucmd)
-		return -EINVAL;
 
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
 	if (sscanf(param, " %hhi, %hhi",
-				&aux->u.signal.sigq.rssi,
-				&aux->u.signal.sigq.ber) < 2)
+			&gsq.rssi, &gsq.ber) < 2)
 		goto out_free_io;
 
-	usock_evt_send(gsmd, ucmd, GSMD_EVT_SIGNAL);
-	return 0;
+	if (gsmd->shmem) {
+		if (gsq.rssi == 99)
+			signal = -1;
+		else
+			signal = gsq.rssi / 6; /* convert to 0..5 range */
+		gsmd->shmem->PhoneServer.Network_Signal = signal;
+	}
+	ret = tbus_emit_signal("Signal","i", &signal);
+	return ret;
 
 out_free_io:
-	talloc_free(ucmd);
 	return -EIO;
 }
 
@@ -67,12 +68,12 @@ static int cpri_parse(const char *buf, int len, const char *param, struct gsmd *
 {
 	char *tok1, *tok2;
 	char tx_buf[20];
-	
+
 	strlcpy(tx_buf, buf, sizeof(tx_buf));
 	tok1 = strtok(tx_buf, ",");
 	if (!tok1)
 		return -EIO;
-	
+
 	tok2 = strtok(NULL, ",");
 	if (!tok2) {
 		switch (atoi(tok1)) {
@@ -87,19 +88,12 @@ static int cpri_parse(const char *buf, int len, const char *param, struct gsmd *
 			break;
 		}
 	} else {
-		struct gsmd_evt_auxdata *aux;
-		struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-							   GSMD_EVT_CIPHER,
-							   sizeof(*aux));
-		if (!ucmd)
-			return -ENOMEM;
 
-		aux = (struct gsmd_evt_auxdata *) ucmd->buf;
+/*		aux = (struct gsmd_evt_auxdata *) ucmd->buf;
 
 		aux->u.cipher.net_state_gsm = atoi(tok1);
 		aux->u.cipher.net_state_gsm = atoi(tok2);
-
-		usock_evt_send(gsmd, ucmd, GSMD_EVT_CIPHER);
+*/
 	}
 
 	return 0;
@@ -116,18 +110,10 @@ static int ctzv_parse(const char *buf, int len, const char *param, struct gsmd *
 static int cpi_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
 	char *tok;
-	struct gsmd_evt_auxdata *aux;
-	struct gsmd_ucmd *ucmd = usock_build_event(GSMD_MSG_EVENT,
-						   GSMD_EVT_OUT_STATUS,
-						   sizeof(*aux));
 	char tx_buf[64];
 
 	strlcpy(tx_buf, buf, sizeof(tx_buf));
 	DEBUGP("entering cpi_parse param=`%s'\n", param);
-	if (!ucmd)
-		return -EINVAL;
-	
-	aux = (struct gsmd_evt_auxdata *) ucmd->buf;
 
 	/* Format: cId, msgType, ibt, tch, dir,[mode],[number],[type],[alpha],[cause],line */
 
@@ -140,39 +126,39 @@ static int cpi_parse(const char *buf, int len, const char *param, struct gsmd *g
 	tok = strtok(NULL, ",");
 	if (!tok)
 		goto out_free_io;
-	aux->u.call_status.prog = atoi(tok);
+// 	aux->u.call_status.prog = atoi(tok);
 
 	/* in-band tones */
 	tok = strtok(NULL, ",");
 	if (!tok)
 		goto out_free_io;
 
-	if (*tok == '1')
-		aux->u.call_status.ibt = 1;
-	else
-		aux->u.call_status.ibt = 0;
-	
+// 	if (*tok == '1')
+// 		aux->u.call_status.ibt = 1;
+// 	else
+// 		aux->u.call_status.ibt = 0;
+
 	/* TCH allocated */
 	tok = strtok(NULL, ",");
 	if (!tok)
 		goto out_free_io;
 
-	if (*tok == '1')
-		aux->u.call_status.tch = 1;
-	else
-		aux->u.call_status.tch = 0;
-	
+// 	if (*tok == '1')
+// 		aux->u.call_status.tch = 1;
+// 	else
+// 		aux->u.call_status.tch = 0;
+
 	/* direction */
 	tok = strtok(NULL, ",");
 	if (!tok)
 		goto out_send;
-	
+
 	switch (*tok) {
 	case '0':
 	case '1':
 	case '2':
 	case '3':
-		aux->u.call_status.dir = (*tok - '0');
+// 		aux->u.call_status.dir = (*tok - '0');
 		break;
 	default:
 		break;
@@ -182,14 +168,13 @@ static int cpi_parse(const char *buf, int len, const char *param, struct gsmd *g
 	tok = strtok(NULL, ",");
 	if (!tok)
 		goto out_send;
-	
+
 out_send:
-	usock_evt_send(gsmd, ucmd, GSMD_EVT_OUT_STATUS);
+//	usock_evt_send(gsmd, ucmd, GSMD_EVT_OUT_STATUS);
 
 	return 0;
 
 out_free_io:
-	talloc_free(ucmd);
 	return -EIO;
 }
 
@@ -218,11 +203,11 @@ static int cpi_detect_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 	if (strncmp(resp, "%CPI: ", 6))
 		return -EINVAL;
 	resp += 6;
-	
+
 	er = extrsp_parse(cmd, resp);
 	if (!er)
 		return -EINVAL;
-	
+
 	if (extrsp_supports(er, 0, 3))
 		return gsmd_simplecmd(g, "AT%CPI=3");
 	else if (extrsp_supports(er, 0, 2))

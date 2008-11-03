@@ -3,9 +3,7 @@
 
 target-y=
 target-$(CONFIG_PLATFORM_X86DEMO) += x86-demo
-target-$(CONFIG_PLATFORM_IPAQ) += ipaq
-target-$(CONFIG_PLATFORM_ZAURUS) += zaurus
-target-$(CONFIG_PLATFORM_TUXSCREEN) += tuxscreen
+target-$(CONFIG_PLATFORM_GTA02) += gta02
 target-$(CONFIG_PLATFORM_SX1) += sx1
 
 # This will ensure that we only build one target at a time

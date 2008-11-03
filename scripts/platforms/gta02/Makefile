@@ -1,4 +1,4 @@
-# Makefile to set up the Siemens SX1 platform
+# Makefile to set up the GTA02 platform
 
 # The default run_flphone.sh script template
 RUN_TEMPLATE=run_flphone.sh.in
@@ -45,10 +45,10 @@ copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_
 #	@ cp $(MP3_FILES) $(MP3_DIR)
 #	@ cp $(MPEG_FILES) $(MPEG_DIR)
 	@ cp $(FONT_FILES) $(FONT_DIR)
-	@ cp $(BASE_DIR)/data/176x220/activetheme/* $(THEME_DIR)
+	@ cp $(BASE_DIR)/data/480x640/activetheme/* $(THEME_DIR)
 	@ cp $(BASE_DIR)/etc/* $(ETC_DIR)
 
 $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(INSTALL_DIRS) $(THEME_DIR) $(ETC_DIR):
-	@ mkdir -p $@	
+	@ mkdir -p $@
 
 .PHONY: samples

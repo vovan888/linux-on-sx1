@@ -16,7 +16,7 @@
 #include <nxcolors.h>
 #include "indicators.h"
 
-#define CHARGING_ANIMATE_PERIOD	  1000
+#define CHARGING_ANIMATE_PERIOD	  1500
 
 static GR_IMAGE_ID battery_image;
 static int battery_frame_width;
@@ -59,9 +59,14 @@ void mainbattery_charging_timercallback(void)
 /* enable/disable charging state indication */
 void mainbattery_charging(int state)
 {
+	static int current_state = 0;
+
+	if (current_state == state)
+		return;
+	current_state = state;
+
 	if(state) {
 		/* start charging indication */
-		/**/
 		timerid = GrCreateTimer(GR_ROOT_WINDOW_ID, CHARGING_ANIMATE_PERIOD);
 	} else {
 		/* stop indication */

@@ -5,6 +5,7 @@ target-y=
 
 target-$(CONFIG_PLATFORM_SX1) += sx1
 target-$(CONFIG_PLATFORM_X86DEMO) += x86demo
+target-$(CONFIG_PLATFORM_GTA02) += gta02
 
 DIRS=$(target-y)
 

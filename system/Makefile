@@ -2,7 +2,7 @@
 
 target-y=
 
-#note! sequence dependent :), ipc should be listed first.
+#note! sequence dependent - tbus should be listed first.
 target-$(CONFIG_TBUS) += tbus
 target-$(CONFIG_THAL) += t-hal
 target-$(CONFIG_NANOWM) += nanowm

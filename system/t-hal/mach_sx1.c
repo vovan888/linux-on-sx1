@@ -31,6 +31,7 @@
 #define SOFIA_KEYLIGHT_REG      0x07
 #define SOFIA_DIMMING_REG       0x09
 
+static int n_to_sofia[6] = {0, 3, 12, 24, 36, SOFIA_MAX_LIGHT_VAL};
 
 static int set_brightness(int file, int br)
 {
@@ -62,7 +63,8 @@ int mach_set_display_brightness(int n)
 		return -EINVAL;
 
 	shdata->HAL.DisplayBrightness = n;
-	s_br = SOFIA_MAX_LIGHT_VAL * n / 5;
+//	s_br = SOFIA_MAX_LIGHT_VAL * n / 5;
+	s_br = n_to_sofia[n];
 
 	if ((file = open("/dev/i2c-0",O_RDWR)) < 0) {
 		return -1;

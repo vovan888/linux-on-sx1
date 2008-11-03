@@ -784,10 +784,15 @@ static int network_sigq_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 		return -EIO;
 	gsq.ber = atoi(comma);
 
-// 	if (gu->gsmd->shmem) {
-// 		gu->gsmd->shmem->PhoneServer.Network_Signal.rssi = gsq.rssi;
+ 	if (gu->gsmd->shmem) {
+		int signal;
+		if (gsq.rssi == 99)
+			signal = -1;
+		else
+			signal = gsq.rssi / 6; /* convert to 0..5 range */
+		gu->gsmd->shmem->PhoneServer.Network_Signal = signal;
 // 		gu->gsmd->shmem->PhoneServer.Network_Signal.ber = gsq.ber;
-// 	}
+ 	}
 
 	return tbus_method_return(gu->service_sender, "Network/SignalGet", "ii", &gsq.rssi,
 				  &gsq.ber);

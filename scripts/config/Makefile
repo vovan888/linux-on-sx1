@@ -1,4 +1,3 @@
-# Makefile for Pixil config 
 # Originally from Busybox
 
 TOPDIR=../../
@@ -6,7 +5,7 @@ HOSTCC=gcc
 
 all: ncurses conf mconf
 
-HOSTCFLAGS += -g -O0 -DPIXIL_DEMO
+HOSTCFLAGS += -O2
 LIBS = -lncurses
 ifeq (/usr/include/ncurses/ncurses.h, $(wildcard /usr/include/ncurses/ncurses.h))
 	HOSTNCURSES += -I/usr/include/ncurses -DCURSES_LOC="<ncurses.h>"

@@ -16,7 +16,7 @@ choice
 
 
 config CONFIG_PLATFORM_GTA02
-        bool "Neo Freerunner"
+        bool "Neo FreeRunner"
 
 config CONFIG_PLATFORM_SX1
         bool "Siemens SX1"
@@ -39,9 +39,6 @@ config CONFIG_CPU_INTEL
 choice
 	prompt "Graphical Engine"
 	default "Nano-X"
-	help
-	  Pixil can be build for either Nano-X (Microwindows) or X11.
-	  Using Nano-X will result in significantly smaller binaries.
 
 config CONFIG_X11
        bool "X11"
@@ -52,36 +49,32 @@ config CONFIG_NANOX
 endchoice
 
 
-menu "Interface layout"
+choice
+	prompt "Screen Size"
+	default "176x220"
 
-config CONFIG_SCREEN_WIDTH
-        int "Screen X size (width)"
-        default 176
-        help
-	    Screen X size
+config CONFIG_176x220
+       bool "176x220"
 
-config CONFIG_SCREEN_HEIGHT
-	int "Screen Y size (height)"
-        default 220
-        help
-	    Screen Y size
+config CONFIG_240x320
+       bool "240x320 (QVGA)"
 
+config CONFIG_480x640
+       bool "480x640 (VGA)"
 
-endmenu
+endchoice
+
+config CONFIG_TOUCH
+       bool "Use touch screen interface"
+       default n
+       help
+       Enable support for touch screens and finger usage
 
 config CONFIG_PM
        bool "Enable power management support"
        default y
        help
        Enable support for power managment
-
-config CONFIG_SYNC
-	bool "Enable Sync support"
-	default y
-	depends CONFIG_COLOSSEUM
-	help
-	Build all the nessesary components for the sync engine
-
 
 #source scripts/platforms/Config.in
 

@@ -15,15 +15,9 @@ t-hal >/tmp/logthal 2>/tmp/logthal2 &
 # -r options is not working....
 gsmMuxd -n 6 -p /dev/ttyS1 >/tmp/logmux 2>/tmp/logmux2 &
 sleep 1
-# start indication server daemon
-ipc_dsy  2>/tmp/logdsy1 &
-# start extension server
-ipc_ext  2>/tmp/logext1 &
-# start sound server daemon
-ipc_sound  2>/tmp/logsnd1 &
 
 # Start GSMD2
-gsmd2 -p /dev/mux1 -P /dev/mux2 -s 38400 -v siemens -m sx1 >/tmp/loggsmd 2>/tmp/loggsmd2 &
+gsmd2 -p /dev/mux1 -P /dev/mux2 -s 38400 -v ti -m gta02 >/tmp/loggsmd 2>/tmp/loggsmd2 &
 
 # Start the Nano-X server
 nano-X &
@@ -48,6 +42,13 @@ killall nanowm
 killall nano-X
 
 sync
-umount -a -r
+echo "Deactivating swap..."
+swapoff -a
+
+# We leave /proc mounted.
+echo "Unmounting local filesystems..."
+#mount -o remount,ro /mnt/ram
+umount -f -a -r
+
 mount -o remount,ro /
-sx1_poweroff
+

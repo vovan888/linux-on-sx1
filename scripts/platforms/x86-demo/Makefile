@@ -19,6 +19,17 @@ ifeq ($(CONFIG_SAMPLES),y)
 SAMPLE_TARGET=copy-samples
 endif
 
+ifeq ($(CONFIG_176x220),y)
+THEME_SRC=$(BASE_DIR)/data/176x2200/activetheme
+endif
+ifeq ($(CONFIG_240x320),y)
+THEME_SRC=$(BASE_DIR)/data/240x320/activetheme
+endif
+ifeq ($(CONFIG_480x640),y)
+THEME_SRC=$(BASE_DIR)/data/480x640/activetheme
+endif
+
+
 include $(BASE_DIR)/Rules.make
 
 SCRIPT_DIR:=$(DEST_DIR)
@@ -45,7 +56,7 @@ copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_
 #	@ cp $(MP3_FILES) $(MP3_DIR)
 #	@ cp $(MPEG_FILES) $(MPEG_DIR)
 	@ cp $(FONT_FILES) $(FONT_DIR)
-	@ cp $(BASE_DIR)/data/activetheme/* $(THEME_DIR)
+	@ cp $(THEME_SRC)/* $(THEME_DIR)
 	@ cp $(BASE_DIR)/etc/* $(ETC_DIR)
 
 build-script: $(RUN_TEMPLATE)
