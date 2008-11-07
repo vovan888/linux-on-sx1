@@ -39,12 +39,60 @@ const char *theme_callscreen_images[] = {"Background"};
 
 static ini_fd_t theme_config_fd = NULL;	/* theme config file descr */
 
+const char *theme_font_sizes[] = {"Normal", "Big", "Small", "Tiny"};
+static int theme_font_sizes_cache[4];
+
+
+static int load_theme_config(void)
+{
+	char buffer[300], *p = buffer;
+	int ret;
+
+	if (!theme_config_fd) {
+		/*Theme config is not loaded yet*/
+		memset(theme_font_sizes_cache, 0, sizeof(theme_font_sizes_cache));
+		/* Open config file */
+		char *filename = cfg_findfile ("etc/nanowm.cfg");
+		if (!filename)
+			return -1;
+
+		ini_fd_t fd = ini_open (filename, "r", "#;");
+		free (filename);
+
+		if (fd == NULL) {
+			fprintf (stderr, "theme_get: Unable to open nanowm.cfg file\n");
+			return -1;
+		} else {
+			ret = ini_locateHeading (fd, "Main");
+			ret = ini_locateKey (fd, "Theme");
+			ret = ini_readString (fd, p, sizeof (buffer));
+		}
+		ini_close(fd);
+		if (ret < 0)
+			p = "theme";
+		/* open theme config file */
+		char path[256] =  ACTIVETHEME_PATH;
+
+		strncat(path, p, 255);
+		strncat(path, ".cfg", 255);
+		filename = cfg_findfile (path);
+		theme_config_fd = ini_open (filename, "r", "#;");
+		free (filename);
+		if (theme_config_fd == NULL) {
+			fprintf (stderr, "theme_get: Unable to open theme config file\n");
+			return -1;
+		}
+
+	}
+	return 0;
+}
+
 /* example of theme config file string:
  * Name = <xposition>,<yposition>,<image filename>
  * Wallpaper=0,0,wallpaper.png
  */
 
-/*
+/**
  * Load image from filename and return its ID
 */
 GR_WINDOW_ID theme_load_image(char * filename)
@@ -68,16 +116,19 @@ GR_WINDOW_ID theme_load_image(char * filename)
 
 	return pid;
 }
-/*
+
+/**
  * Load specified theme file and unpack it to the active theme folder
  * theme file is ZIP packed
 */
 int theme_load(char * theme_file)
 {
+	if (load_theme_config() < 0)
+		return -1;
 	return 0;
 }
 
-/*
+/**
  * Get specified image from the active theme
  *
 */
@@ -85,41 +136,8 @@ int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord
 {
 	char buffer[300], *p = buffer;
 
-	if (!theme_config_fd) {
-		/*Theme config is not loaded yet*/
-	/* Open config file */
-		char * filename = cfg_findfile ("etc/nanowm.cfg");
-		if (!filename) {
-			fprintf (stderr, "theme_get: nanowm.cfg file not found!\n");
-			return -1;
-		}
-		ini_fd_t fd = ini_open (filename, "r", "#;");
-		free (filename);
-		
-		if (fd == NULL) {
-			fprintf (stderr, "theme_get: Unable to open nanowm.cfg file\n");
-			return -1;
-		} else {
-			int ret = ini_locateHeading (fd, "Main");
-			ret = ini_locateKey (fd, "Theme");
-			ret = ini_readString (fd, p, sizeof (buffer));
-		}
-		ini_close(fd);
-
-		/* open theme config file */
-		char path[256] =  ACTIVETHEME_PATH;
-
-		strncat(path, p, 255);
-		strncat(path, ".cfg", 255);
-		filename = cfg_findfile (path);
-		theme_config_fd = ini_open (filename, "r", "#;");
-		free (filename);
-		if (theme_config_fd == NULL) {
-			fprintf (stderr, "theme_get: Unable to open theme config file\n");
-			return -1;
-		}
-
-	}
+	if (load_theme_config() < 0)
+		return -1;
 	/* load needed image */
 	const char * theme_group; /*  group name */
 	const char ** theme_images;	/* pointer to the theme_*_images array */
@@ -159,8 +177,8 @@ int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord
 
 	token = strtok(NULL, ", ");
 	/*token = imagename */
-	
-	if (token) {	
+
+	if (token) {
 		/* we have found image name, now load it */
 		char path[256] =  ACTIVETHEME_PATH;
 		strncat(path, token, 255);
@@ -178,4 +196,30 @@ int theme_get_image(int group_index, int image_index, int * xcoord, int * ycoord
 		*pict_id = 0;
 	}
 	return (*pict_id == 0)?-2:0;
+}
+
+/**
+ * Get font size from theme config
+ */
+int theme_fontsize(int index)
+{
+	int ret, fontsize;
+
+	if (index < 0 || index > 3)
+		return -1;
+	if (load_theme_config() < 0)
+		return -1;
+
+	if (theme_font_sizes_cache[index])
+		return theme_font_sizes_cache[index];
+
+	ret = ini_locateHeading (theme_config_fd, "FontSize");
+	ret |= ini_locateKey (theme_config_fd, theme_font_sizes[index]);
+	ret |= ini_readInt(theme_config_fd, &fontsize);
+	if (ret < 0)
+		return -1;
+	else {
+		theme_font_sizes_cache[index] = fontsize;
+		return fontsize;
+	}
 }

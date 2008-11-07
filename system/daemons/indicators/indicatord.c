@@ -78,8 +78,8 @@ static int main_load_indicators()
 	GrSelectEvents(GR_ROOT_WINDOW_ID, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_FDINPUT | GR_EVENT_MASK_TIMER);
 
 // debug - draw a cross
-	GrLine(GR_ROOT_WINDOW_ID, gc, 0, 0, 176, 220);
-	GrLine(GR_ROOT_WINDOW_ID, gc, 0, 220, 176, 0);
+	GrLine(GR_ROOT_WINDOW_ID, gc, 0, 0, CONFIG_SCREEN_WIDTH, CONFIG_SCREEN_HEIGHT);
+	GrLine(GR_ROOT_WINDOW_ID, gc, 0, CONFIG_SCREEN_HEIGHT, CONFIG_SCREEN_WIDTH, 0);
 
 	/* setup THEME_MAINBATTERY */
 	mainbattery_create(&indicators[THEME_MAINBATTERY]);

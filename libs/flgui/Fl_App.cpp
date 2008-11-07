@@ -12,10 +12,14 @@
  */
 
 Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
-:Fl_Window(0, 0, APPVIEW_WIDTH, APPVIEW_HEIGHT, L)
+	:Fl_Window(0, APPVIEW_STATUS_HEIGHT, APPVIEW_WIDTH, APPVIEW_HEIGHT, L)
 {
 // widget constructor
 	// Fl_Scroll* AppArea
+	int normal_size = theme_fontsize(THEME_FONT_NORMAL);
+	FL_NORMAL_SIZE = normal_size;
+	labelsize(normal_size);
+
 	AppArea = new Fl_Scroll(0, 0, APPVIEW_WIDTH, APPVIEW_AREA_HEIGHT);
 	AppArea->end();
 	if (leftsoft) {
@@ -40,7 +44,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 		RightSoft = NULL;
 	} else {
 		RightSoft = new Fl_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
-					  APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "Close");
+					  APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "&Close");
 		RightSoftMenu = NULL;
 		RightSoft->shortcut(Key_RightSoft);
 		RightSoft->box(FL_FLAT_BOX);

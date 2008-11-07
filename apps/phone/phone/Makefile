@@ -9,7 +9,7 @@ OBJS=${SRC:.cpp=.o}
 #OBJS+=${SRC_C:.c=.o}
 
 
-LIBS+= -lfltk -ltbus -ltpl -lflgui -lflphone
+LIBS+= -lfltk -ltbus -ltpl -lflgui -lflphone -ltheme
 
 ifeq ($(CONFIG_NANOX),y)
 LIBS+=-lnano-X

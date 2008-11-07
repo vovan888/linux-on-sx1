@@ -26,7 +26,7 @@ $BASE_DIR/sbin/t-bus &
 # Start the T-HAL server
 $BASE_DIR/sbin/t-hal &
 # Start the Nano-X server
-$MWDIR/bin/nano-X -e -x 176 -y 220 &
+$MWDIR/bin/nano-X -e @screensize@ &
 # Start up the Nano-X window manager
 $BASE_DIR/sbin/nanowm &
 sleep 1
@@ -35,6 +35,8 @@ $BASE_DIR/sbin/indicatord &
 #sleep 1
 $BASE_DIR/sbin/alarmserver &
 #sleep 100000
+
+$BASE_DIR/bin/phone
 
 # press enter to exit
 echo "-------------------"

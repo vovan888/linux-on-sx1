@@ -428,7 +428,7 @@ double fl_width(unsigned int c) {
 
 void fl_draw(const char* str, int n, int x, int y) {
   if (font_gc != fl_gc) {
-    if (!fl_xfont) fl_font(FL_HELVETICA, 14);
+	  if (!fl_xfont) fl_font(FL_HELVETICA, FL_NORMAL_SIZE);
     font_gc = fl_gc;
 //    XSetFont(fl_display, fl_gc, fl_xfont->fid);
     GrSetGCFont(fl_gc, fl_xfont);//++vovan888

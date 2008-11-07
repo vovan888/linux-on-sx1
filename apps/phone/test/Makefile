@@ -5,7 +5,7 @@ TARGET_CXX=test
 SRC=${shell ls *.cxx}
 OBJS=${SRC:.cxx=.o}
 
-LIBS=-lfltk -lflgui -ltbus -ltpl
+LIBS=-lfltk -lflgui -ltbus -ltpl -ltheme -lflphone
 
 ifeq ($(CONFIG_NANOX),y)
 LIBS+=-lnano-X

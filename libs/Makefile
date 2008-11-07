@@ -13,6 +13,7 @@ export LD=$(TARGET_CROSS)ld
 local-target-y=
 local-target-$(CONFIG_FLNX)	+= flnx
 local-target-$(CONFIG_GSM)	+= gsmd
+local-target-$(CONFIG_FFMPEG)	+= ffmpeg
 
 target-y=
 target-$(CONFIG_FLGUI)		+= flgui
@@ -107,5 +108,62 @@ _install_gsmd: dummy
 _clean_gsmd: dummy
 	make -C $(BASE_DIR)/libs/gsm distclean
 	rm -f $(BASE_DIR)/libs/gsm/.configured	
+
+
+FFMPEG_CROSS=
+ifeq ($(CROSS_COMPILE),y)
+FFMPEG_CROSS= --arch=arm --enable-cross-compile --cross-prefix=$(CROSS_COMPILER_PREFIX)
+endif
+
+$(BASE_DIR)/libs/ffmpeg/.configured: 
+	(cd $(BASE_DIR)/libs/ffmpeg; ./configure \
+	--enable-static \
+	--enable-shared \
+	$(FFMPEG_CROSS) \
+	--disable-armv5te \
+	--disable-armv6 \
+	--disable-iwmmxt \
+	--disable-ipv6 \
+	--disable-mpegaudio-hp \
+	--disable-ffmpeg \
+	--disable-ffserver \
+	--enable-hardcoded-tables \
+	--disable-decoders \
+	--enable-decoder=mp3 \
+	--enable-decoder=vorbis \
+	--enable-decoder=adpcm_ima_wav \
+	--disable-encoders \
+	--disable-muxers \
+	--disable-demuxers \
+	--enable-demuxer=avi \
+	--enable-demuxer=flv \
+	--enable-demuxer=mp3 \
+	--enable-demuxer=mp4 \
+	--enable-demuxer=ogg \
+	--enable-demuxer=wav \
+	--disable-bsfs \
+	--disable-devices \
+	--disable-filters \
+	)
+	touch $(BASE_DIR)/libs/ffmpeg/.configured
+
+_build_ffmpeg: $(BASE_DIR)/libs/ffmpeg/.configured
+	make -C $(BASE_DIR)/libs/ffmpeg -e -j3
+
+	rm -f $(STAGE_DIR)/lib/libfltk.a $(STAGE_DIR)/lib/libfltk.so*
+	ln -fs $(BASE_DIR)/libs/ffmpeg/lib/libfltk.a $(STAGE_DIR)/lib/libfltk.a
+	ln -fs $(BASE_DIR)/libs/ffmpeg/src/libfltk.so.1.1 $(STAGE_DIR)/lib/libfltk.so
+	ln -fs $(BASE_DIR)/libs/ffmpeg/src/libfltk.so.1.1 $(STAGE_DIR)/lib/libfltk.so.1.1
+
+_install_ffmpeg: dummy
+	cp -fP ffmpeg/src/libfltk.so* $(INSTALL_DIR)/lib/
+	cp -fP ffmpeg/src/libfltk_images.so* $(INSTALL_DIR)/lib/
+
+_clean_ffmpeg: dummy
+	if [ -f $(BASE_DIR)/libs/ffmpeg/makeinclude ]; then \
+		make -C $(BASE_DIR)/libs/ffmpeg distclean; \
+	fi
+	rm -f $(BASE_DIR)/libs/ffmpeg/.configured
+
 
 dummy:

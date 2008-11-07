@@ -6,10 +6,13 @@
 *
 */
 
-#include <flphone_config.h>
-
 #ifndef _libflphone_h_
 #define _libflphone_h_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include <flphone_config.h>
 
 
 /* -fvisibility=hidden support macro */
@@ -32,5 +35,7 @@ DLLEXPORT int cfg_readInt(const char *config, const char *head, const char *key)
 /* flphone.c */
 DLLEXPORT int fl_spawn(const char *filename, const char *arg);
 
-
+#ifdef __cplusplus
+}
+#endif
 #endif

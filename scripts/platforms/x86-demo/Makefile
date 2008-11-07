@@ -20,13 +20,16 @@ SAMPLE_TARGET=copy-samples
 endif
 
 ifeq ($(CONFIG_176x220),y)
-THEME_SRC=$(BASE_DIR)/data/176x2200/activetheme
+THEME_SRC=$(BASE_DIR)/data/176x220/activetheme
+NXSCREENSIZE="-x 176 -y 220"
 endif
 ifeq ($(CONFIG_240x320),y)
 THEME_SRC=$(BASE_DIR)/data/240x320/activetheme
+NXSCREENSIZE="-x 240 -y 320"
 endif
 ifeq ($(CONFIG_480x640),y)
 THEME_SRC=$(BASE_DIR)/data/480x640/activetheme
+NXSCREENSIZE="-x 480 -y 640"
 endif
 
 
@@ -61,9 +64,9 @@ copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_
 
 build-script: $(RUN_TEMPLATE)
 	cat $(RUN_TEMPLATE) | \
-	sed -e s%@prefix@%$(PREFIX)%g | \
 	sed -e s%@installdir@%$(DEST_DIR)/%g | \
 	sed -e s%@mwdir@%$(MWDIR)%g | \
+	sed -e s%@screensize@%$(NXSCREENSIZE)%g | \
 	sed -e s%@fltkdir@%$(FLTKDIR)%g > $(SCRIPT_DIR)/run_flphone.sh 
 
 	@ chmod u+x $(SCRIPT_DIR)/run_flphone.sh

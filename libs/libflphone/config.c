@@ -45,6 +45,8 @@ char * cfg_findfile(const char * filename)
 		/* file exists, return pointer to its full path*/
 		return strdup(str);
 	}
+
+	fprintf (stderr, "cfg_findfile: %s file not found!\n", filename);
 	return NULL;
 }
 

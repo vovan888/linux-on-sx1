@@ -45,4 +45,10 @@ config CONFIG_LIBTPL
 	
 	http://tpl.sourceforge.net
 
+config CONFIG_FFMPEG
+       bool "ffmpeg - libavcodec and libavformat"
+       default y
+       help
+	Say yes here to build ffmpeg
+
 endmenu

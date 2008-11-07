@@ -360,14 +360,14 @@ void PhoneApp::cb_End(Fl_Menu_ * o, void *v)
 
 //---------------------------------------------------------------------------
 Fl_Menu_Item PhoneApp::menu_LeftSoft[] = {
-	{"Add recipient", 0, (Fl_Callback *) PhoneApp::cb_Add, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-	{"Call", Key_Green, (Fl_Callback *) PhoneApp::cb_Call, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-	{"Copy", 0, (Fl_Callback *) PhoneApp::cb_Copy, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-	{"Speaker", 0, (Fl_Callback *) PhoneApp::cb_Speaker, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-	{"Hold", 0, (Fl_Callback *) PhoneApp::cb_Hold, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-	{"Disable Mic", 0, (Fl_Callback *) PhoneApp::cb_Disable, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-	{"Send DTMF", 0, (Fl_Callback *) PhoneApp::cb_Send, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
-	{"Отбой", 0, (Fl_Callback *) PhoneApp::cb_End, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+	{"Add recipient", 0, (Fl_Callback *) PhoneApp::cb_Add, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
+	{"Call", Key_Green, (Fl_Callback *) PhoneApp::cb_Call, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
+	{"Copy", 0, (Fl_Callback *) PhoneApp::cb_Copy, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
+	{"Speaker", 0, (Fl_Callback *) PhoneApp::cb_Speaker, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
+	{"Hold", 0, (Fl_Callback *) PhoneApp::cb_Hold, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
+	{"Disable Mic", 0, (Fl_Callback *) PhoneApp::cb_Disable, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
+	{"Send DTMF", 0, (Fl_Callback *) PhoneApp::cb_Send, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
+	{"Отбой", 0, (Fl_Callback *) PhoneApp::cb_End, 0, 0, FL_NORMAL_LABEL, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
