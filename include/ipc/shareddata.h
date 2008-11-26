@@ -80,7 +80,7 @@ struct SharedSystem {
 
 		int  Network_Service_Avail;	/** service abailable */
 		int  Network_Signal;		/** network signal strength 0..5 */
-		char Network_Operator[64+8];	/** current operator alpha in HEX */
+		char Network_Operator[64+8];	/** current operator alpha in UTF8 */
 		char Network_OperatorNum[8];	/** current operator num in HEX (MCC+MNC)*/
 
 		int Call_InProgress;		/** is Call in progress now? */

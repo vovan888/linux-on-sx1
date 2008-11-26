@@ -22,12 +22,14 @@
 int fl_spawn(const char *filename, const char *arg)
 {
 
-	int ret;
+	int ret = -1;
 	const char *argv[3];
 
 	if ( (filename == NULL) || (arg == NULL) )
 		return -1;
 
+	if (access(filename, F_OK))
+		return -1;
 	argv[0] = filename;
 	argv[1] = arg;
 	argv[2] = 0;

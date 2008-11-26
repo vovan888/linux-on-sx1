@@ -1,13 +1,9 @@
-# apps/phone/Makefile
+# contacts
 
-TARGET_APP=phone
+TARGET_APP=contacts
 
 SRC=${shell ls *.cpp}
 OBJS=${SRC:.cpp=.o}
-
-#SRC_C=${shell ls *.c}
-#OBJS+=${SRC_C:.c=.o}
-
 
 LIBS+= -lfltk -ltbus -ltpl -lflgui -lflphone -ltheme
 

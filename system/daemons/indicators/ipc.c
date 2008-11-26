@@ -30,6 +30,8 @@ int ipc_start(char *servername)
 
 	/* Subscribe to different signals */
 	tbus_connect_signal("PhoneServer", "Signal");
+	tbus_connect_signal("PhoneServer", "NetworkReg");
+
 	tbus_connect_signal("T-HAL", "BatteryCharge");
 	tbus_connect_signal("T-HAL", "BatteryCharging");
 
@@ -46,12 +48,22 @@ static int ipc_signal(struct tbus_message *msg)
 	DPRINT("%d,%s->%s/%s\n", msg->type, msg->service_sender,
 	       msg->service_dest, msg->object);
 
+	static int old_creg_state = 0;
+
 	if (shdata->WM.top_active_window != GR_ROOT_WINDOW_ID)
 		return 0;
 
 	if (!strcmp(msg->service_dest, "PhoneServer")) {
-		if (!strcmp(msg->object, "Signal"))
+		if (!strcmp(msg->object, "Signal")) {
 			indicators[THEME_MAINSIGNAL].changed(0);
+		} else if (!strcmp("NetworkReg", msg->object)) {
+			int state = shdata->PhoneServer.CREG_State;
+
+			if (state != old_creg_state)
+				indicators[THEME_OPERATOR].changed(0);
+
+			old_creg_state = state;
+		}
 	} else
 	if (!strcmp(msg->service_dest, "T-HAL")) {
 		if (!strcmp(msg->object, "BatteryCharge"))

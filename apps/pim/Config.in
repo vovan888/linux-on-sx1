@@ -8,12 +8,12 @@ config CONFIG_PIM
 
 	  Most people should answer Y.
 
-config PIM_ADDRESSBOOK
-	bool "Build Adressbook application"
+config CONFIG_PIM_CONTACTS
+	bool "Build contacts application"
 	default n
 	depends CONFIG_PIM
 	help
-	  Say Y here if you want to build Adressbook
+	  Say Y here if you want to build Contact
 
 	  Most people should answer Y.
 

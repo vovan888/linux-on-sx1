@@ -80,6 +80,7 @@ struct windowlist {
 	char *title;		/* Title (caption) (utf8) */
 	GR_WINDOW_ID  icon;	/* icon id */
 	void *data;		/* Data associated with this window */
+	int  program_id;	/* application pid */
 
 	struct windowlist *next;	/* The next window in the list */
 	struct windowlist *prev;	/* The previous window in the list */

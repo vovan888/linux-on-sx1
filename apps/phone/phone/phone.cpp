@@ -38,22 +38,11 @@ void PhoneApp::RemoveIllegalChars(char *str, int len)
 
 void PhoneApp::SetOperatorName()
 {
-	char *name = Shm->PhoneServer.Network_Operator;
-	char decoded[32];
-	char str[3];
-	int i, len = strlen(name);
+	char *opname = Shm->PhoneServer.Network_Operator;
+	int len = strlen(opname);
 
-	if (len > 0) {
-		for (i = 0; i < len / 4; i++) {
-			//004D00540053002D005200550053
-			str[0] = name[i * 4 + 2];
-			str[1] = name[i * 4 + 3];
-			str[2] = 0;
-			decoded[i] = (char)strtol(str, NULL, 16);
-		}
-		decoded[i] = 0;
-		OpName->value(decoded);
-	}
+	if (len > 0)
+		OpName->value(opname);
 }
 //---------------------------------------------------------------------------
 int PhoneApp::RegisteredToNetwork()

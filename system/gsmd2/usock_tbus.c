@@ -798,12 +798,31 @@ static int network_sigq_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 				  &gsq.ber);
 }
 
+static void ucs2utf8(const char *longalpha, char *utf8output)
+{
+	/*FIXME this is for English only (should be enough?)*/
+	char str[3];
+	int i, len = strlen(longalpha) / 4;
+
+	if (len > 0) {
+		for (i = 0; i < len; i++) {
+			//004D00540053002D005200550053
+			str[0] = longalpha[i * 4 + 2];
+			str[1] = longalpha[i * 4 + 3];
+			str[2] = 0;
+			utf8output[i] = (char)strtol(str, NULL, 16);
+		}
+		utf8output[i] = 0;
+	}
+}
+
 static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 {
 	struct gsmd_user *gu = ctx;
 	const char *end, *opname;
 	int format, s, ret;
 	char *buf;
+	char utf8name[32];
 
 	/* Format: <mode>[,<format>,<oper>] */
 	/* In case we're not registered, return an empty string.  */
@@ -825,11 +844,14 @@ static int network_oper_cb(struct gsmd_atcmd *cmd, void *ctx, char *resp)
 
 	buf = strndup(opname, end - opname);
 
+	if(format == 0)
+		ucs2utf8(buf, utf8name);
+
 	if (gu->gsmd->shmem) {
-		strncpy(gu->gsmd->shmem->PhoneServer.Network_Operator, buf, 64+8);
+		strncpy(gu->gsmd->shmem->PhoneServer.Network_Operator, utf8name, 64+8);
 	}
 
-	ret = tbus_method_return(gu->service_sender, "Network/OperatorGet", "s", &buf);
+	ret = tbus_method_return(gu->service_sender, "Network/OperatorGet", "s", &utf8name);
 	free(buf);
 
 	return ret;

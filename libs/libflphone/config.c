@@ -16,11 +16,11 @@
 #include <flphone_config.h>
 #include <flphone/libflphone.h>
 
-#define PATHS_NUM	2
+#define PATHS_NUM	3
 #ifdef CONFIG_PLATFORM_X86DEMO
-const char *paths[PATHS_NUM] = {"./", NULL };
+const char *paths[PATHS_NUM] = {"./", NULL, NULL};
 #else
-const char *paths[PATHS_NUM] = {"/mnt/mmc1/","/usr/flphone/" };
+const char *paths[PATHS_NUM] = {"/mnt/card/.flphone/", "/usr/flphone/", "/home/default/.flphone/" };
 #endif
 
 /**

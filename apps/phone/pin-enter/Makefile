@@ -1,6 +1,6 @@
 # apps/phone/Makefile
 
-TARGET_CXX=pin-enter
+TARGET_APP=pin-enter
 
 SRC=${shell ls *.cpp}
 OBJS=${SRC:.cpp=.o}

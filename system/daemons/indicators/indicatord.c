@@ -90,7 +90,10 @@ static int main_load_indicators()
 	/* setup THEME_DATETIME */
 	maindatetime_create(&indicators[THEME_DATETIME]);
 
-	indicators_number = THEME_DATETIME;
+	/* setup THEME_OPERATOR */
+	operator_create(&indicators[THEME_OPERATOR]);
+
+	indicators_number = THEME_OPERATOR;
 
 	return 0;
 }

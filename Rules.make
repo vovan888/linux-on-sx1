@@ -69,6 +69,7 @@ endif
 
 # Installation directories
 
+INSTALL_APPDIR ?= $(INSTALL_DIR)/apps/$(TARGET_APP)
 INSTALL_BINDIR ?= $(INSTALL_DIR)/bin
 INSTALL_SODIR  ?= $(INSTALL_DIR)/plugins
 
@@ -145,12 +146,13 @@ INSTALL_EXTRAS   ?=
 INST_STATIC=$(patsubst %, $(STAGE_DIR)/lib/%, $(LIB_STATIC))
 INST_SHARED=$(patsubst %, $(STAGE_DIR)/lib/%, $(LIB_SHARED))
 
+BUILD_APP         := $(TARGET_APP)
 BUILD_LIBS        := $(LIB_STATIC) $(LIB_SHARED)
 BUILD_NATIVE_LIBS := $(NATIVE_LIB_STATIC) $(NATIVE_LIB_SHARED)
 BUILD_BINS        := $(TARGET) $(TARGET_CXX)
 BUILD_SO          := $(TARGET_SO)
 
-BUILD_TARGETS := $(BUILD_LIBS) $(BUILD_BINS) $(BUILD_SO) $(BUILD_NATIVE_LIBS)
+BUILD_TARGETS := $(BUILD_LIBS) $(BUILD_BINS) $(BUILD_SO) $(BUILD_NATIVE_LIBS) $(BUILD_APP)
 
 build-all: $(PREBUILD_EXTRAS) $(BUILD_TARGETS) $(TARGET_EXTRAS) $(POSTBUILD_EXTRAS)
 
@@ -160,7 +162,7 @@ clean: $(CLEAN_EXTRAS)
 
 	@ rm -rf $(PAR_CONFIG) $(LOCAL_DB)
 
-install: install-libs install-bin install-so $(INSTALL_EXTRAS)
+install: install-libs install-bin install-so install-app $(INSTALL_EXTRAS)
 
 install-libs: $(INSTALL_DIR)/lib
 	@ if [ -n "$(LIB_SHARED)" ]; then \
@@ -177,10 +179,19 @@ install-so: $(INSTALL_SODIR)
 	  cp $(BUILD_SO) $(INSTALL_SODIR); \
 	fi
 
+install-app: $(INSTALL_APPDIR)
+	@ if [ -n "$(strip $(BUILD_APP))" ]; then \
+	  cp $(BUILD_APP) $(INSTALL_APPDIR); \
+	  cp ./appdata/* $(INSTALL_APPDIR); \
+	fi
+
 $(TARGET): $(OBJS)
 	$(CC) $(BUILD_CFLAGS) -o $@ $(OBJS) $(sort $(LIBDIRS)) $(LIBS)
 
 $(TARGET_CXX): $(OBJS)
+	$(CC) $(BUILD_CFLAGS) -o $@ $(OBJS) $(sort $(LIBDIRS)) $(LIBS) -lstdc++ -lm
+
+$(TARGET_APP): $(OBJS)
 	$(CC) $(BUILD_CFLAGS) -o $@ $(OBJS) $(sort $(LIBDIRS)) $(LIBS) -lstdc++ -lm
 
 $(TARGET_SO): $(OBJS)
@@ -216,7 +227,7 @@ $(NATIVE_LIB_SHARED): $(NATIVE_OBJS)
 		ln -s $(CURDIR)/$(NATIVE_LIB_SHARED) $(STAGE_DIR)/lib/native/`basename $(NATIVE_LIB_SHARED)`; \
 	fi
 
-$(STAGE_DIR)/lib/ $(STAGE_DIR)/lib/native $(INSTALL_DIR)/lib $(INSTALL_SODIR) $(INSTALL_BINDIR): 
+$(STAGE_DIR)/lib/ $(STAGE_DIR)/lib/native $(INSTALL_DIR)/lib $(INSTALL_SODIR) $(INSTALL_BINDIR) $(INSTALL_APPDIR): 
 	@ mkdir -p $@
 
 ## PAR database targets

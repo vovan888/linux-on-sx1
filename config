@@ -6,9 +6,9 @@
 # Flphone Settings
 #
 # CONFIG_PLATFORM_GTA02 is not set
-CONFIG_PLATFORM_SX1=y
-# CONFIG_PLATFORM_X86DEMO is not set
-CONFIG_CPU_ARM=y
+# CONFIG_PLATFORM_SX1 is not set
+CONFIG_PLATFORM_X86DEMO=y
+# CONFIG_CPU_INTEL is not set
 # CONFIG_X11 is not set
 CONFIG_NANOX=y
 CONFIG_176x220=y
@@ -20,8 +20,6 @@ CONFIG_176x220=y
 #
 # Build Options
 #
-CROSS_COMPILE=y
-CROSS_COMPILER_PREFIX="arm-linux-"
 MW_PREFIX="/home/vovan/linux-on-sx1-dev/microwin/src"
 CONFIG_SAMPLES=y
 # CONFIG_GCC_HIDDEN_VISIBILITY is not set
@@ -44,7 +42,7 @@ CONFIG_PHONE=y
 # CONFIG_MESSAGES is not set
 # CONFIG_MENUPUSK is not set
 # CONFIG_MAINMENU is not set
-CONFIG_TEST=y
+# CONFIG_TEST is not set
 
 #
 # Media Applications
@@ -66,6 +64,7 @@ CONFIG_FLNX=y
 CONFIG_LIBFLPHONE=y
 CONFIG_LIBTHEME=y
 CONFIG_LIBTPL=y
+# CONFIG_FFMPEG is not set
 
 #
 # System applications

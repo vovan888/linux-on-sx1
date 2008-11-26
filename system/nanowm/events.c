@@ -165,11 +165,11 @@ void do_key_down(GR_EVENT_KEYSTROKE * event)
 		event->modifiers, event->ch, event->scancode);
 
 	/* DEBUG keys */
-	if (event->ch == Key_Menu) {
+/*	if (event->ch == Key_Menu) {
 		int ret = 888;
 		char *str = "Key_Menu";
 		ret = tbus_emit_signal("debugkey", "is", &ret, &str);
-	}
+	}*/
 	/* Handle keyboard shortcuts */
 	handle_key_up(event);
 }
