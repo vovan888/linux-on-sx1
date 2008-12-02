@@ -20,6 +20,7 @@ target-$(CONFIG_FLGUI)		+= flgui
 target-$(CONFIG_LIBFLPHONE)	+= libflphone
 target-$(CONFIG_LIBTHEME)	+= libtheme
 target-$(CONFIG_LIBTPL)		+= libtpl
+target-$(CONFIG_LIBPIM)		+= libpim
 
 # This will ensure that we only build one target at a time
 DIRS=$(sort $(target-y))

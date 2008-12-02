@@ -21,6 +21,7 @@ Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
 	labelsize(normal_size);
 
 	AppArea = new Fl_Scroll(0, 0, APPVIEW_WIDTH, APPVIEW_AREA_HEIGHT);
+	AppArea->user_data(this);
 	AppArea->end();
 	if (leftsoft) {
 		LeftSoftMenu = new Fl_Menu_Button(0, APPVIEW_AREA_HEIGHT,

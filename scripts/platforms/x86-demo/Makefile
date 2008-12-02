@@ -12,6 +12,7 @@ MP3_DIR=$(INSTALL_DIR)/share/mp3
 MPEG_DIR=$(INSTALL_DIR)/share/media
 FONT_DIR=$(INSTALL_DIR)/share/fonts
 THEME_DIR=$(INSTALL_DIR)/share/activetheme
+PIM_DIR=$(INSTALL_DIR)/share/pim
 ETC_DIR=$(INSTALL_DIR)/etc
 
 INSTALL_DIRS=$(SYSLOG_DIR) $(NETSCRIPT_DIR) 
@@ -52,14 +53,17 @@ SCRIPT_TARGET=build-script
 all:
 clean:
 
-install: $(INSTALL_DIRS) $(SAMPLE_TARGET) $(SCRIPT_TARGET)
+install: $(SAMPLE_TARGET) $(SCRIPT_TARGET)
+#install: $(INSTALL_DIRS) $(SAMPLE_TARGET) $(SCRIPT_TARGET)
 
-copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_DIR)
+copy-samples: $(FONT_DIR) $(THEME_DIR) $(ETC_DIR) $(PIM_DIR)
+#copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_DIR)
 #	@ cp $(HTML_FILES) $(HTML_DIR)
 #	@ cp $(MP3_FILES) $(MP3_DIR)
 #	@ cp $(MPEG_FILES) $(MPEG_DIR)
 	@ cp $(FONT_FILES) $(FONT_DIR)
 	@ cp $(THEME_SRC)/* $(THEME_DIR)
+	@ cp $(BASE_DIR)/data/pim/* $(PIM_DIR)
 	@ cp $(BASE_DIR)/etc/* $(ETC_DIR)
 
 build-script: $(RUN_TEMPLATE)
@@ -71,7 +75,7 @@ build-script: $(RUN_TEMPLATE)
 
 	@ chmod u+x $(SCRIPT_DIR)/run_flphone.sh
 
-$(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(INSTALL_DIRS) $(THEME_DIR) $(ETC_DIR):
+$(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(INSTALL_DIRS) $(THEME_DIR) $(ETC_DIR) $(PIM_DIR):
 	@ mkdir -p $@	
 
 .PHONY: samples

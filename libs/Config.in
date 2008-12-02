@@ -45,6 +45,12 @@ config CONFIG_LIBTPL
 	
 	http://tpl.sourceforge.net
 
+config CONFIG_LIBPIM
+       bool "libpim - Personal Information Management library"
+       default y
+       help
+	Say yes here to build libpim
+
 config CONFIG_FFMPEG
        bool "ffmpeg - libavcodec and libavformat"
        default n

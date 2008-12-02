@@ -52,7 +52,8 @@ CONFIG_PHONE=y
 #
 # PIM Applications
 #
-# CONFIG_PIM is not set
+CONFIG_PIM=y
+CONFIG_PIM_CONTACTS=y
 
 #
 # Libraries
@@ -64,6 +65,7 @@ CONFIG_FLNX=y
 CONFIG_LIBFLPHONE=y
 CONFIG_LIBTHEME=y
 CONFIG_LIBTPL=y
+CONFIG_LIBPIM=y
 # CONFIG_FFMPEG is not set
 
 #

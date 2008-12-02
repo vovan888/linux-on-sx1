@@ -40,7 +40,8 @@ install: $(INSTALL_DIRS) $(SAMPLE_TARGET)
 	@ cp run_flphone.sh $(INSTALL_DIR)
 	@ chmod uga+x $(INSTALL_DIR)/run_flphone.sh
 
-copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_DIR)
+copy-samples: $(FONT_DIR) $(THEME_DIR) $(ETC_DIR)
+#copy-samples: $(HTML_DIR) $(MP3_DIR) $(MPEG_DIR) $(FONT_DIR) $(THEME_DIR) $(ETC_DIR)
 #	@ cp $(HTML_FILES) $(HTML_DIR)
 #	@ cp $(MP3_FILES) $(MP3_DIR)
 #	@ cp $(MPEG_FILES) $(MPEG_DIR)

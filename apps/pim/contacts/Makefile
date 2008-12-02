@@ -5,7 +5,7 @@ TARGET_APP=contacts
 SRC=${shell ls *.cpp}
 OBJS=${SRC:.cpp=.o}
 
-LIBS+= -lfltk -ltbus -ltpl -lflgui -lflphone -ltheme
+LIBS+= -lfltk -ltbus -ltpl -lflgui -lflphone -ltheme -lpim -lsqlite3
 
 ifeq ($(CONFIG_NANOX),y)
 LIBS+=-lnano-X

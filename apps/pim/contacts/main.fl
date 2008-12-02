@@ -1,0 +1,58 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0107 
+header_name {.h} 
+code_name {.cpp}
+widget_class ContactsUI {
+  label 200 open
+  xywh {484 140 176 200} type Single
+  class Fl_App visible position_relative
+} {
+  Fl_Browser cnt_list {
+    callback {// list callback}
+    xywh {0 1 176 180} align 0
+  }
+  Fl_Group grp_view {
+    label Call open
+    xywh {0 0 176 181} hide
+  } {}
+  Fl_Group grp_edit {open
+    xywh {0 0 176 181} hide
+  } {}
+  Fl_Menu_Button LeftSoft {
+    label Options open
+    xywh {0 180 88 20} box FLAT_BOX
+  } {
+    MenuItem {} {
+      label Call
+      callback {//call current contact}
+      xywh {10 10 100 20}
+    }
+    MenuItem {} {
+      label Open
+      callback {// open current contact to view details}
+      xywh {0 0 100 20}
+    }
+    MenuItem {} {
+      label Edit
+      callback {// edit contact}
+      xywh {0 0 100 20}
+    }
+  }
+  Fl_Menu_Button RightSoft {
+    label Close
+    callback {// Close program} open
+    xywh {88 180 88 20} box FLAT_BOX when 10
+  } {}
+  Function {refresh_list(char *filter)} {open
+  } {
+    code {// fill contact list with data
+// use filter} {}
+  }
+} 
+
+Function {} {open
+} {
+  code {ContactsUI app(0,0,176,200,"Contacts");
+app.show();
+app.refresh_list("%");} {}
+} 
