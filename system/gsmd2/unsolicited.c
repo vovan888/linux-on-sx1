@@ -256,13 +256,13 @@ static int cgev_parse(const char *buf, int len, const char *param, struct gsmd *
 /* Chapter 10.1.14, GPRS network registration status '+CGREG: 3'*/
 static int cgreg_parse(const char *buf, int len, const char *param, struct gsmd *gsmd)
 {
-	int status = atoi(param);
+	int ret, status = atoi(param);
 
 	if (gsmd->shmem)
 		gsmd->shmem->PhoneServer.GPRS_RegStatus = status;
-	tbus_emit_signal("PhoneServer", "GPRS/RegStatus","i", &status);
+	ret = tbus_emit_signal("GPRS/RegStatus","i", &status);
 
-	return 0;
+	return ret;
 }
 
 /* Chapter 7.6, calling line identification presentation

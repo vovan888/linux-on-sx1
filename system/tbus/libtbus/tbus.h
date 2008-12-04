@@ -42,8 +42,6 @@ extern "C" {
 		char *object;	/* method name to call or emitted signal name */
 		void *data;	/* message data0 (binary buffer) */
 		int datalen;	/* length of data buffer */
-//      char *data1;    /* message data1 (string) */
-//      char *data2;    /* message data2 (string) */
 	};
 
 /* TPL format string for the internal message */

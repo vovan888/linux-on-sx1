@@ -54,6 +54,8 @@ static int tbus_write_message(int fd, struct tbus_message *msg)
 	tpl_bin tb;
 
 	tn = tpl_map(TBUS_MESSAGE_FORMAT, msg, &tb);
+	if(tn == NULL)
+		return -1;
 	tb.sz = msg->datalen;
 	tb.addr = msg->data;
 	tpl_pack(tn, 0);	/* copies message data into the tpl */
@@ -87,6 +89,8 @@ static int tbus_read_message(int fd, struct tbus_message *msg)
 	tpl_bin tb;
 
 	tn = tpl_map(TBUS_MESSAGE_FORMAT, msg, &tb);
+	if(tn == NULL)
+		return -1;
 	if (tpl_load(tn, TPL_FD, fd))
 		goto error_msg;
 	tpl_unpack(tn, 0);	/* allocates space and unpacks data */
@@ -111,20 +115,24 @@ static int tbus_read_message(int fd, struct tbus_message *msg)
 static int tbus_pack_args(struct tbus_message *msg, const char *fmt, va_list ap)
 {
 	void *data = NULL;
-	int datalen = 0;
+	int error = 0, datalen = 0;
 
 	if (fmt && (strlen(fmt) > 0)) {
 		tpl_node *tn;
 		tn = tpl_vmap(fmt, ap);
-		tpl_pack(tn, 0);
-		tpl_dump(tn, TPL_MEM, &data, &datalen);
-		tpl_free(tn);
+		if (tn == NULL) {
+		    error = -1;
+		} else {
+		    tpl_pack(tn, 0);
+		    tpl_dump(tn, TPL_MEM, &data, &datalen);
+		    tpl_free(tn);
+		}
 	}
 
 	msg->data = data;
 	msg->datalen = datalen;
 
-	return 0;
+	return error;
 }
 
 /**
@@ -271,6 +279,8 @@ DLLEXPORT int tbus_get_message_args(struct tbus_message *msg, const char *fmt, .
 		va_start(ap, fmt);
 		tpl_node *tn;
 		tn = tpl_vmap(fmt, ap);
+		if(tn == NULL)
+			return -1;
 		err = tpl_load(tn, TPL_MEM, msg->data, msg->datalen);
 		if (err < 0)
 			return err;
