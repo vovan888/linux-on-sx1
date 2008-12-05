@@ -19,12 +19,6 @@ config CONFIG_FLNX_DEBUG
        help
 	Say yes here to build FLNX for Microwindows
 
-config CONFIG_GSM
-       bool "gsmd - OpenMoko`s gsmd and libgsmd"
-       default y
-       help
-	Say yes here to build libgsmd
-
 config CONFIG_LIBFLPHONE
        bool "libflphone - common lib for flphone"
        default y
