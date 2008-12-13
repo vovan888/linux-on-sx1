@@ -7,50 +7,24 @@
 /**
  * Default constructor
  * @param L window caption
- * @param leftsoft if true - LeftSoftMenu is used, false - LeftSoft
- * @param leftsoft if true - RightSoftMenu is used, false - RightSoft
  */
 
-Fl_App::Fl_App(const char *L, bool leftsoft, bool rightsoft)
+Fl_App::Fl_App(const char *L)
 	:Fl_Window(0, APPVIEW_STATUS_HEIGHT, APPVIEW_WIDTH, APPVIEW_HEIGHT, L)
 {
 // widget constructor
-	// Fl_Scroll* AppArea
 	int normal_size = theme_fontsize(THEME_FONT_NORMAL);
 	FL_NORMAL_SIZE = normal_size;
 	labelsize(normal_size);
+	user_data(this);	/* parent of softkeys widgets */
+	Fl_Window::box(FL_NO_BOX);
 
 	AppArea = new Fl_Scroll(0, 0, APPVIEW_WIDTH, APPVIEW_AREA_HEIGHT);
-	AppArea->user_data(this);
+	AppArea->user_data(this);	/* parent of all apparea widgets */
 	AppArea->end();
-	if (leftsoft) {
-		LeftSoftMenu = new Fl_Menu_Button(0, APPVIEW_AREA_HEIGHT,
-						  APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT,
-						  "&Options");
-		LeftSoftMenu->box(FL_FLAT_BOX);
-		LeftSoft = NULL;
-	} else {
-		LeftSoft = new Fl_Button(0, APPVIEW_AREA_HEIGHT,
-					 APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "OK");
-		LeftSoftMenu = NULL;
-		LeftSoft->shortcut(Key_LeftSoft);
-		LeftSoft->box(FL_FLAT_BOX);
-	}
-	// Fl_Menu_Button* LeftSoft
-	if (rightsoft) {
-		RightSoftMenu = new Fl_Menu_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
-						   APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT,
-						   "&Close");
-		RightSoftMenu->box(FL_FLAT_BOX);
-		RightSoft = NULL;
-	} else {
-		RightSoft = new Fl_Button(APPVIEW_WIDTH / 2, APPVIEW_AREA_HEIGHT,
-					  APPVIEW_WIDTH / 2, APPVIEW_CONTROL_HEIGHT, "&Close");
-		RightSoftMenu = NULL;
-		RightSoft->shortcut(Key_RightSoft);
-		RightSoft->box(FL_FLAT_BOX);
-	}
-	// Fl_Menu_Button* RightSoft
+
+	LeftSoftMenu = new Fl_SoftButton( true ,"Options");
+	RightSoftMenu = new Fl_SoftButton( false, "Close");
 	end();
 
 	tbus_socket = tbus_register_service((char *)L);

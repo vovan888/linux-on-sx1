@@ -8,6 +8,7 @@
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Button.H>
+#include "flgui/Fl_SoftButton.h"
 
 #include <flphone/theme.h>
 #include <flphone/keys_flnx.h>
@@ -15,13 +16,13 @@
 
 class Fl_App:public Fl_Window {
       public:
-	Fl_App(const char *L = 0, bool leftmenu = false, bool rightsoft = false);
+	Fl_App(const char *L = "App");
 	~Fl_App();
 	Fl_Scroll *AppArea;
-	Fl_Menu_Button *LeftSoftMenu;
-	Fl_Button *LeftSoft;
-	Fl_Menu_Button *RightSoftMenu;
-	Fl_Button *RightSoft;
+	Fl_SoftButton *LeftSoftMenu;
+//	Fl_Button *LeftSoft;
+	Fl_SoftButton *RightSoftMenu;
+//	Fl_Button *RightSoft;
 
 	int AppState;		// Current App state (user controlled)
 	int TBusWaitForMsg(struct tbus_message *msg, char *service, char *object, int timeout);

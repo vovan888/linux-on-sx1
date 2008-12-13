@@ -190,6 +190,8 @@ DLLEXPORT int tbus_register_service(const char *service)
 
 	if (!service)
 		return -1;
+	if(strlen(service) == 0)
+		return -1;
 
 	tbus_socket_sys = tbus_connect_socket(TBUS_SOCKET_SYS);
 	if (tbus_socket_sys < 0)

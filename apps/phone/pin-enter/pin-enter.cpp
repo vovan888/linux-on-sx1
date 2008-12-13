@@ -129,10 +129,10 @@ UserInterface::UserInterface()
       AppArea -> add(o);
     }
 //	LeftSoft->labeltype(FL_SHADOW_LABEL);
-	LeftSoft->callback((Fl_Callback*)cb_LeftSoft, (void *)this);
+	LeftSoftMenu->callback((Fl_Callback*)cb_LeftSoft, (void *)this);
 
 //	RightSoft->labeltype(FL_SHADOW_LABEL);
-	RightSoft->callback((Fl_Callback*)cb_RightSoft, (void *)this);
+	RightSoftMenu->callback((Fl_Callback*)cb_RightSoft, (void *)this);
 
 	message->value("Please enter PIN");
 

@@ -48,8 +48,10 @@ void ContactsUI::cb_RightSoft_i(Fl_Menu_Button*, void*) {
 void ContactsUI::cb_RightSoft(Fl_Menu_Button* o, void* v) {
   ((ContactsUI*)(o->parent()))->cb_RightSoft_i(o,v);
 }
+
+
 ContactsUI::ContactsUI()
-  : Fl_App("Contacts", true, false)
+  : Fl_App("Contacts")
 {
 	user_data(this);
 
@@ -72,7 +74,7 @@ ContactsUI::ContactsUI()
   AppArea->add(cnt_list);
 
   LeftSoftMenu->menu(menu_LeftSoft);
-  RightSoft->callback((Fl_Callback*)cb_RightSoft);
+  RightSoftMenu->callback((Fl_Callback*)cb_RightSoft);
 
   pim_init();
 

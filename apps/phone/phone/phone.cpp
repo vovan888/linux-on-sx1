@@ -373,7 +373,7 @@ void PhoneApp::cb_RightSoft(Fl_Menu_Button * o, void *v)
 
 //---------------------------------------------------------------------------
 PhoneApp::PhoneApp()
-:  Fl_App("Phone", true)
+:  Fl_App("Phone")
 {
 	user_data(this);
 
@@ -428,7 +428,7 @@ PhoneApp::PhoneApp()
 	AppArea->add(grp_dial);
 	AppArea->add(grp_call);
 	LeftSoftMenu->menu(menu_LeftSoft);
-	RightSoft->callback((Fl_Callback *) cb_RightSoft, (void *)this);
+	RightSoftMenu->callback((Fl_Callback *) cb_RightSoft, (void *)this);
 
 	AppState = STATE_IDLE;
 	OpName->value("");
