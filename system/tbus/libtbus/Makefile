@@ -6,6 +6,6 @@ LIB_SHARED=libtbus.so
 SRC=${shell ls *.c}
 OBJS=${SRC:.c=.o}
 
-INCLUDES=-I./include
+#INCLUDES=-I.
 
 include $(BASE_DIR)/Rules.make

@@ -23,18 +23,20 @@ extern "C" {
 #define TBUS_SOCKET_SYS		"/tmp/.tbus-sys.socket"
 //#define TBUS_SOCKET_APP               "/tmp/.tbus-app.socket"
 
-/* internal message types */
-#define TBUS_MSG_REGISTER		0
-#define TBUS_MSG_REGISTERED		1
-#define TBUS_MSG_CALL_METHOD		2
-#define TBUS_MSG_RETURN_METHOD		3
-#define TBUS_MSG_CONNECT_SIGNAL		4
-#define TBUS_MSG_DISCON_SIGNAL		5
-#define TBUS_MSG_SIGNAL			6
-#define TBUS_MSG_ERROR			7
-#define TBUS_MSG_CLOSE			8
+/** internal message types */
+enum	{
+	TBUS_MSG_REGISTER,
+	TBUS_MSG_REGISTERED,
+	TBUS_MSG_CALL_METHOD,
+	TBUS_MSG_RETURN_METHOD,
+	TBUS_MSG_CONNECT_SIGNAL,
+	TBUS_MSG_DISCON_SIGNAL,
+	TBUS_MSG_SIGNAL,
+	TBUS_MSG_ERROR,
+	TBUS_MSG_CLOSE,
+}
 
-/* internal message struct */
+/** internal message struct */
 	struct tbus_message {
 		int type;	/* type of message */
 		char *service_sender;	/* sender */
@@ -44,7 +46,7 @@ extern "C" {
 		int datalen;	/* length of data buffer */
 	};
 
-/* TPL format string for the internal message */
+/** TPL format string for the internal message */
 #define TBUS_MESSAGE_FORMAT	"S(isss)B"
 
 	DLLEXPORT int tbus_register_service(const char *service);
