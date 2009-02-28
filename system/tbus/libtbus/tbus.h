@@ -34,7 +34,7 @@ enum	{
 	TBUS_MSG_SIGNAL,
 	TBUS_MSG_ERROR,
 	TBUS_MSG_CLOSE,
-}
+};
 
 /** internal message struct */
 	struct tbus_message {
