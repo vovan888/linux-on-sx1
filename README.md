@@ -15,3 +15,9 @@ Kernel support is already in kernel:
 config MACH_SX1
 http://lxr.free-electrons.com/source/arch/arm/mach-omap1/board-sx1.c
 http://lxr.free-electrons.com/source/drivers/video/omap/lcd_sx1.c?v=2.6.25
+
+Original site:
+http://sourceforge.net/projects/linux-on-sx1
+
+Text user interface by Pavel Machek
+http://sourceforge.net/projects/tui
